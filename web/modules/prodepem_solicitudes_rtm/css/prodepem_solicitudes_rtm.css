@@ -1,0 +1,57 @@
+/* CDA Details Card Styling */
+#detalles_cda .cda-card {
+  background-color: #fff;
+  border-radius: 8px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  padding: 20px;
+  margin-top: 20px;
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  border: 1px solid #e0e0e0;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+#detalles_cda .cda-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+}
+
+#detalles_cda .cda-card h3 {
+  margin-top: 0;
+  margin-bottom: 15px;
+  color: #333;
+  font-size: 1.25rem;
+  border-bottom: 2px solid #0056b3;
+  padding-bottom: 10px;
+  display: inline-block;
+}
+
+#detalles_cda .cda-card .cda-info-item {
+  margin-bottom: 10px;
+  color: #555;
+  font-size: 0.95rem;
+}
+
+#detalles_cda .cda-card .cda-info-item strong {
+  color: #333;
+  font-weight: 600;
+  margin-right: 5px;
+}
+
+#detalles_cda .cda-card .cda-description {
+  margin-top: 15px;
+  padding-top: 15px;
+  border-top: 1px solid #eee;
+  font-size: 0.9rem;
+  color: #666;
+  line-height: 1.5;
+}
+
+#detalles_cda .cda-card .cda-description a {
+  color: #0056b3;
+  text-decoration: none;
+  font-weight: 500;
+}
+
+#detalles_cda .cda-card .cda-description a:hover {
+  text-decoration: underline;
+}

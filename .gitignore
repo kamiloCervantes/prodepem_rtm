@@ -1,0 +1,38 @@
+# Composer
+/vendor
+/vendor/*
+/web/core
+/web/modules/contrib
+/web/themes/contrib
+/web/profiles/contrib
+/web/libraries
+/drush/contrib
+
+# Drupal
+/web/sites/*/settings.php
+/web/sites/*/services.yml
+/web/sites/*/files
+/web/sites/*/private
+/private
+/config/sync
+!/config/sync/.htaccess
+
+# Environment
+.env
+.env.local
+
+# IDE and System
+.idea
+.vscode
+.DS_Store
+*.swp
+*.swo
+*~
+node_modules/
+/web/sites/default/files
+
+#lando files
+.lando
+.lando.yml
+.lando.php.ini
+

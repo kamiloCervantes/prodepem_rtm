@@ -1,0 +1,7 @@
+prodepem_solicitudes_rtm.get_cda_details:
+  path: '/ajax/get-cda-details/{tid}'
+  defaults:
+    _controller: '\Drupal\prodepem_solicitudes_rtm\Controller\AjaxController::getCdaDetails'
+    _title: 'Get CDA Details'
+  requirements:
+    _permission: 'access content'

@@ -1,0 +1,10 @@
+prodepem_solicitudes_rtm:
+  version: 1.x
+  js:
+    js/prodepem_solicitudes_rtm.js: {}
+  css:
+    theme:
+      css/prodepem_solicitudes_rtm.css: {}
+  dependencies:
+    - core/drupal
+    - core/once

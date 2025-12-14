@@ -1,0 +1,5 @@
+name: 'prodepem_solicitudes_rtm'
+type: module
+description: 'Gestión de solicitudes RTM Prodepem'
+package: Prodepem
+core_version_requirement: ^10 || ^11

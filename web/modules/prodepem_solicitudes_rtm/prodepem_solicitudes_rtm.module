@@ -1,0 +1,189 @@
+<?php
+
+use Drupal\Core\Form\FormStateInterface;
+use Drupal\webform\WebformSubmissionInterface;
+
+/**
+ * @file
+ * Primary module hooks for prodepem_solicitudes_rtm module.
+ */
+
+
+/**
+ * Implements hook_webform_element_alter().
+ */
+function prodepem_solicitudes_rtm_webform_element_alter(array &$element, FormStateInterface $form_state, array $context) {
+    $key = $element['#webform_key'] ?? NULL;
+
+    // Set default value for 'fecha_convenio'.
+    if ($key === 'fecha_convenio') {
+      $element['#default_value'] = date('Y-m-d');
+    }
+
+    //
+
+    // AJAX for 'departamento'.
+    if ($key === 'departamento') {
+      $element['#ajax'] = [
+        'callback' => 'prodepem_solicitudes_rtm_ubicacion_cda_callback',
+        'wrapper' => 'ubicacion-cda-wrapper',
+        'event' => 'change',
+      ];
+    }
+
+    // AJAX for 'ubicacion_cda' and Wrapper for 'ubicacion_cda'.
+    if ($key === 'ubicacion_cda') {
+      $element['#ajax'] = [
+        'callback' => 'prodepem_solicitudes_rtm_cda_callback',
+        'wrapper' => 'cda-wrapper',
+        'event' => 'change',
+      ];
+      $element['#prefix'] = '<div id="ubicacion-cda-wrapper">';
+      $element['#suffix'] = '</div>';
+
+      // Filter options based on 'departamento'.
+      $departamento_tid = $form_state->getValue('departamento');
+      if ($departamento_tid) {
+        $options = [];
+        /** @var \Drupal\taxonomy\TermStorageInterface $term_storage */
+        $term_storage = \Drupal::entityTypeManager()->getStorage('taxonomy_term');
+        $terms = $term_storage->loadChildren($departamento_tid);
+        foreach ($terms as $term) {
+          $options[$term->id()] = $term->label();
+        }
+        $element['#options'] = $options;
+      }
+      else {
+        $element['#options'] = [];
+      }
+    }
+
+    // Wrapper and options for 'cda'.
+    if ($key === 'cda') {
+      $element['#prefix'] = '<div id="cda-wrapper">';
+      $element['#suffix'] = '</div>';
+
+      // Filter options based on 'ubicacion_cda'.
+      $ubicacion_tid = $form_state->getValue('ubicacion_cda');
+      if ($ubicacion_tid) {
+        $options = [];
+        $query = \Drupal::entityQuery('taxonomy_term')
+          ->condition('vid', 'cdas')
+          ->condition('field_ciudad', $ubicacion_tid)
+          ->accessCheck(FALSE);
+        $tids = $query->execute();
+
+        if (!empty($tids)) {
+          $terms = \Drupal\taxonomy\Entity\Term::loadMultiple($tids);
+          foreach ($terms as $term) {
+            $options[$term->id()] = $term->label();
+          }
+          $element['#options'] = $options;
+        }
+        else {
+          $element['#options'] = [];
+        }
+      }
+      else {
+        $element['#options'] = [];
+      }
+    }
+
+    // Wrapper and logic for 'detalles_cda'.
+    if ($key === 'detalles_cda') {
+      $element['#prefix'] = '<div id="detalles-cda-wrapper">';
+      $element['#suffix'] = '</div>';
+    }
+  
+}
+
+/**
+ * Implements hook_form_alter().
+ */
+function prodepem_solicitudes_rtm_form_alter(&$form, FormStateInterface $form_state, $form_id) {
+  // Check if the form is the add form for 'solicitud_de_revision_tecnico_me'.
+  if ($form_id === 'webform_submission_solicitud_de_revision_tecnico_me_add_form') {
+    // Attach the library.
+    $form['#attached']['library'][] = 'prodepem_solicitudes_rtm/prodepem_solicitudes_rtm';
+  }
+}
+
+/**
+ * AJAX callback for CDA options.
+ */
+function prodepem_solicitudes_rtm_cda_callback(array &$form, FormStateInterface $form_state) {
+    // Helper to find element by key recursively.
+    $find_element = function (array &$elements, $key) use (&$find_element) {
+      if (isset($elements[$key])) {
+        return $elements[$key];
+      }
+      foreach ($elements as &$element) {
+        if (is_array($element) && strpos($key, '#') !== 0) {
+          $found = $find_element($element, $key);
+          if ($found) {
+            return $found;
+          }
+        }
+      }
+      return NULL;
+    };
+
+    return $find_element($form['elements'], 'cda');
+}
+
+/**
+ * AJAX callback for Ubicacion CDA options.
+ */
+function prodepem_solicitudes_rtm_ubicacion_cda_callback(array &$form, FormStateInterface $form_state) {
+    // Helper to find element by key recursively.
+    $find_element = function (array &$elements, $key) use (&$find_element) {
+      if (isset($elements[$key])) {
+        return $elements[$key];
+      }
+      foreach ($elements as &$element) {
+        if (is_array($element) && strpos($key, '#') !== 0) {
+          $found = $find_element($element, $key);
+          if ($found) {
+            return $found;
+          }
+        }
+      }
+      return NULL;
+    };
+
+    return $find_element($form['elements'], 'ubicacion_cda');
+}
+
+
+/**
+ * Implements hook_webform_submission_presave().
+ */
+function prodepem_solicitudes_rtm_webform_submission_presave(WebformSubmissionInterface $webform_submission) {
+  // Check if the webform is 'solicitud_de_revision_tecnico_me'.
+  if ($webform_submission->getWebform()->id() === 'solicitud_de_revision_tecnico_me') {
+    $data = $webform_submission->getData();
+    // Get 'entidad_convenio' value.
+    if (!empty($data['entidad_convenio'])) {
+      $tid = $data['entidad_convenio'];
+      $term = \Drupal\taxonomy\Entity\Term::load($tid);
+      if ($term && $term->hasField('field_correo_convenio') && !$term->get('field_correo_convenio')->isEmpty()) {
+        // Set 'email_convenio' value.
+        $email = $term->get('field_correo_convenio')->value;
+        $data['email_convenio'] = $email;
+        $webform_submission->setData($data);
+      }
+    }
+
+    // Get 'cda' value.
+    if (!empty($data['cda'])) {
+      $tid = $data['cda'];
+      $term = \Drupal\taxonomy\Entity\Term::load($tid);
+      if ($term && $term->hasField('field_email_cda') && !$term->get('field_email_cda')->isEmpty()) {
+        // Set 'email_cda' value.
+        $email = $term->get('field_email_cda')->value;
+        $data['email_cda'] = $email;
+        $webform_submission->setData($data);
+      }
+    }
+  }
+}
