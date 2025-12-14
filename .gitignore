@@ -11,6 +11,7 @@
 # Drupal
 /web/sites/*/settings.php
 /web/sites/*/services.yml
+/web/sites/*/files
 /web/sites/*/private
 /private
 /config/sync
@@ -28,6 +29,7 @@
 *.swo
 *~
 node_modules/
+/web/sites/default/files
 
 #lando files
 .lando
