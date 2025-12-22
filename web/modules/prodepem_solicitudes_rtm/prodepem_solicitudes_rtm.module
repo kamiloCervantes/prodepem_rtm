@@ -106,6 +106,38 @@ function prodepem_solicitudes_rtm_form_alter(&$form, FormStateInterface $form_st
     // Attach the library.
     $form['#attached']['library'][] = 'prodepem_solicitudes_rtm/prodepem_solicitudes_rtm';
   }
+
+  // Check if the form is the add form for 'formulario_touch'.
+  if ($form_id === 'webform_submission_formulario_touch_add_form') {
+    // Attach the custom library.
+    $form['#attached']['library'][] = 'prodepem_solicitudes_rtm/formulario_touch';
+
+    // Map of element keys to icons.
+    $icons = [
+      'nombre' => 'fa-user',
+      'email' => 'fa-envelope',
+      'telefono' => 'fa-phone',
+      'mensaje' => 'fa-comment',
+      'empresa' => 'fa-building',
+      'cargo' => 'fa-id-badge',
+      'ciudad' => 'fa-city',
+      'asunto' => 'fa-heading',
+      'tipo_de_vehiculo' => 'fa-car',
+      'celular' => 'fa-mobile-alt',
+      'tipo_de_documento' => 'fa-question-circle',
+      'que_tipo_de_producto_o_servicio_desea_adquirir' => 'fa-question-circle',
+      'numero_de_documento' => 'fa-id-card',
+      'placa_vehiculo' => 'fa-hashtag',
+    ];
+
+    // Add icons to labels.
+    foreach ($icons as $key => $icon) {
+      if (isset($form['elements'][$key])) {
+        $title = $form['elements'][$key]['#title'] ?? '';
+        $form['elements'][$key]['#title'] = \Drupal\Core\Render\Markup::create('<i class="fas ' . $icon . '"></i> ' . $title);
+      }
+    }
+  }
 }
 
 /**

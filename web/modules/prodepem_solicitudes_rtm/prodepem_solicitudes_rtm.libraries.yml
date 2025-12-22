@@ -8,3 +8,22 @@ prodepem_solicitudes_rtm:
   dependencies:
     - core/drupal
     - core/once
+
+font-awesome:
+  remote: https://fontawesome.com/
+  version: 6.x
+  license:
+    name: MIT
+    url: https://fontawesome.com/license/free
+    gpl-compatible: true
+  css:
+    theme:
+      https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css: { type: external, minified: true }
+
+formulario_touch:
+  version: 1.x
+  css:
+    theme:
+      css/formulario_touch.css: {}
+  dependencies:
+    - prodepem_solicitudes_rtm/font-awesome

@@ -1,0 +1,89 @@
+/**
+ * Custom styles for formulario_touch webform.
+ */
+
+.webform-submission-formulario-touch-add-form .form-item label {
+    font-weight: bold;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: #333;
+}
+
+.webform-submission-formulario-touch-add-form .form-item label i {
+    color: #0056b3;
+    font-size: 1.1em;
+    width: 20px;
+    text-align: center;
+}
+
+.webform-submission-formulario-touch-add-form .form-actions {
+    margin-top: 20px;
+    padding-top: 20px;
+    border-top: 1px solid #eee;
+}
+
+.webform-submission-formulario-touch-add-form .webform-button--submit {
+    background-color: #0056b3;
+    color: #fff;
+    padding: 10px 25px;
+    border-radius: 4px;
+    border: none;
+    font-size: 1.1em;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.webform-submission-formulario-touch-add-form .webform-button--submit:hover {
+    background-color: #004494;
+}
+
+/**
+ * Confirmation Modal Styles
+ */
+
+/* Target jQuery UI Dialog (default for Webform) */
+.ui-dialog.webform-confirmation-modal .ui-dialog-title {
+    font-size: 1.1rem !important;
+    font-weight: 600;
+}
+
+.ui-dialog.webform-confirmation-modal .ui-dialog-content {
+    padding: 2.5rem !important;
+    font-size: 1rem;
+    line-height: 1.6;
+}
+
+/* Target Bootstrap Modal (if active) */
+.modal.webform-confirmation-modal .modal-title {
+    font-size: 1.1rem !important;
+}
+
+.modal.webform-confirmation-modal .modal-body {
+    padding: 2.5rem !important;
+}
+
+/**
+ * Full Width Form Elements
+ */
+
+.webform-submission-formulario-touch-add-form {
+    width: 100% !important;
+    max-width: 100% !important;
+}
+
+.webform-submission-formulario-touch-add-form .form-item {
+    width: 100% !important;
+    margin-left: 0 !important;
+    margin-right: 0 !important;
+}
+
+.webform-submission-formulario-touch-add-form input[type="text"],
+.webform-submission-formulario-touch-add-form input[type="email"],
+.webform-submission-formulario-touch-add-form input[type="tel"],
+.webform-submission-formulario-touch-add-form input[type="number"],
+.webform-submission-formulario-touch-add-form select,
+.webform-submission-formulario-touch-add-form textarea {
+    width: 100% !important;
+    box-sizing: border-box !important;
+}
