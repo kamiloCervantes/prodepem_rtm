@@ -1,0 +1,4 @@
+administer rtm solicitudes:
+  title: 'Administer RTM Solicitudes'
+  description: 'Manage settings and dashboard for RTM Solicitudes.'
+  restrict access: true
