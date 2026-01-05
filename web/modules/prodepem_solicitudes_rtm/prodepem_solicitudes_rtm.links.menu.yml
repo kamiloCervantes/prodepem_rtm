@@ -1,0 +1,83 @@
+prodepem_solicitudes_rtm.settings:
+  title: 'RTM Admin'
+  description: 'Configuraciones del módulo RTM.'
+  parent: system.admin
+  route_name: prodepem_solicitudes_rtm.settings
+  weight: 100
+
+# Seccion: Sistema
+prodepem_solicitudes_rtm.sistema_section:
+  title: 'Sistema'
+  description: 'Ajustes del sistema y configuración básica.'
+  parent: prodepem_solicitudes_rtm.settings
+  route_name: prodepem_solicitudes_rtm.sistema_section
+  weight: 10
+
+prodepem_solicitudes_rtm.site_information:
+  title: 'Configuraciones básicas del sitio'
+  description: 'Cambiar nombre del sitio, dirección de correo electrónico, eslogan, página de inicio predeterminada, y páginas de error.'
+  parent: prodepem_solicitudes_rtm.sistema_section
+  route_name: system.site_information_settings
+  weight: 10
+
+prodepem_solicitudes_rtm.smtp_support:
+  title: 'Soporte de Autenticación SMTP'
+  description: 'Permitir que los correos electrónicos del sitio sean enviados a través de un servidor SMTP de su elección.'
+  parent: prodepem_solicitudes_rtm.sistema_section
+  route_name: system.admin_config_services # Placeholder or real if known
+  weight: 20
+
+prodepem_solicitudes_rtm.cron:
+  title: 'Cron'
+  description: 'Administrar tareas de mantenimiento automáticas.'
+  parent: prodepem_solicitudes_rtm.sistema_section
+  route_name: system.cron_settings
+  weight: 30
+
+# Seccion: Formulario Touch
+prodepem_solicitudes_rtm.usuarios_section:
+  title: 'Formulario Touch'
+  description: 'Gestión de registros y campos del formulario touch.'
+  parent: prodepem_solicitudes_rtm.settings
+  route_name: prodepem_solicitudes_rtm.usuarios_section
+  weight: 20
+
+prodepem_solicitudes_rtm.ver_registros:
+  title: 'Ver registros de formulario'
+  description: 'Ver resultados del webform formulario_touch.'
+  parent: prodepem_solicitudes_rtm.usuarios_section
+  route_name: entity.webform.results_submissions
+  route_parameters:
+    webform: formulario_touch
+  weight: 10
+
+prodepem_solicitudes_rtm.gestionar_campos:
+  title: 'Gestionar campos del formulario'
+  description: 'Sección Construir del webform formulario_touch.'
+  parent: prodepem_solicitudes_rtm.usuarios_section
+  route_name: entity.webform.edit_form
+  route_parameters:
+    webform: formulario_touch
+  weight: 20
+
+prodepem_solicitudes_rtm.exportar_datos:
+  title: 'Exportar datos de clientes'
+  description: 'Exportar datos recopilados.'
+  parent: prodepem_solicitudes_rtm.usuarios_section
+  route_name: view.clientes_export.rest_export_clientes_csv
+  weight: 30
+
+# Seccion: Interfaz de usuario
+prodepem_solicitudes_rtm.interfaz_section:
+  title: 'Interfaz de usuario'
+  description: 'Ajustes visuals y de navegación.'
+  parent: prodepem_solicitudes_rtm.settings
+  route_name: prodepem_solicitudes_rtm.interfaz_section
+  weight: 30
+
+prodepem_solicitudes_rtm.shortcuts:
+  title: 'Atajos'
+  description: 'Agregar y modificar conjuntos de atajos.'
+  parent: prodepem_solicitudes_rtm.interfaz_section
+  route_name: entity.shortcut_set.collection
+  weight: 10

@@ -55,3 +55,78 @@
 #detalles_cda .cda-card .cda-description a:hover {
   text-decoration: underline;
 }
+
+/* Dashboard Styling */
+.zinco-admin-dashboard {
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  margin-top: 20px;
+}
+
+.zinco-admin-dashboard .layout-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px;
+}
+
+.zinco-admin-dashboard .layout-column {
+  flex: 1;
+  min-width: 300px;
+}
+
+.zinco-admin-dashboard .panel {
+  background: #fff;
+  border-radius: 8px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+  margin-bottom: 20px;
+  border: 1px solid #e0e0e0;
+  overflow: hidden;
+}
+
+.zinco-admin-dashboard .panel__title {
+  background: #f8f9fa;
+  margin: 0;
+  padding: 15px 20px;
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #333;
+  border-bottom: 1px solid #eee;
+}
+
+.zinco-admin-dashboard .panel__content {
+  padding: 20px;
+}
+
+.zinco-admin-dashboard .admin-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.zinco-admin-dashboard .admin-item {
+  margin-bottom: 15px;
+}
+
+.zinco-admin-dashboard .admin-item:last-child {
+  margin-bottom: 0;
+}
+
+.zinco-admin-dashboard .admin-item__title {
+  margin: 0;
+  font-weight: 600;
+}
+
+.zinco-admin-dashboard .admin-item__link {
+  color: #0056b3;
+  text-decoration: none;
+}
+
+.zinco-admin-dashboard .admin-item__link:hover {
+  text-decoration: underline;
+}
+
+.zinco-admin-dashboard .admin-item__description {
+  margin: 5px 0 0;
+  font-size: 0.9rem;
+  color: #666;
+  padding-left: 0;
+}

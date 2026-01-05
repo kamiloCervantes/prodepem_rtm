@@ -1,0 +1,67 @@
+{#
+/**
+ * @file
+ * Prodepem RTM dashboard template.
+ *
+ * Available variables:
+ * - title: The title of the dashboard.
+ */
+#}
+<div class="zinco-admin-dashboard">
+  <h2 class="visually-hidden">{{ title }}</h2>
+  <div class="layout-row clearfix">
+    <div class="layout-column layout-column--half">
+      <div class="panel">
+        <h3 class="panel__title">{{ 'Solicitudes RTM ⚙️'|t }}</h3>
+        <div class="panel__content">
+          <dl class="admin-list--panel admin-list">
+            <div class="admin-item">
+              <dt class="admin-item__title"><a href="/admin/structure/webform/manage/solicitud_de_revision_tecnico_me/results/submissions" class="admin-item__link">{{ 'Ver registros de solicitudes RTM'|t }}</a></dt>
+              <dd class="admin-item__description">{{ 'View and manage RTM request submissions.'|t }}</dd>
+            </div>
+            <div class="admin-item">
+              <dt class="admin-item__title"><a href="/admin/structure/webform/manage/solicitud_de_revision_tecnico_me" class="admin-item__link">{{ 'Gestionar campos del formulario'|t }}</a></dt>
+              <dd class="admin-item__description">{{ 'Manage fields and settings for the RTM request form.'|t }}</dd>
+            </div>
+          </dl>
+        </div>
+      </div>
+      <div class="panel">
+        <h3 class="panel__title">{{ 'Formulario Touch 📱'|t }}</h3>
+        <div class="panel__content">
+          <dl class="admin-list--panel admin-list">
+            <div class="admin-item">
+              <dt class="admin-item__title"><a href="/admin/structure/webform/manage/formulario_touch/results/submissions" class="admin-item__link">{{ 'Ver registros de formulario'|t }}</a></dt>
+              <dd class="admin-item__description">{{ 'Ver resultados del webform formulario_touch.'|t }}</dd>
+            </div>
+            <div class="admin-item">
+              <dt class="admin-item__title"><a href="/admin/structure/webform/manage/formulario_touch" class="admin-item__link">{{ 'Gestionar campos del formulario'|t }}</a></dt>
+              <dd class="admin-item__description">{{ 'Gestión de campos y configuración del webform formulario_touch.'|t }}</dd>
+            </div>
+            <div class="admin-item">
+              <dt class="admin-item__title"><a href="{{ path('view.clientes_export.rest_export_clientes_csv') }}" class="admin-item__link">{{ 'Exportar datos de clientes'|t }}</a></dt>
+              <dd class="admin-item__description">{{ 'Exportar datos recopilados.'|t }}</dd>
+            </div>
+          </dl>
+        </div>
+      </div>
+    </div>
+    <div class="layout-column layout-column--half">
+      <div class="panel">
+        <h3 class="panel__title">{{ 'Interfaz de usuario 🎨'|t }}</h3>
+        <div class="panel__content">
+          <dl class="admin-list--panel admin-list">
+            <div class="admin-item">
+              <dt class="admin-item__title"><a href="/admin/structure/block" class="admin-item__link">{{ 'Bloques'|t }}</a></dt>
+              <dd class="admin-item__description">{{ 'Manage blocks layout.'|t }}</dd>
+            </div>
+            <div class="admin-item">
+              <dt class="admin-item__title"><a href="/admin/structure/menu" class="admin-item__link">{{ 'Menús'|t }}</a></dt>
+              <dd class="admin-item__description">{{ 'Manage navigation menus.'|t }}</dd>
+            </div>
+          </dl>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

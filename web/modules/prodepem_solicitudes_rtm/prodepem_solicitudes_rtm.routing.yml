@@ -5,3 +5,59 @@ prodepem_solicitudes_rtm.get_cda_details:
     _title: 'Get CDA Details'
   requirements:
     _permission: 'access content'
+
+prodepem_solicitudes_rtm.settings:
+  path: '/admin/config/prodepem/rtm-admin'
+  defaults:
+    _controller: '\Drupal\prodepem_solicitudes_rtm\Controller\AdminController::dashboard'
+    _title: 'RTM Admin'
+  requirements:
+    _permission: 'administer site configuration'
+
+prodepem_solicitudes_rtm.sistema_section:
+  path: '/admin/config/prodepem/rtm-admin/sistema'
+  defaults:
+    _controller: '\Drupal\system\Controller\SystemController::systemAdminMenuBlockPage'
+    _title: 'Sistema'
+  requirements:
+    _permission: 'administer site configuration'
+
+prodepem_solicitudes_rtm.usuarios_section:
+  path: '/admin/config/prodepem/rtm-admin/formulario-touch'
+  defaults:
+    _controller: '\Drupal\system\Controller\SystemController::systemAdminMenuBlockPage'
+    _title: 'Formulario Touch'
+  requirements:
+    _permission: 'administer site configuration'
+
+prodepem_solicitudes_rtm.interfaz_section:
+  path: '/admin/config/prodepem/rtm-admin/interfaz'
+  defaults:
+    _controller: '\Drupal\system\Controller\SystemController::systemAdminMenuBlockPage'
+    _title: 'Interfaz de usuario'
+  requirements:
+    _permission: 'administer site configuration'
+
+prodepem_solicitudes_rtm.general_settings:
+  path: '/admin/config/prodepem/rtm-admin/general'
+  defaults:
+    _form: '\Drupal\prodepem_solicitudes_rtm\Form\SettingsForm'
+    _title: 'Configuraciones Generales'
+  requirements:
+    _permission: 'administer site configuration'
+
+prodepem_solicitudes_rtm.solicitudes_rtm:
+  path: '/admin/config/prodepem/rtm-admin/solicitudes'
+  defaults:
+    _form: '\Drupal\prodepem_solicitudes_rtm\Form\SettingsForm'
+    _title: 'Gestión de Solicitudes'
+  requirements:
+    _permission: 'administer site configuration'
+
+prodepem_solicitudes_rtm.cdas_rtm:
+  path: '/admin/config/prodepem/rtm-admin/cdas'
+  defaults:
+    _form: '\Drupal\prodepem_solicitudes_rtm\Form\SettingsForm'
+    _title: 'Gestión de CDAs'
+  requirements:
+    _permission: 'administer site configuration'

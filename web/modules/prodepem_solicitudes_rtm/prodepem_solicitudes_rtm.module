@@ -1,5 +1,19 @@
 <?php
 
+/**
+ * Implements hook_theme().
+ */
+function prodepem_solicitudes_rtm_theme($existing, $type, $theme, $path) {
+  return [
+    'prodepem_rtm_dashboard' => [
+      'variables' => [
+        'title' => NULL,
+      ],
+    ],
+  ];
+}
+
+
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\webform\WebformSubmissionInterface;
 
@@ -115,6 +129,7 @@ function prodepem_solicitudes_rtm_form_alter(&$form, FormStateInterface $form_st
     // Map of element keys to icons.
     $icons = [
       'nombre' => 'fa-user',
+      'apellidos' => 'fa-user',
       'email' => 'fa-envelope',
       'telefono' => 'fa-phone',
       'mensaje' => 'fa-comment',
@@ -128,6 +143,7 @@ function prodepem_solicitudes_rtm_form_alter(&$form, FormStateInterface $form_st
       'que_tipo_de_producto_o_servicio_desea_adquirir' => 'fa-question-circle',
       'numero_de_documento' => 'fa-id-card',
       'placa_vehiculo' => 'fa-hashtag',
+      'sector' => 'fa-building',
     ];
 
     // Add icons to labels.
