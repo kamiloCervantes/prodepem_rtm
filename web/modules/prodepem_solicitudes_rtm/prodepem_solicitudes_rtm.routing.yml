@@ -54,10 +54,19 @@ prodepem_solicitudes_rtm.solicitudes_rtm:
   requirements:
     _permission: 'administer rtm solicitudes'
 
+
 prodepem_solicitudes_rtm.cdas_rtm:
   path: '/admin/config/prodepem/rtm-admin/cdas'
   defaults:
     _form: '\Drupal\prodepem_solicitudes_rtm\Form\SettingsForm'
     _title: 'Gestión de CDAs'
+  requirements:
+    _permission: 'administer rtm solicitudes'
+
+prodepem_solicitudes_rtm.generar_pdf:
+  path: '/admin/config/prodepem/rtm-admin/generar-pdf/{sid}'
+  defaults:
+    _controller: '\Drupal\prodepem_solicitudes_rtm\Controller\AdminController::generarPdfDesdePlantilla'
+    _title: 'Generar PDF RTM'
   requirements:
     _permission: 'administer rtm solicitudes'

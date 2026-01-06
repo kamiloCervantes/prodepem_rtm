@@ -10,6 +10,13 @@ function prodepem_solicitudes_rtm_theme($existing, $type, $theme, $path) {
         'title' => NULL,
       ],
     ],
+    'prodepem_rtm_pdf_template' => [
+      'variables' => [
+        'data' => NULL,
+        'submission' => NULL,
+        'date' => NULL,
+      ],
+    ],
   ];
 }
 
