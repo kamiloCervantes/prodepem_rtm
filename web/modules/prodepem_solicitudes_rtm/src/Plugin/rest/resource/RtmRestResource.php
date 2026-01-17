@@ -74,7 +74,10 @@ class RtmRestResource extends ResourceBase {
       'data' => $post->toArray(),
       'submission' => $submission_data,
     ];
-    return new ResourceResponse($response, 200);
+    $resource_response = new ResourceResponse($response, 200);
+    $resource_response->addCacheableDependency($post);
+    $resource_response->getCacheableMetadata()->addCacheContexts(['url.query_args:id', 'url.query_args:user']);
+    return $resource_response;
   }
 
   /**
