@@ -1,0 +1,19 @@
+langcode: en
+status: true
+dependencies:
+  module:
+    - prodepem_solicitudes_rtm
+    - rest
+    - serialization
+    - user
+id: rtm_rest_resource
+plugin_id: rtm_rest_resource
+granularity: resource
+configuration:
+  methods:
+    - GET
+    - POST
+  formats:
+    - json
+  authentication:
+    - cookie

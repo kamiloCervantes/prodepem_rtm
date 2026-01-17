@@ -30,10 +30,15 @@ class RtmRestResource extends ResourceBase {
    */
   public function get() {
     //recibir id del post via url
-    $id = $this->getRequest()->query->get('id');
+    $id = \Drupal::request()->query->get('id');
     
     //obtener los datos del post con id igual a $id y retornar todos los valores de sus campos
     $post = Node::load($id);
+    
+    if (!$post) {
+      return new ResourceResponse(['error' => 'Node not found'], 404);
+    }
+
     $response = [
       'data' => $post->toArray(),
     ];
@@ -54,11 +59,33 @@ class RtmRestResource extends ResourceBase {
       throw new BadRequestHttpException('No data received.');
     }
 
+    $id = $data['id'] ?? NULL;
+    $field_name = $data['field'] ?? NULL;
+    $value = $data['value'] ?? NULL;
+
+    if (!$id || !$field_name) {
+      throw new BadRequestHttpException('Missing required data: id or field.');
+    }
+
+    $node = Node::load($id);
+    if (!$node) {
+      return new ResourceResponse(['error' => 'Node not found'], 404);
+    }
+
+    if (!$node->hasField($field_name)) {
+      return new ResourceResponse(['error' => "Field $field_name not found in node"], 400);
+    }
+
+    $node->set($field_name, $value);
+    $node->save();
+
     $response = [
-      'message' => 'Hello from RTM REST Resource POST method!',
-      'received_data' => $data,
+      'message' => 'Node updated successfully',
+      'id' => $id,
+      'field' => $field_name,
+      'value' => $value,
     ];
-    return new ResourceResponse($response, 201);
+    return new ResourceResponse($response, 200);
   }
 
 }

@@ -21,6 +21,7 @@
         "drupal/core-project-message": "^11.2",
         "drupal/core-recipe-unpack": "^11.2",
         "drupal/core-recommended": "^11.2",
+        "drupal/restui": "^1.22",
         "drupal/smtp": "^1.4",
         "drupal/views_data_export": "^1.8",
         "drupal/webform": "^6.3@beta",
