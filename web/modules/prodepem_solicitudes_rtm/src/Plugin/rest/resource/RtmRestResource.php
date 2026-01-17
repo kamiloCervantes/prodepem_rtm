@@ -31,6 +31,34 @@ class RtmRestResource extends ResourceBase {
   public function get() {
     //recibir id del post via url
     $id = \Drupal::request()->query->get('id');
+
+    //recibir user param via url
+    $user = \Drupal::request()->query->get('user');
+
+    // Obtener el registro más reciente del webform formulario_touch
+    // que tenga como valor en el campo celular el valor de $user pero sin los dos primeros números
+    $stripped_user = substr($user, 2);
+    $submission_data = [];
+
+    if (!empty($stripped_user)) {
+      $query = \Drupal::entityTypeManager()->getStorage('webform_submission')->getQuery()
+        ->condition('webform_id', 'formulario_touch')
+        ->condition('data.celular', $stripped_user)
+        ->sort('created', 'DESC')
+        ->range(0, 1)
+        ->accessCheck(FALSE);
+      
+      $ids = $query->execute();
+      if (!empty($ids)) {
+        $sid = reset($ids);
+        $submission = \Drupal\webform\Entity\WebformSubmission::load($sid);
+        $all_data = $submission->getData();
+        $submission_data = [
+          'nombre' => $all_data['nombre'] ?? '',
+          'apellidos' => $all_data['apellidos'] ?? '',
+        ];
+      }
+    }
     
     //obtener los datos del post con id igual a $id y retornar todos los valores de sus campos
     $post = Node::load($id);
@@ -41,6 +69,7 @@ class RtmRestResource extends ResourceBase {
 
     $response = [
       'data' => $post->toArray(),
+      'submission' => $submission_data,
     ];
     return new ResourceResponse($response, 200);
   }
