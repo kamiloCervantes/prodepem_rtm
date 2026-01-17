@@ -41,16 +41,19 @@ class RtmRestResource extends ResourceBase {
     $submission_data = [];
 
     if (!empty($stripped_user)) {
-      $query = \Drupal::entityTypeManager()->getStorage('webform_submission')->getQuery()
-        ->condition('webform_id', 'formulario_touch')
-        ->condition('data.celular', $stripped_user)
-        ->sort('created', 'DESC')
-        ->range(0, 1)
-        ->accessCheck(FALSE);
+      // Usar query de base de datos directa ya que entityQuery no soporta 'data.' en este entorno
+      $query = \Drupal::database()->select('webform_submission_data', 'wsd');
+      $query->join('webform_submission', 'ws', 'ws.sid = wsd.sid');
+      $query->fields('wsd', ['sid']);
+      $query->condition('wsd.webform_id', 'formulario_touch');
+      $query->condition('wsd.name', 'celular');
+      $query->condition('wsd.value', $stripped_user);
+      $query->orderBy('ws.created', 'DESC');
+      $query->range(0, 1);
       
-      $ids = $query->execute();
-      if (!empty($ids)) {
-        $sid = reset($ids);
+      $sid = $query->execute()->fetchField();
+
+      if ($sid) {
         $submission = \Drupal\webform\Entity\WebformSubmission::load($sid);
         $all_data = $submission->getData();
         $submission_data = [
