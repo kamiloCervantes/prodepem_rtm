@@ -94,3 +94,11 @@ prodepem_solicitudes_rtm.get_metodos_de_pago:
     _title: 'Get Metodos de Pago'
   requirements:
     _permission: 'access content'
+
+prodepem_solicitudes_rtm.get_datos_metodo_pago:
+  path: '/ajax/get-datos-metodo-pago/{nid}/{metodo_pago}'
+  defaults:
+    _controller: '\Drupal\prodepem_solicitudes_rtm\Controller\AjaxController::getDatosMetodoPago'
+    _title: 'Get Datos Metodo Pago'
+  requirements:
+    _permission: 'access content'
