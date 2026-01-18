@@ -70,3 +70,11 @@ prodepem_solicitudes_rtm.generar_pdf:
     _title: 'Generar PDF RTM'
   requirements:
     _permission: 'administer rtm solicitudes'
+
+prodepem_solicitudes_rtm.get_tipos_vehiculos:
+  path: '/ajax/get-tipos-vehiculos'
+  defaults:
+    _controller: '\Drupal\prodepem_solicitudes_rtm\Controller\AjaxController::getTiposVehiculos'
+    _title: 'Get Tipos de Vehiculos'
+  requirements:
+    _permission: 'access content'
