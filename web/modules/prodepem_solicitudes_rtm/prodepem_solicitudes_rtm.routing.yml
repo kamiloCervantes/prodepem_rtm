@@ -86,3 +86,11 @@ prodepem_solicitudes_rtm.get_valor_cotizacion:
     _title: 'Get Valor Cotizacion'
   requirements:
     _permission: 'access content'
+
+prodepem_solicitudes_rtm.get_metodos_de_pago:
+  path: '/ajax/get-metodos-de-pago'
+  defaults:
+    _controller: '\Drupal\prodepem_solicitudes_rtm\Controller\AjaxController::getMetodosDePago'
+    _title: 'Get Metodos de Pago'
+  requirements:
+    _permission: 'access content'

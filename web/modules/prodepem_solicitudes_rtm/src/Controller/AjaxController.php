@@ -144,4 +144,32 @@ class AjaxController extends ControllerBase {
     return new JsonResponse($data);
   }
 
+
+   /**
+   * Returns a list of terms from the metodos_de_pago taxonomy.
+   *
+   * @return \Symfony\Component\HttpFoundation\JsonResponse
+   *   The JSON response.
+   */
+  public function getMetodosDePago() {
+    $vocabulary = 'metodos_de_pago';
+    $query = \Drupal::entityTypeManager()->getStorage('taxonomy_term')->getQuery();
+    $tids = $query->condition('vid', $vocabulary)
+      ->accessCheck(TRUE)
+      ->sort('weight')
+      ->execute();
+
+    $terms = Term::loadMultiple($tids);
+    $data = [];
+
+    foreach ($terms as $term) {
+      $data[] = [
+        'tid' => $term->id(),
+        'name' => $term->label(),
+      ];
+    }
+
+    return new JsonResponse($data);
+  }
+
 }
