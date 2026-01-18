@@ -78,3 +78,11 @@ prodepem_solicitudes_rtm.get_tipos_vehiculos:
     _title: 'Get Tipos de Vehiculos'
   requirements:
     _permission: 'access content'
+
+prodepem_solicitudes_rtm.get_valor_cotizacion:
+  path: '/ajax/get-valor-cotizacion/{nid}/{term_label}'
+  defaults:
+    _controller: '\Drupal\prodepem_solicitudes_rtm\Controller\AjaxController::getValorCotizacion'
+    _title: 'Get Valor Cotizacion'
+  requirements:
+    _permission: 'access content'

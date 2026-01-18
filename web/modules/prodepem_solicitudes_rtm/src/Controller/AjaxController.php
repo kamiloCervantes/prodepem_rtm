@@ -103,4 +103,45 @@ class AjaxController extends ControllerBase {
     return new JsonResponse($data);
   }
 
+
+
+  /**
+   * Returns the quote value for a node and a vehicle type.
+   *
+   * @param int $nid
+   *   The node ID.
+   * @param string $term_label
+   *   The label of the vehicle type term.
+   *
+   * @return \Symfony\Component\HttpFoundation\JsonResponse
+   *   The JSON response.
+   */
+  public function getValorCotizacion($nid, $term_label) {
+    $data = [
+      'valor' => 0,
+      'status' => 'not_found',
+    ];
+
+    $node = \Drupal\node\Entity\Node::load($nid);
+    if ($node && $node->hasField('field_reglas_de_cotizacion')) {
+      $paragraphs = $node->get('field_reglas_de_cotizacion')->referencedEntities();
+      foreach ($paragraphs as $paragraph) {
+        if ($paragraph->hasField('field_tipo_de_vehiculo') && !$paragraph->get('field_tipo_de_vehiculo')->isEmpty()) {
+          $term = $paragraph->get('field_tipo_de_vehiculo')->entity;
+          if ($term && $term->label() === $term_label) {
+            if ($paragraph->hasField('field_valor_cotizacion')) {
+              $data = [
+                'valor' => $paragraph->get('field_valor_cotizacion')->value,
+                'status' => 'success',
+              ];
+              break;
+            }
+          }
+        }
+      }
+    }
+
+    return new JsonResponse($data);
+  }
+
 }
