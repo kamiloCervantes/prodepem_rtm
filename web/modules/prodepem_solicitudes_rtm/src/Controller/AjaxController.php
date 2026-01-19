@@ -191,11 +191,13 @@ class AjaxController extends ControllerBase {
     $metodo_pago = str_replace(' ', '', $metodo_pago);
     //uppercase de metodopago
     $metodo_pago = strtoupper($metodo_pago);
+    $convenio = '';
 
     //si metodo de pago coincide con un termino de la taxonomia de entidades_convenio en uppercase, $metodo_pago es CONVENIOS
     $convenios_terms = \Drupal::entityTypeManager()->getStorage('taxonomy_term')->loadTree('entidades_convenio');
     foreach ($convenios_terms as $term) {
       if (strtoupper($term->name) === $metodo_pago) {
+        $convenio = $term->name;
         $metodo_pago = 'CONVENIOS';
         break;
       }
@@ -235,6 +237,9 @@ class AjaxController extends ControllerBase {
             $paragraphs = $node->get('field_convenios')->referencedEntities();
             foreach ($paragraphs as $paragraph) {
               $data['field_convenios'][] = $this->getEntityData($paragraph);
+              if($convenios !== ''){
+                $data['convenio'] = $convenio;
+              }
             }
           }
           break;
