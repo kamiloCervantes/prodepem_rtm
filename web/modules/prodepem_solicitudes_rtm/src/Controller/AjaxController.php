@@ -187,6 +187,8 @@ class AjaxController extends ControllerBase {
     $data = [];
     $node = \Drupal\node\Entity\Node::load($nid);
 
+    //quitar espacios de metodopago
+    $metodo_pago = str_replace(' ', '', $metodo_pago);
     //uppercase de metodopago
     $metodo_pago = strtoupper($metodo_pago);
 
