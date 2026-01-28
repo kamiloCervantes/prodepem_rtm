@@ -96,7 +96,7 @@
     </div>
 
     <div class="section">
-        <div class="section-title">{{ 'Ubicación'|t }}</div>
+        <div class="section-title">{{ 'Datos del CDA'|t }}</div>
         
         <div class="field-group">
             <div class="field-label">{{ 'Departamento:'|t }}</div>
@@ -106,6 +106,14 @@
         <div class="field-group">
             <div class="field-label">{{ 'Ciudad:'|t }}</div>
             <div class="field-value">{{ data.ubicacion_cda_label|default('N/A') }}</div>
+        </div>
+        <div class="field-group">
+            <div class="field-label">{{ 'Dirección:'|t }}</div>
+            <div class="field-value">{{ data.cda_direccion|default('N/A') }}</div>
+        </div>
+        <div class="field-group">
+            <div class="field-label">{{ 'Teléfono:'|t }}</div>
+            <div class="field-value">{{ data.cda_telefono|default('N/A') }}</div>
         </div>
     </div>
 

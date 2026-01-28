@@ -51,6 +51,14 @@ class AdminController extends ControllerBase {
           $term = Term::load($data[$field]);
           if ($term) {
             $data[$field . '_label'] = $term->label();
+            if ($field === 'cda') {
+              if ($term->hasField('field_direccion') && !$term->get('field_direccion')->isEmpty()) {
+                $data['cda_direccion'] = $term->get('field_direccion')->value;
+              }
+              if ($term->hasField('field_telefono') && !$term->get('field_telefono')->isEmpty()) {
+                $data['cda_telefono'] = $term->get('field_telefono')->value;
+              }
+            }
           }
         }
       }
