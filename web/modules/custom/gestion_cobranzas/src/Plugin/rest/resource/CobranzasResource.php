@@ -89,49 +89,49 @@ class CobranzasResource extends ResourceBase {
     //agregar logger para ver que se recibe
     $this->logger->notice('Data received: @data', ['@data' => json_encode($data)]);
 
-    // if (empty($data)) {
-    //   throw new \Symfony\Component\HttpKernel\Exception\BadRequestHttpException('No data received.');
-    // }
+    if (empty($data)) {
+      throw new \Symfony\Component\HttpKernel\Exception\BadRequestHttpException('No data received.');
+    }
 
-    // try {
-    //   // Create the node.
-    //   // Assuming 'registro_de_cobranzas' is the content type machine name.
-    //   // Map fields from $data to node fields.
-    //   // Example: 'title' => $data['title']
+    try {
+      // Create the node.
+      // Assuming 'registro_de_cobranzas' is the content type machine name.
+      // Map fields from $data to node fields.
+      // Example: 'title' => $data['title']
       
-    //   $node_data = [
-    //     'type' => 'registro_de_cobranzas',
-    //     'title' => isset($data['title']) ? $data['title'] : 'Nueva Cobranza - ' . time(),
-    //     // Add other fields mapping here based on the requirement
-    //     // 'field_monto' => $data['monto'],
-    //   ];
-      
-    //   // If there are specific fields to map, we should add them here.
-    //   // For now, I'll iterate over data to map common fields if needed, 
-    //   // or rely on the user to provide exact field names in mapping.
-    //   // But a basic mapping is safer.
-    //   foreach ($data as $key => $value) {
-    //       if ($key != 'type' && $key != 'title') {
-    //          $node_data[$key] = $value;
-    //       }
-    //   }
+      $node_data = [
+        'type' => 'item_cobranzas_uma',
+        'title' => 'Cobranza ' . ($data['factura'] ?? time()),
+        'field_factura' => $data['factura'] ?? '',
+        'field_fecha_emision' => isset($data['fecha_emision']) ? str_replace('/', '-', $data['fecha_emision']) : NULL,
+        'field_fecha_vencimiento' => isset($data['vencimiento']) ? str_replace('/', '-', $data['vencimiento']) : NULL,
+        'field_referencia' => $data['referencia'] ?? '',
+        'field_valor' => $data['valor'] ?? 0,
+        'field_mora' => $data['mora'] ?? 0,
+        'field_dias_vencidos' => $data['dias_vencidos'] ?? 0,
+        'field_id_cliente' => $data['cliente_id'] ?? '',
+        'field_nombre_cliente' => $data['cliente_nombre'] ?? '',
+        'field_ciudad' => $data['ciudad'] ?? '',
+        'field_direccion' => $data['direccion'] ?? '',
+        'field_telefono' => $data['telefono'] ?? '',
+      ];
 
-    //   $node = $this->entityTypeManager->getStorage('node')->create($node_data);
-    //   $node->save();
+      $node = $this->entityTypeManager->getStorage('node')->create($node_data);
+      $node->save();
 
-    //   $this->logger->notice('Created new Cobranza node with ID @id', ['@id' => $node->id()]);
+      $this->logger->notice('Created new Cobranza node with ID @id', ['@id' => $node->id()]);
 
-    //   // Return the ID of the created node.
-    //   return new ModifiedResourceResponse(['message' => 'Cobranza created successfully', 'id' => $node->id()], 201);
+      // Return the ID of the created node.
+      return new ModifiedResourceResponse(['message' => 'Cobranza created successfully', 'id' => $node->id()], 201);
 
-    // }
-    // catch (\Exception $e) {
-    //   $this->logger->error('Error creating Cobranza node: @message', ['@message' => $e->getMessage()]);
-    //   throw new \Symfony\Component\HttpKernel\Exception\HttpException(500, 'Internal Server Error: ' . $e->getMessage());
-    // }
+    }
+    catch (\Exception $e) {
+      $this->logger->error('Error creating Cobranza node: @message', ['@message' => $e->getMessage()]);
+      throw new \Symfony\Component\HttpKernel\Exception\HttpException(500, 'Internal Server Error: ' . $e->getMessage());
+    }
 
     //retornar mensaje de exito
-    return new ModifiedResourceResponse(['message' => 'Cobranza created successfully'], 201);
+    //return new ModifiedResourceResponse(['message' => 'Cobranza created successfully'], 201);
   }
 
 }
