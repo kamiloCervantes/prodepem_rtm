@@ -129,6 +129,9 @@ class CobranzasResource extends ResourceBase {
     //   $this->logger->error('Error creating Cobranza node: @message', ['@message' => $e->getMessage()]);
     //   throw new \Symfony\Component\HttpKernel\Exception\HttpException(500, 'Internal Server Error: ' . $e->getMessage());
     // }
+
+    //retornar mensaje de exito
+    return new ModifiedResourceResponse(['message' => 'Cobranza created successfully'], 201);
   }
 
 }
