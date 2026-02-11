@@ -167,3 +167,6 @@ class CobranzasResource extends ResourceBase {
       throw new \Symfony\Component\HttpKernel\Exception\HttpException(500, 'Internal Server Error: ' . $e->getMessage());
     }
   }
+
+}
+
