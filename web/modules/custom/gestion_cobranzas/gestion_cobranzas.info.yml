@@ -1,0 +1,5 @@
+name: 'Gestión de Cobranzas'
+type: module
+description: 'Módulo para la gestión de cobranzas.'
+package: Custom
+core_version_requirement: ^10 || ^11
