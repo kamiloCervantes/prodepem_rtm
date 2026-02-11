@@ -16,7 +16,8 @@ use Drupal\Core\Entity\EntityTypeManagerInterface;
  *   id = "gestion_cobranzas_cobranzas_resource",
  *   label = @Translation("Cobranzas Resource"),
  *   uri_paths = {
- *     "create" = "/api/gestion-cobranzas/registrar"
+ *     "create" = "/api/gestion-cobranzas/registrar",
+ *     "delete" = "/api/gestion-cobranzas/eliminar-todo"
  *   }
  * )
  */
@@ -134,4 +135,35 @@ class CobranzasResource extends ResourceBase {
     //return new ModifiedResourceResponse(['message' => 'Cobranza created successfully'], 201);
   }
 
-}
+  /**
+   * Responds to DELETE requests.
+   *
+   * Deletes all nodes of type 'item_cobranzas_uma'.
+   *
+   * @return \Drupal\rest\ModifiedResourceResponse
+   *   The HTTP response object.
+   */
+  public function delete() {
+    try {
+      $storage = $this->entityTypeManager->getStorage('node');
+      $nids = $storage->getQuery()
+        ->condition('type', 'item_cobranzas_uma')
+        ->accessCheck(FALSE)
+        ->execute();
+
+      if (!empty($nids)) {
+        $nodes = $storage->loadMultiple($nids);
+        $storage->delete($nodes);
+        $count = count($nids);
+        $this->logger->notice('Deleted @count Cobranza nodes.', ['@count' => $count]);
+        return new ModifiedResourceResponse(['message' => "Deleted $count Cobranza nodes."], 200);
+      }
+
+      return new ModifiedResourceResponse(['message' => 'No Cobranza nodes found to delete.'], 200);
+
+    }
+    catch (\Exception $e) {
+      $this->logger->error('Error deleting Cobranza nodes: @message', ['@message' => $e->getMessage()]);
+      throw new \Symfony\Component\HttpKernel\Exception\HttpException(500, 'Internal Server Error: ' . $e->getMessage());
+    }
+  }
