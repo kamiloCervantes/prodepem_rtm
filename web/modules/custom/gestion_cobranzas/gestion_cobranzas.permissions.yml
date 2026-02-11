@@ -1,1 +1,4 @@
 # gestion_cobranzas.permissions.yml
+# Permissions for the REST resource are typically handled by the Rest module configuration
+# (e.g., /admin/config/services/rest).
+# However, you can define specific permissions here if you implement custom access checks.
