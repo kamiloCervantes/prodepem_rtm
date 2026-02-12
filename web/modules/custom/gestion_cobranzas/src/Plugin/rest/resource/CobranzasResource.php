@@ -175,7 +175,7 @@ class CobranzasResource extends ResourceBase {
   }
 
   /**
-   * Responds to PUT requests.
+   * Responds to PATCH requests.
    *
    * @param array $data
    *   The data containing update information.
@@ -183,7 +183,7 @@ class CobranzasResource extends ResourceBase {
    * @return \Drupal\rest\ModifiedResourceResponse
    *   The HTTP response object.
    */
-  public function put(array $data) {
+  public function patch(array $data) {
     if (empty($data['modo_update'])) {
       throw new \Symfony\Component\HttpKernel\Exception\BadRequestHttpException('Missing modo_update.');
     }
