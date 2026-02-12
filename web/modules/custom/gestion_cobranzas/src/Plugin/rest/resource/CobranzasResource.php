@@ -16,12 +16,13 @@ use Drupal\Core\Entity\EntityTypeManagerInterface;
  *   id = "gestion_cobranzas_cobranzas_resource",
  *   label = @Translation("Cobranzas Resource"),
  *   uri_paths = {
- *     "create" = "/api/gestion-cobranzas/",
- *     "delete" = "/api/gestion-cobranzas/"
+ *     "create" = "/api/gestion-cobranzas/registrar",
+ *     "delete" = "/api/gestion-cobranzas/eliminar"
  *   }
  * )
  */
-class CobranzasResource extends ResourceBase {
+class CobranzasResource extends ResourceBase
+{
 
   /**
    * The entity type manager.
@@ -61,7 +62,8 @@ class CobranzasResource extends ResourceBase {
   /**
    * {@inheritdoc}
    */
-  public static function create(ContainerInterface $container, array $configuration, $plugin_id, $plugin_definition) {
+  public static function create(ContainerInterface $container, array $configuration, $plugin_id, $plugin_definition)
+  {
     return new static(
       $configuration,
       $plugin_id,
@@ -84,7 +86,8 @@ class CobranzasResource extends ResourceBase {
    * @throws \Symfony\Component\HttpKernel\Exception\HttpException
    *   Throws exception for invalid data.
    */
-  public function post(array $data) {
+  public function post(array $data)
+  {
     // Validate data.
 
     //agregar logger para ver que se recibe
@@ -99,7 +102,7 @@ class CobranzasResource extends ResourceBase {
       // Assuming 'registro_de_cobranzas' is the content type machine name.
       // Map fields from $data to node fields.
       // Example: 'title' => $data['title']
-      
+
       $node_data = [
         'type' => 'item_cobranzas_uma',
         'title' => 'Cobranza ' . ($data['factura'] ?? time()),
@@ -125,8 +128,7 @@ class CobranzasResource extends ResourceBase {
       // Return the ID of the created node.
       return new ModifiedResourceResponse(['message' => 'Cobranza created successfully', 'id' => $node->id()], 201);
 
-    }
-    catch (\Exception $e) {
+    } catch (\Exception $e) {
       $this->logger->error('Error creating Cobranza node: @message', ['@message' => $e->getMessage()]);
       throw new \Symfony\Component\HttpKernel\Exception\HttpException(500, 'Internal Server Error: ' . $e->getMessage());
     }
@@ -143,7 +145,8 @@ class CobranzasResource extends ResourceBase {
    * @return \Drupal\rest\ModifiedResourceResponse
    *   The HTTP response object.
    */
-  public function delete() {
+  public function delete()
+  {
     try {
       $storage = $this->entityTypeManager->getStorage('node');
       $nids = $storage->getQuery()
@@ -161,8 +164,7 @@ class CobranzasResource extends ResourceBase {
 
       return new ModifiedResourceResponse(['message' => 'No Cobranza nodes found to delete.'], 200);
 
-    }
-    catch (\Exception $e) {
+    } catch (\Exception $e) {
       $this->logger->error('Error deleting Cobranza nodes: @message', ['@message' => $e->getMessage()]);
       throw new \Symfony\Component\HttpKernel\Exception\HttpException(500, 'Internal Server Error: ' . $e->getMessage());
     }
