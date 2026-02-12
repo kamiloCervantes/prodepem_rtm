@@ -155,12 +155,16 @@ class CobranzasResource extends ResourceBase
         ->accessCheck(FALSE)
         ->execute();
 
+      $total_deleted = 0;
       if (!empty($nids)) {
-        $nodes = $storage->loadMultiple($nids);
-        $storage->delete($nodes);
-        $count = count($nids);
-        $this->logger->notice('Deleted @count Cobranza nodes.', ['@count' => $count]);
-        return new ModifiedResourceResponse(['message' => "Deleted $count Cobranza nodes."], 200);
+        $chunks = array_chunk($nids, 100);
+        foreach ($chunks as $chunk) {
+          $nodes = $storage->loadMultiple($chunk);
+          $storage->delete($nodes);
+          $total_deleted += count($chunk);
+        }
+        $this->logger->notice('Deleted @count Cobranza nodes.', ['@count' => $total_deleted]);
+        return new ModifiedResourceResponse(['message' => "Deleted $total_deleted Cobranza nodes."], 200);
       }
 
       return new ModifiedResourceResponse(['message' => 'No Cobranza nodes found to delete.'], 200);
