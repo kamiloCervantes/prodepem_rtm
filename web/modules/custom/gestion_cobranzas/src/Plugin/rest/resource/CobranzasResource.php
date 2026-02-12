@@ -163,7 +163,7 @@ class CobranzasResource extends ResourceBase
           $storage->delete($nodes);
           $total_deleted += count($chunk);
         }
-        $this->logger->notice('Deleted @count Cobranza nodes.', ['@count' => $total_deleted]);
+        $this->logger->notice('Deleted @count Cobranza Tipada nodes.', ['@count' => $total_deleted]);
         return new ModifiedResourceResponse(['message' => "Deleted $total_deleted Cobranza nodes."], 200);
       }
 
