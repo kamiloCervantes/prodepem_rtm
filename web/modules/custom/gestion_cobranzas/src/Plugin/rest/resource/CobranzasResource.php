@@ -16,14 +16,12 @@ use Drupal\Core\Entity\EntityTypeManagerInterface;
  *   id = "gestion_cobranzas_cobranzas_resource",
  *   label = @Translation("Cobranzas Resource"),
  *   uri_paths = {
- *     "canonical" = "/api/cbr/gestion-cobranzas",
- *     "create" = "/api/cbr/gestion-cobranzas",
- *     "delete" = "/api/cbr/gestion-cobranzas"
+ *     "create" = "/api/gestion-cobranzas/",
+ *     "delete" = "/api/gestion-cobranzas/"
  *   }
  * )
  */
-class CobranzasResource extends ResourceBase
-{
+class CobranzasResource extends ResourceBase {
 
   /**
    * The entity type manager.
@@ -63,8 +61,7 @@ class CobranzasResource extends ResourceBase
   /**
    * {@inheritdoc}
    */
-  public static function create(ContainerInterface $container, array $configuration, $plugin_id, $plugin_definition)
-  {
+  public static function create(ContainerInterface $container, array $configuration, $plugin_id, $plugin_definition) {
     return new static(
       $configuration,
       $plugin_id,
@@ -87,8 +84,7 @@ class CobranzasResource extends ResourceBase
    * @throws \Symfony\Component\HttpKernel\Exception\HttpException
    *   Throws exception for invalid data.
    */
-  public function post(array $data)
-  {
+  public function post(array $data) {
     // Validate data.
 
     //agregar logger para ver que se recibe
@@ -103,33 +99,35 @@ class CobranzasResource extends ResourceBase
       // Assuming 'registro_de_cobranzas' is the content type machine name.
       // Map fields from $data to node fields.
       // Example: 'title' => $data['title']
-
+      
       $node_data = [
-        'type' => 'item_cobranzas_uma_tipada',
-        'title' => 'Cobranza ' . ($data['factura'] ?? time()) . ' - ' . ($data['vencimiento'] ?? ''),
+        'type' => 'item_cobranzas_uma',
+        'title' => 'Cobranza ' . ($data['factura'] ?? time()),
         'field_factura' => $data['factura'] ?? '',
-        'field_fecha_emision_tipado' => $data['fecha_emision'] ?? NULL,
-        'field_fecha_vencimiento_tipado' => isset($data['vencimiento']) ? strtotime($data['vencimiento']) : NULL,
+        'field_fecha_emision' => isset($data['fecha_emision']) ? str_replace('/', '-', $data['fecha_emision']) : NULL,
+        'field_fecha_vencimiento' => isset($data['vencimiento']) ? str_replace('/', '-', $data['vencimiento']) : NULL,
         'field_referencia' => $data['referencia'] ?? '',
-        'field_valor_tipado' => $data['valor'] ?? 0,
-        'field_mora_tipado' => (int) ($data['mora'] ?? 0),
-        'field_dias_vencidos_tipado' => (int) ($data['dias_vencidos'] ?? 0),
+        'field_valor' => $data['valor'] ?? 0,
+        'field_mora' => $data['mora'] ?? 0,
+        'field_dias_vencidos' => $data['dias_vencidos'] ?? 0,
         'field_id_cliente' => $data['cliente_id'] ?? '',
         'field_nombre_cliente' => $data['cliente_nombre'] ?? '',
         'field_ciudad' => $data['ciudad'] ?? '',
         'field_direccion' => $data['direccion'] ?? '',
         'field_telefono' => $data['telefono'] ?? '',
+        'field_activo' => $data['activo'] ?? 1,
       ];
 
       $node = $this->entityTypeManager->getStorage('node')->create($node_data);
       $node->save();
 
-      $this->logger->notice('Created new Cobranza Tipada node with ID @id', ['@id' => $node->id()]);
+      $this->logger->notice('Created new Cobranza node with ID @id', ['@id' => $node->id()]);
 
       // Return the ID of the created node.
       return new ModifiedResourceResponse(['message' => 'Cobranza created successfully', 'id' => $node->id()], 201);
 
-    } catch (\Exception $e) {
+    }
+    catch (\Exception $e) {
       $this->logger->error('Error creating Cobranza node: @message', ['@message' => $e->getMessage()]);
       throw new \Symfony\Component\HttpKernel\Exception\HttpException(500, 'Internal Server Error: ' . $e->getMessage());
     }
@@ -146,30 +144,26 @@ class CobranzasResource extends ResourceBase
    * @return \Drupal\rest\ModifiedResourceResponse
    *   The HTTP response object.
    */
-  public function delete()
-  {
+  public function delete() {
     try {
       $storage = $this->entityTypeManager->getStorage('node');
       $nids = $storage->getQuery()
-        ->condition('type', 'item_cobranzas_uma_tipada')
+        ->condition('type', 'item_cobranzas_uma')
         ->accessCheck(FALSE)
         ->execute();
 
-      $total_deleted = 0;
       if (!empty($nids)) {
-        $chunks = array_chunk($nids, 100);
-        foreach ($chunks as $chunk) {
-          $nodes = $storage->loadMultiple($chunk);
-          $storage->delete($nodes);
-          $total_deleted += count($chunk);
-        }
-        $this->logger->notice('Deleted @count Cobranza Tipada nodes.', ['@count' => $total_deleted]);
-        return new ModifiedResourceResponse(['message' => "Deleted $total_deleted Cobranza nodes."], 200);
+        $nodes = $storage->loadMultiple($nids);
+        $storage->delete($nodes);
+        $count = count($nids);
+        $this->logger->notice('Deleted @count Cobranza nodes.', ['@count' => $count]);
+        return new ModifiedResourceResponse(['message' => "Deleted $count Cobranza nodes."], 200);
       }
 
       return new ModifiedResourceResponse(['message' => 'No Cobranza nodes found to delete.'], 200);
 
-    } catch (\Exception $e) {
+    }
+    catch (\Exception $e) {
       $this->logger->error('Error deleting Cobranza nodes: @message', ['@message' => $e->getMessage()]);
       throw new \Symfony\Component\HttpKernel\Exception\HttpException(500, 'Internal Server Error: ' . $e->getMessage());
     }
