@@ -16,6 +16,7 @@ use Drupal\Core\Entity\EntityTypeManagerInterface;
  *   id = "gestion_cobranzas_cobranzas_resource",
  *   label = @Translation("Cobranzas Resource"),
  *   uri_paths = {
+ *     "canonical" = "/api/gestion-cobranzas/",
  *     "create" = "/api/gestion-cobranzas/registrar",
  *     "delete" = "/api/gestion-cobranzas/eliminar"
  *   }
