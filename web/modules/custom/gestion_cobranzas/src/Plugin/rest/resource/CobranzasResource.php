@@ -105,7 +105,7 @@ class CobranzasResource extends ResourceBase
       // Example: 'title' => $data['title']
 
       $node_data = [
-        'type' => 'item_cobranzas_uma',
+        'type' => 'item_cobranzas_uma_tipado',
         'title' => 'Cobranza ' . ($data['factura'] ?? time()) . ' - ' . ($data['vencimiento'] ?? ''),
         'field_factura' => $data['factura'] ?? '',
         'field_fecha_emision_tipado' => $data['fecha_emision'] ?? NULL,
@@ -151,7 +151,7 @@ class CobranzasResource extends ResourceBase
     try {
       $storage = $this->entityTypeManager->getStorage('node');
       $nids = $storage->getQuery()
-        ->condition('type', 'item_cobranzas_uma')
+        ->condition('type', 'item_cobranzas_uma_tipado')
         ->accessCheck(FALSE)
         ->execute();
 
