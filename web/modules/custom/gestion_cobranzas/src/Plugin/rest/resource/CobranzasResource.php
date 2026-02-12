@@ -174,5 +174,74 @@ class CobranzasResource extends ResourceBase {
     }
   }
 
+  /**
+   * Responds to PUT requests.
+   *
+   * @param array $data
+   *   The data containing update information.
+   *
+   * @return \Drupal\rest\ModifiedResourceResponse
+   *   The HTTP response object.
+   */
+  public function put(array $data) {
+    if (empty($data['modo_update'])) {
+      throw new \Symfony\Component\HttpKernel\Exception\BadRequestHttpException('Missing modo_update.');
+    }
+
+    switch ($data['modo_update']) {
+      case 'UPDATE_STATUS':
+        return $this->updateStatus($data);
+
+      default:
+        throw new \Symfony\Component\HttpKernel\Exception\BadRequestHttpException('Invalid modo_update.');
+    }
+  }
+
+  /**
+   * Updates the active status for a specific client.
+   */
+  protected function updateStatus(array $data) {
+    if (empty($data['cliente_id']) || !isset($data['activo'])) {
+      throw new \Symfony\Component\HttpKernel\Exception\BadRequestHttpException('Missing cliente_id or activo.');
+    }
+
+    $activo = (bool) $data['activo'];
+    $cliente_id = $data['cliente_id'];
+
+    try {
+      $storage = $this->entityTypeManager->getStorage('node');
+      $nids = $storage->getQuery()
+        ->condition('type', 'item_cobranzas_uma_tipada')
+        ->condition('field_id_cliente', $cliente_id)
+        ->accessCheck(FALSE)
+        ->execute();
+
+      $count = 0;
+      if (!empty($nids)) {
+        foreach ($storage->loadMultiple($nids) as $node) {
+          $node->set('field_activo', $activo);
+          $node->save();
+          $count++;
+        }
+      }
+
+      $this->logger->notice('Updated @count nodes for client @client to @status.', [
+        '@count' => $count,
+        '@client' => $cliente_id,
+        '@status' => $activo ? 'TRUE' : 'FALSE',
+      ]);
+
+      return new ModifiedResourceResponse([
+        'message' => 'Nodes updated successfully',
+        'updated_count' => $count
+      ], 200);
+
+    } catch (\Exception $e) {
+      $this->logger->error('Error updating nodes: @message', ['@message' => $e->getMessage()]);
+      throw new \Symfony\Component\HttpKernel\Exception\HttpException(500, 'Internal Server Error');
+    }
+  }
+
+
 }
 
