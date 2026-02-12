@@ -105,7 +105,7 @@ class CobranzasResource extends ResourceBase
       // Example: 'title' => $data['title']
 
       $node_data = [
-        'type' => 'item_cobranzas_uma_tipado',
+        'type' => 'item_cobranzas_uma_tipada',
         'title' => 'Cobranza ' . ($data['factura'] ?? time()) . ' - ' . ($data['vencimiento'] ?? ''),
         'field_factura' => $data['factura'] ?? '',
         'field_fecha_emision_tipado' => $data['fecha_emision'] ?? NULL,
@@ -124,7 +124,7 @@ class CobranzasResource extends ResourceBase
       $node = $this->entityTypeManager->getStorage('node')->create($node_data);
       $node->save();
 
-      $this->logger->notice('Created new Cobranza node with ID @id', ['@id' => $node->id()]);
+      $this->logger->notice('Created new Cobranza Tipada node with ID @id', ['@id' => $node->id()]);
 
       // Return the ID of the created node.
       return new ModifiedResourceResponse(['message' => 'Cobranza created successfully', 'id' => $node->id()], 201);
@@ -151,7 +151,7 @@ class CobranzasResource extends ResourceBase
     try {
       $storage = $this->entityTypeManager->getStorage('node');
       $nids = $storage->getQuery()
-        ->condition('type', 'item_cobranzas_uma_tipado')
+        ->condition('type', 'item_cobranzas_uma_tipada')
         ->accessCheck(FALSE)
         ->execute();
 
