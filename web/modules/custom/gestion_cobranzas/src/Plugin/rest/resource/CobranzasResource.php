@@ -8,6 +8,7 @@ use Drupal\rest\ResourceResponse;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
+use Drupal\Core\Datetime\DrupalDateTime;
 
 /**
  * Provides a resource to get view modes by entity and bundle.
@@ -105,8 +106,8 @@ class CobranzasResource extends ResourceBase {
         'type' => 'item_cobranzas_uma_tipada',
         'title' => 'Cobranza ' . ($data['factura'] ?? time()) . ' - ' . ($data['vencimiento'] ?? ''),
         'field_factura' => $data['factura'] ?? '',
-        'field_fecha_emision_tipado' => isset($data['fecha_emision']) ? date('Y-m-d', strtotime(str_replace('/', '-', $data['fecha_emision']))) : NULL,
-        'field_fecha_vencimiento_tipado' => isset($data['vencimiento']) ? date('Y-m-d', strtotime(str_replace('/', '-', $data['vencimiento']))) : NULL,
+        'field_fecha_emision_tipado' => isset($data['fecha_emision']) ? (new DrupalDateTime(str_replace('/', '-', $data['fecha_emision'])))->format('Y-m-d\TH:i:s') : NULL,
+        'field_fecha_vencimiento_tipado' => isset($data['vencimiento']) ? (new DrupalDateTime(str_replace('/', '-', $data['vencimiento'])))->format('Y-m-d\TH:i:s') : NULL,
         'field_referencia' => $data['referencia'] ?? '',
         'field_valor_tipado' => $data['valor'] ?? 0,
         'field_mora_tipado' => (int) ($data['mora'] ?? 0),
