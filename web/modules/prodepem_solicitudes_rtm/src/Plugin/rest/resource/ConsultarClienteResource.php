@@ -72,14 +72,14 @@ class ConsultarClienteResource extends ResourceBase {
    */
   protected function querySoftSegurosClient($token, $documento) {
     $client = \Drupal::httpClient();
-    $url = 'https://app.softseguros.com/api/cliente/listar_cliente_por_documento/';
+    $url = 'https://app.softseguros.com/api/cliente/listar_cliente_por_documento/numero_documento/'.$documento;
 
     $response = $client->get($url, [
       'headers' => [
         'Authorization' => 'Token ' . $token,
         'Accept' => 'application/json',
       ],
-      'form_params' => [
+      'query' => [
         'numero_documento' => $documento,
       ],
     ]);
