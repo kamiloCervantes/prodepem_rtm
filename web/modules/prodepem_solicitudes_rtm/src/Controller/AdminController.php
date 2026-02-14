@@ -59,7 +59,7 @@ class AdminController extends ControllerBase {
                 $data['cda_telefono'] = $term->get('field_telefono')->value;
               }
               if ($term->hasField('description') && !$term->get('description')->isEmpty()) {
-                $data['detalles_cda'] = $term->get('description')->value;
+                $data['detalles_cda'] = $term->getDescription();
               }
             }
           }
