@@ -11,14 +11,35 @@
             color: #333;
         }
         .header {
-            text-align: center;
             border-bottom: 2px solid #0056b3;
             margin-bottom: 20px;
             padding-bottom: 10px;
+            width: 100%;
+        }
+        .header table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        .header .logo-cell {
+            width: 150px;
+            vertical-align: middle;
+        }
+        .header .logo-cell img {
+            max-width: 150px;
+            height: auto;
+        }
+        .header .title-cell {
+            text-align: center;
+            vertical-align: middle;
         }
         .header h1 {
             margin: 0;
             color: #0056b3;
+            font-size: 20px;
+        }
+        .header p {
+            margin: 5px 0 0 0;
+            font-size: 11px;
         }
         .section {
             margin-bottom: 20px;
@@ -62,8 +83,17 @@
 </head>
 <body>
     <div class="header">
-        <h1>{{ 'PRODEPEM - SOLICITUD RTM'|t }}</h1>
-        <p>{{ 'Fecha de generación:'|t }} {{ date }} | {{ 'Consecutivo:'|t }} TM-{{ submission.id }}</p>
+        <table>
+            <tr>
+                <td class="logo-cell">
+                    <img src="/sites/default/files/styles/wide/public/2026-01/prodepem.jpg.avif?itok=lRwR4hmQ" alt="Logo Prodepem">
+                </td>
+                <td class="title-cell">
+                    <h1>{{ 'PRODEPEM - SOLICITUD RTM'|t }}</h1>
+                    <p>{{ 'Fecha de generación:'|t }} {{ date }} | {{ 'Consecutivo:'|t }} TM-{{ submission.id }}</p>
+                </td>
+            </tr>
+        </table>
     </div>
 
     <div class="section">
