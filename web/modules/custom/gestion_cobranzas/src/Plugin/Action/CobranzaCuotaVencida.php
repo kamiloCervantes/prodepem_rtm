@@ -33,7 +33,7 @@ class CobranzaCuotaVencida extends ActionBase {
         5 => 'mayo', 6 => 'junio', 7 => 'julio', 8 => 'agosto',
         9 => 'septiembre', 10 => 'octubre', 11 => 'noviembre', 12 => 'diciembre'
       ];
-      $mes = $meses[(int) date('n', $timestamp)] ?? 'N/A';
+      $mes = $meses[(int) date('n', strtotime($timestamp))] ?? 'N/A';
     }
 
     $values = [
