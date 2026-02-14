@@ -16,6 +16,7 @@ function prodepem_solicitudes_rtm_theme($existing, $type, $theme, $path) {
         'submission' => NULL,
         'date' => NULL,
         'logo_path' => NULL,
+        'serial' => NULL,
       ],
     ],
   ];
