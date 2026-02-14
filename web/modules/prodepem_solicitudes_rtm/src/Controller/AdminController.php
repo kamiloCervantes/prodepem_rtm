@@ -80,7 +80,7 @@ class AdminController extends ControllerBase {
         '#submission' => $webform_submission,
         '#date' => date('d/m/Y'),
         '#logo_path' => $logo_uri,
-        '#serial' => $webform_submission->getSerial(),
+        '#serial' => $webform_submission->serial->value,
       ];
 
       $html = \Drupal::service('renderer')->renderPlain($render_array);
