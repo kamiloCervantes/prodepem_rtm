@@ -36,10 +36,14 @@ class CobranzaCuotaVencida extends ActionBase {
       $mes = $meses[(int) date('n', strtotime($timestamp))] ?? 'N/A';
     }
 
+    $config = \Drupal::config('gestion_cobranzas.settings');
+    $mensaje_template = $config->get('mensaje_notificacion') ?? 'La cuota de su factura del mes de [mes] ha vencido.';
+    $mensaje = str_replace('[mes]', $mes, $mensaje_template);
+
     $values = [
       'webform_id' => 'notificaciones_cobranzas',
       'data' => [
-        'mensaje' => 'La cuota de su factura del mes de ' . $mes . ' ha vencido.',
+        'mensaje' => $mensaje,
         'destinatario' => $entity->get('field_id_cliente')->value ?? '',
         'enviado' => 0,
       ],
