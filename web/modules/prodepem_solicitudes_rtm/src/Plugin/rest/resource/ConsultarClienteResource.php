@@ -79,7 +79,7 @@ class ConsultarClienteResource extends ResourceBase {
         'Authorization' => 'Token ' . $token,
         'Accept' => 'application/json',
       ],
-      'json' => [
+      'form_params' => [
         'numero_documento' => $documento,
       ],
     ]);
