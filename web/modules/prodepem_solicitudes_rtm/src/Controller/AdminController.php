@@ -64,11 +64,14 @@ class AdminController extends ControllerBase {
       }
 
       // 2. Renderizar la plantilla Twig
+      $logo_path = \Drupal::root() . '/sites/default/files/2026-01/prodepem.jpg';
+      
       $render_array = [
         '#theme' => 'prodepem_rtm_pdf_template',
         '#data' => $data,
         '#submission' => $webform_submission,
         '#date' => date('d/m/Y'),
+        '#logo_path' => $logo_path,
       ];
 
       $html = \Drupal::service('renderer')->renderPlain($render_array);

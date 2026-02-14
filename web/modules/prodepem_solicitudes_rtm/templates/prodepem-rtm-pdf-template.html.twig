@@ -86,7 +86,9 @@
         <table>
             <tr>
                 <td class="logo-cell">
-                    <img src="/sites/default/files/styles/wide/public/2026-01/prodepem.jpg.avif?itok=lRwR4hmQ" alt="Logo Prodepem">
+                    {% if logo_path %}
+                        <img src="{{ logo_path }}" alt="Logo Prodepem">
+                    {% endif %}
                 </td>
                 <td class="title-cell">
                     <h1>{{ 'PRODEPEM - SOLICITUD RTM'|t }}</h1>
