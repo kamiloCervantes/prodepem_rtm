@@ -158,8 +158,8 @@ function prodepem_solicitudes_rtm_form_alter(&$form, FormStateInterface $form_st
 
     // Wrap actions for AJAX.
     if (isset($form['actions'])) {
-      $form['actions']['#prefix'] = '<div id="form-actions-wrapper">';
-      $form['actions']['#suffix'] = '</div>';
+      //$form['actions']['#prefix'] = '<div id="form-actions-wrapper">';
+      //$form['actions']['#suffix'] = '</div>';
 
       // Control submit button visibility based on 'codigo_de_verificacion'.
       $code = $form_state->getValue('codigo_de_verificacion');
