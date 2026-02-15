@@ -40,8 +40,6 @@ use Drupal\Core\Ajax\ReplaceCommand;
 function prodepem_solicitudes_rtm_webform_element_alter(array &$element, FormStateInterface $form_state, array $context) {
     $key = $element['#webform_key'] ?? NULL;
 
-    var_dump($key);
-
     // Set default value for 'fecha_convenio'.
     if ($key === 'fecha_convenio') {
       $element['#default_value'] = date('Y-m-d');
