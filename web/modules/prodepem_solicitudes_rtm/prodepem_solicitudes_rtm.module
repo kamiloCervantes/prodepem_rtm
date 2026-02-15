@@ -156,6 +156,18 @@ function prodepem_solicitudes_rtm_form_alter(&$form, FormStateInterface $form_st
     // Attach the custom library.
     $form['#attached']['library'][] = 'prodepem_solicitudes_rtm/formulario_touch';
 
+    // Wrap actions for AJAX.
+    if (isset($form['actions'])) {
+      $form['actions']['#prefix'] = '<div id="form-actions-wrapper">';
+      $form['actions']['#suffix'] = '</div>';
+
+      // Control submit button visibility based on 'codigo_de_verificacion'.
+      $code = $form_state->getValue('codigo_de_verificacion');
+      if ($code != '1234') {
+        $form['actions']['submit']['#access'] = FALSE;
+      }
+    }
+
     // Map of element keys to icons.
     $icons = [
       'nombre' => 'fa-user',
@@ -292,6 +304,12 @@ function prodepem_solicitudes_rtm_verificacion_otp_callback(array &$form, FormSt
   $otp_element = $find_element($form['elements'], 'validacion_otp_result');
   if ($otp_element) {
     $response->addCommand(new ReplaceCommand('#validacion-otp-wrapper', $otp_element));
+  }
+
+  if (isset($form['actions'])) {
+    $renderer = \Drupal::service('renderer');
+    $output = $renderer->render($form['actions']);
+    $response->addCommand(new ReplaceCommand('#form-actions-wrapper', $output));
   }
 
   return $response;
