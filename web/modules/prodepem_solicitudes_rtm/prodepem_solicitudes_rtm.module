@@ -40,6 +40,8 @@ use Drupal\Core\Ajax\ReplaceCommand;
 function prodepem_solicitudes_rtm_webform_element_alter(array &$element, FormStateInterface $form_state, array $context) {
     $key = $element['#webform_key'] ?? NULL;
 
+    var_dump($key);
+
     // Set default value for 'fecha_convenio'.
     if ($key === 'fecha_convenio') {
       $element['#default_value'] = date('Y-m-d');
@@ -298,17 +300,13 @@ function prodepem_solicitudes_rtm_verificacion_otp_callback(array &$form, FormSt
     return NULL;
   };
 
-  $renderer = \Drupal::service('renderer');
-
   $otp_element = $find_element($form['elements'], 'validacion_otp_result');
   if ($otp_element) {
-    $output = $renderer->render($otp_element);
-    $response->addCommand(new ReplaceCommand('#validacion-otp-wrapper', $output));
+    $response->addCommand(new ReplaceCommand('#validacion-otp-wrapper', $otp_element));
   }
 
   if (isset($form['actions'])) {
-    $output = $renderer->render($form['actions']);
-    $response->addCommand(new ReplaceCommand('#form-actions-wrapper', $output));
+    $response->addCommand(new ReplaceCommand('#form-actions-wrapper', $form['actions']));
   }
 
   return $response;
