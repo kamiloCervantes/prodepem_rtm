@@ -59,7 +59,7 @@ function prodepem_solicitudes_rtm_webform_element_alter(array &$element, FormSta
 
       $code = $form_state->getValue('codigo_de_verificacion');
       if ($code == '1234') {
-        $element['#value'] = 1;
+        //$element['#value'] = 1;
       }
     }
 
