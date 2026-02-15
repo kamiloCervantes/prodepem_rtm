@@ -298,13 +298,17 @@ function prodepem_solicitudes_rtm_verificacion_otp_callback(array &$form, FormSt
     return NULL;
   };
 
+  $renderer = \Drupal::service('renderer');
+
   $otp_element = $find_element($form['elements'], 'validacion_otp_result');
   if ($otp_element) {
-    $response->addCommand(new ReplaceCommand('#validacion-otp-wrapper', $otp_element));
+    $output = $renderer->render($otp_element);
+    $response->addCommand(new ReplaceCommand('#validacion-otp-wrapper', $output));
   }
 
   if (isset($form['actions'])) {
-    $response->addCommand(new ReplaceCommand('#form-actions-wrapper', $form['actions']));
+    $output = $renderer->render($form['actions']);
+    $response->addCommand(new ReplaceCommand('#form-actions-wrapper', $output));
   }
 
   return $response;
