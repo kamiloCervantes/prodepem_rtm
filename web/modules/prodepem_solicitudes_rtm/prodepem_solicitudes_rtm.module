@@ -303,9 +303,5 @@ function prodepem_solicitudes_rtm_verificacion_otp_callback(array &$form, FormSt
     $response->addCommand(new ReplaceCommand('#validacion-otp-wrapper', $otp_element));
   }
 
-  if (isset($form['actions'])) {
-    $response->addCommand(new ReplaceCommand('#form-actions-wrapper', $form['actions']));
-  }
-
   return $response;
 }
