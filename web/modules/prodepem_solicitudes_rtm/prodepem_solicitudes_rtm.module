@@ -156,15 +156,15 @@ function prodepem_solicitudes_rtm_form_alter(&$form, FormStateInterface $form_st
     // Attach the custom library.
     $form['#attached']['library'][] = 'prodepem_solicitudes_rtm/formulario_touch';
 
-    // Wrap actions for AJAX.
+    // Logic for 'actions'.
     if (isset($form['actions'])) {
-      //$form['actions']['#prefix'] = '<div id="form-actions-wrapper">';
-      //$form['actions']['#suffix'] = '</div>';
+      // Ensure the wrapper ID is explicitly set to 'edit-actions' for Ajax targeting.
+      $form['actions']['#attributes']['id'] = 'edit-actions';
 
       // Control submit button visibility based on 'codigo_de_verificacion'.
       $code = $form_state->getValue('codigo_de_verificacion');
       if ($code != '1234') {
-        //$form['actions']['submit']['#access'] = FALSE;
+        $form['actions']['submit']['#access'] = FALSE;
       }
     }
 
@@ -307,9 +307,9 @@ function prodepem_solicitudes_rtm_verificacion_otp_callback(array &$form, FormSt
   }
 
   if (isset($form['actions'])) {
-    //$renderer = \Drupal::service('renderer');
-    //$output = $renderer->render($form['actions']);
-    //$response->addCommand(new ReplaceCommand('#form-actions-wrapper', $output));
+    $renderer = \Drupal::service('renderer');
+    $output = $renderer->render($form['actions']);
+    $response->addCommand(new ReplaceCommand('#edit-actions', $output));
   }
 
   return $response;
