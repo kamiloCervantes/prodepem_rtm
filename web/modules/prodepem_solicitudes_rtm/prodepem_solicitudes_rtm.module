@@ -43,7 +43,26 @@ function prodepem_solicitudes_rtm_webform_element_alter(array &$element, FormSta
       $element['#default_value'] = date('Y-m-d');
     }
 
-    //
+    // AJAX for 'codigo_de_verificacion'.
+    if ($key === 'codigo_de_verificacion') {
+      $element['#ajax'] = [
+        'callback' => 'prodepem_solicitudes_rtm_verificacion_otp_callback',
+        'wrapper' => 'validacion-otp-wrapper',
+        'event' => 'change',
+      ];
+    }
+
+    // Wrapper and logic for 'validacion_otp'.
+    if ($key === 'validacion_otp') {
+      $element['#prefix'] = '<div id="validacion-otp-wrapper">';
+      $element['#suffix'] = '</div>';
+
+      $code = $form_state->getValue('codigo_de_verificacion');
+      if ($code == '1234') {
+        $element['#value'] = 1;
+      }
+    }
+
 
     // AJAX for 'departamento'.
     if ($key === 'departamento') {
@@ -243,4 +262,27 @@ function prodepem_solicitudes_rtm_webform_submission_presave(WebformSubmissionIn
       }
     }
   }
+}
+
+/**
+ * AJAX callback for Verification OTP.
+ */
+function prodepem_solicitudes_rtm_verificacion_otp_callback(array &$form, FormStateInterface $form_state) {
+  // Helper to find element by key recursively.
+  $find_element = function (array &$elements, $key) use (&$find_element) {
+    if (isset($elements[$key])) {
+      return $elements[$key];
+    }
+    foreach ($elements as &$element) {
+      if (is_array($element) && strpos($key, '#') !== 0) {
+        $found = $find_element($element, $key);
+        if ($found) {
+          return $found;
+        }
+      }
+    }
+    return NULL;
+  };
+
+  return $find_element($form['elements'], 'validacion_otp');
 }
