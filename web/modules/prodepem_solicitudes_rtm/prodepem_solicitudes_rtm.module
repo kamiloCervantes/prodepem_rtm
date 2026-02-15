@@ -25,6 +25,8 @@ function prodepem_solicitudes_rtm_theme($existing, $type, $theme, $path) {
 
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\webform\WebformSubmissionInterface;
+use Drupal\Core\Ajax\AjaxResponse;
+use Drupal\Core\Ajax\ReplaceCommand;
 
 /**
  * @file
@@ -147,6 +149,16 @@ function prodepem_solicitudes_rtm_form_alter(&$form, FormStateInterface $form_st
   if ($form_id === 'webform_submission_solicitud_de_revision_tecnico_me_add_form') {
     // Attach the library.
     $form['#attached']['library'][] = 'prodepem_solicitudes_rtm/prodepem_solicitudes_rtm';
+
+    // Wrap actions for AJAX.
+    $form['actions']['#prefix'] = '<div id="form-actions-wrapper">';
+    $form['actions']['#suffix'] = '</div>';
+
+    // Control submit button visibility based on 'codigo_de_verificacion'.
+    $code = $form_state->getValue('codigo_de_verificacion');
+    if ($code != '1234') {
+      $form['actions']['submit']['#access'] = FALSE;
+    }
   }
 
   // Check if the form is the add form for 'formulario_touch'.
@@ -268,6 +280,8 @@ function prodepem_solicitudes_rtm_webform_submission_presave(WebformSubmissionIn
  * AJAX callback for Verification OTP.
  */
 function prodepem_solicitudes_rtm_verificacion_otp_callback(array &$form, FormStateInterface $form_state) {
+  $response = new AjaxResponse();
+
   // Helper to find element by key recursively.
   $find_element = function (array &$elements, $key) use (&$find_element) {
     if (isset($elements[$key])) {
@@ -284,5 +298,14 @@ function prodepem_solicitudes_rtm_verificacion_otp_callback(array &$form, FormSt
     return NULL;
   };
 
-  return $find_element($form['elements'], 'validacion_otp_result');
+  $otp_element = $find_element($form['elements'], 'validacion_otp_result');
+  if ($otp_element) {
+    $response->addCommand(new ReplaceCommand('#validacion-otp-wrapper', $otp_element));
+  }
+
+  if (isset($form['actions'])) {
+    $response->addCommand(new ReplaceCommand('#form-actions-wrapper', $form['actions']));
+  }
+
+  return $response;
 }
