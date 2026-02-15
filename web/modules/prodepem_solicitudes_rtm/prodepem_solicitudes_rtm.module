@@ -310,6 +310,6 @@ function prodepem_solicitudes_rtm_formulario_touch_validate(&$form, FormStateInt
   $otp_result = $values['validacion_otp_result'] ?? NULL;
 
   if ($otp_result != 1) {
-    $form_state->setErrorByName('codigo_de_verificacion', t('no se pudo validar el numero de telefono del cliente'));
+    $form_state->setErrorByName('codigo_de_verificacion', t('No se pudo validar el numero de telefono del cliente'));
   }
 }
