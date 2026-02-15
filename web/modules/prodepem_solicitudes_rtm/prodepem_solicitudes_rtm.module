@@ -53,13 +53,13 @@ function prodepem_solicitudes_rtm_webform_element_alter(array &$element, FormSta
     }
 
     // Wrapper and logic for 'validacion_otp'.
-    if ($key === 'validacion_otp') {
+    if ($key === 'validacion_otp_result') {
       $element['#prefix'] = '<div id="validacion-otp-wrapper">';
       $element['#suffix'] = '</div>';
 
       $code = $form_state->getValue('codigo_de_verificacion');
       if ($code == '1234') {
-        //$element['#value'] = 1;
+        $element['#value'] = 54;
       }
     }
 
@@ -284,5 +284,5 @@ function prodepem_solicitudes_rtm_verificacion_otp_callback(array &$form, FormSt
     return NULL;
   };
 
-  return $find_element($form['elements'], 'validacion_otp');
+  return $find_element($form['elements'], 'validacion_otp_result');
 }
