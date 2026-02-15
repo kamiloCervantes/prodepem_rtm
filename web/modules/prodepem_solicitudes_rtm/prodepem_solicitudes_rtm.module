@@ -61,7 +61,7 @@ function prodepem_solicitudes_rtm_webform_element_alter(array &$element, FormSta
 
       $code = $form_state->getValue('codigo_de_verificacion');
       if ($code == '1234') {
-        $element['#value'] = 54;
+        $element['#value'] = 1;
       }
     }
 
@@ -156,17 +156,8 @@ function prodepem_solicitudes_rtm_form_alter(&$form, FormStateInterface $form_st
     // Attach the custom library.
     $form['#attached']['library'][] = 'prodepem_solicitudes_rtm/formulario_touch';
 
-    // Logic for 'actions'.
-    if (isset($form['actions'])) {
-      // Ensure the wrapper ID is explicitly set to 'edit-actions' for Ajax targeting.
-      $form['actions']['#attributes']['id'] = 'edit-actions';
-
-      // Control submit button visibility based on 'codigo_de_verificacion'.
-      $code = $form_state->getValue('codigo_de_verificacion');
-      if ($code != '1234') {
-        $form['actions']['submit']['#access'] = FALSE;
-      }
-    }
+    // Add custom validation handler.
+    $form['#validate'][] = 'prodepem_solicitudes_rtm_formulario_touch_validate';
 
     // Map of element keys to icons.
     $icons = [
@@ -306,11 +297,19 @@ function prodepem_solicitudes_rtm_verificacion_otp_callback(array &$form, FormSt
     $response->addCommand(new ReplaceCommand('#validacion-otp-wrapper', $otp_element));
   }
 
-  if (isset($form['actions'])) {
-    $renderer = \Drupal::service('renderer');
-    $output = $renderer->render($form['actions']);
-    $response->addCommand(new ReplaceCommand('#edit-actions', $output));
-  }
+
 
   return $response;
+}
+
+/**
+ * Custom validation for formulario_touch OTP.
+ */
+function prodepem_solicitudes_rtm_formulario_touch_validate(&$form, FormStateInterface $form_state) {
+  $values = $form_state->getValues();
+  $otp_result = $values['validacion_otp_result'] ?? NULL;
+
+  if ($otp_result != 1) {
+    $form_state->setErrorByName('codigo_de_verificacion', t('no se pudo validar el numero de telefono del cliente'));
+  }
 }
