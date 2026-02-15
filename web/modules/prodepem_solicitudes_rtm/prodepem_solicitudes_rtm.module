@@ -65,6 +65,17 @@ function prodepem_solicitudes_rtm_webform_element_alter(array &$element, FormSta
       }
     }
 
+    // Wrapper and logic for 'actions'.
+    if ($key === 'actions') {
+      $element['#prefix'] = '<div id="form-actions-wrapper">';
+      $element['#suffix'] = '</div>';
+
+      $code = $form_state->getValue('codigo_de_verificacion');
+      if ($code != '1234') {
+        $element['submit']['#access'] = FALSE;
+      }
+    }
+
 
     // AJAX for 'departamento'.
     if ($key === 'departamento') {
@@ -149,16 +160,6 @@ function prodepem_solicitudes_rtm_form_alter(&$form, FormStateInterface $form_st
   if ($form_id === 'webform_submission_solicitud_de_revision_tecnico_me_add_form') {
     // Attach the library.
     $form['#attached']['library'][] = 'prodepem_solicitudes_rtm/prodepem_solicitudes_rtm';
-
-    // Wrap actions for AJAX.
-    $form['actions']['#prefix'] = '<div id="form-actions-wrapper">';
-    $form['actions']['#suffix'] = '</div>';
-
-    // Control submit button visibility based on 'codigo_de_verificacion'.
-    $code = $form_state->getValue('codigo_de_verificacion');
-    if ($code != '1234') {
-      $form['actions']['submit']['#access'] = FALSE;
-    }
   }
 
   // Check if the form is the add form for 'formulario_touch'.
@@ -298,9 +299,17 @@ function prodepem_solicitudes_rtm_verificacion_otp_callback(array &$form, FormSt
     return NULL;
   };
 
+
   $otp_element = $find_element($form['elements'], 'validacion_otp_result');
   if ($otp_element) {
     $response->addCommand(new ReplaceCommand('#validacion-otp-wrapper', $otp_element));
+  }
+
+  $actions_element = $find_element($form['elements'], 'actions');
+  if ($actions_element) {
+    $renderer = \Drupal::service('renderer');
+    $output = $renderer->render($actions_element);
+    $response->addCommand(new ReplaceCommand('#form-actions-wrapper', $output));
   }
 
   return $response;
