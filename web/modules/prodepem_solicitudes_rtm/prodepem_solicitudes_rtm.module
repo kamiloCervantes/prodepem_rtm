@@ -65,17 +65,6 @@ function prodepem_solicitudes_rtm_webform_element_alter(array &$element, FormSta
       }
     }
 
-    // Wrapper and logic for 'actions'.
-    if ($key === 'actions') {
-      $element['#prefix'] = '<div id="form-actions-wrapper">';
-      $element['#suffix'] = '</div>';
-
-      $code = $form_state->getValue('codigo_de_verificacion');
-      if ($code != '1234') {
-        $element['submit']['#access'] = FALSE;
-      }
-    }
-
 
     // AJAX for 'departamento'.
     if ($key === 'departamento') {
@@ -303,13 +292,6 @@ function prodepem_solicitudes_rtm_verificacion_otp_callback(array &$form, FormSt
   $otp_element = $find_element($form['elements'], 'validacion_otp_result');
   if ($otp_element) {
     $response->addCommand(new ReplaceCommand('#validacion-otp-wrapper', $otp_element));
-  }
-
-  $actions_element = $find_element($form['elements'], 'actions');
-  if ($actions_element) {
-    $renderer = \Drupal::service('renderer');
-    $output = $renderer->render($actions_element);
-    $response->addCommand(new ReplaceCommand('#form-actions-wrapper', $output));
   }
 
   return $response;
