@@ -1,1 +1,7 @@
-# gestion_cobranzas.routing.yml
+gestion_cobranzas.settings:
+  path: '/admin/config/system/gestion-cobranzas'
+  defaults:
+    _form: '\Drupal\gestion_cobranzas\Form\CobranzasConfigForm'
+    _title: 'Configuración de Gestión de Cobranzas'
+  requirements:
+    _permission: 'administer site configuration'

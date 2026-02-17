@@ -1,0 +1,7 @@
+gestion_cobranzas.settings:
+  type: config_object
+  label: 'Gestion de Cobranzas settings'
+  mapping:
+    mensaje_notificacion:
+      type: string
+      label: 'Mensaje de notificación de cuota vencida'

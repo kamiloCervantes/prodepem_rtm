@@ -11,14 +11,35 @@
             color: #333;
         }
         .header {
-            text-align: center;
             border-bottom: 2px solid #0056b3;
             margin-bottom: 20px;
             padding-bottom: 10px;
+            width: 100%;
+        }
+        .header table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        .header .logo-cell {
+            width: 150px;
+            vertical-align: middle;
+        }
+        .header .logo-cell img {
+            max-width: 150px;
+            height: auto;
+        }
+        .header .title-cell {
+            text-align: center;
+            vertical-align: middle;
         }
         .header h1 {
             margin: 0;
             color: #0056b3;
+            font-size: 20px;
+        }
+        .header p {
+            margin: 5px 0 0 0;
+            font-size: 11px;
         }
         .section {
             margin-bottom: 20px;
@@ -62,8 +83,19 @@
 </head>
 <body>
     <div class="header">
-        <h1>{{ 'PRODEPEM - SOLICITUD RTM'|t }}</h1>
-        <p>{{ 'Fecha de generación:'|t }} {{ date }} | {{ 'Consecutivo:'|t }} TM-{{ submission.id }}</p>
+        <table>
+            <tr>
+                <td class="logo-cell">
+                    {% if logo_path %}
+                        <img src="{{ logo_path }}" alt="Logo Prodepem">
+                    {% endif %}
+                </td>
+                <td class="title-cell">
+                    <h1>{{ 'PRODEPEM - SOLICITUD RTM'|t }}</h1>
+                    <p>{{ 'Fecha de solicitud:'|t }} {{ data.fecha_convenio|default('N/A') }} | {{ 'Consecutivo:'|t }} TM-{{ serial|trim }}</p>
+                </td>
+            </tr>
+        </table>
     </div>
 
     <div class="section">
@@ -99,6 +131,11 @@
 
     <div class="section">
         <div class="section-title">{{ 'Datos del CDA'|t }}</div>
+
+        <div class="field-group">
+            <div class="field-label">{{ 'CDA:'|t }}</div>
+            <div class="field-value">{{ data.cda_label|default('N/A') }}</div>
+        </div>
         
         <div class="field-group">
             <div class="field-label">{{ 'Departamento:'|t }}</div>

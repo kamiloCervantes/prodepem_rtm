@@ -58,17 +58,29 @@ class AdminController extends ControllerBase {
               if ($term->hasField('field_telefono') && !$term->get('field_telefono')->isEmpty()) {
                 $data['cda_telefono'] = $term->get('field_telefono')->value;
               }
+              if ($term->hasField('description') && !$term->get('description')->isEmpty()) {
+                $data['detalles_cda'] = $term->getDescription();
+              }
             }
           }
         }
       }
 
       // 2. Renderizar la plantilla Twig
+      $logo_uri = NULL;
+      $logo_path = \Drupal::root() . '/sites/default/files/2026-01/prodepem.jpg';
+      if (file_exists($logo_path)) {
+        $logo_data = base64_encode(file_get_contents($logo_path));
+        $logo_uri = 'data:image/jpeg;base64,' . $logo_data;
+      }
+      
       $render_array = [
         '#theme' => 'prodepem_rtm_pdf_template',
         '#data' => $data,
         '#submission' => $webform_submission,
         '#date' => date('d/m/Y'),
+        '#logo_path' => $logo_uri,
+        '#serial' => $webform_submission->serial->value,
       ];
 
       $html = \Drupal::service('renderer')->renderPlain($render_array);

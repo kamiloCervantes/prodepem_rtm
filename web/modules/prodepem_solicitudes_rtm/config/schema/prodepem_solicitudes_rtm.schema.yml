@@ -1,0 +1,10 @@
+prodepem_solicitudes_rtm.settings:
+  type: config_object
+  label: 'Prodepem Solicitudes RTM settings'
+  mapping:
+    usuario_softseguros:
+      type: string
+      label: 'Usuario SoftSeguros'
+    clave_softseguros:
+      type: string
+      label: 'Clave SoftSeguros'

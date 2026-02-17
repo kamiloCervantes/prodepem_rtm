@@ -15,6 +15,8 @@ function prodepem_solicitudes_rtm_theme($existing, $type, $theme, $path) {
         'data' => NULL,
         'submission' => NULL,
         'date' => NULL,
+        'logo_path' => NULL,
+        'serial' => NULL,
       ],
     ],
   ];
@@ -23,6 +25,8 @@ function prodepem_solicitudes_rtm_theme($existing, $type, $theme, $path) {
 
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\webform\WebformSubmissionInterface;
+use Drupal\Core\Ajax\AjaxResponse;
+use Drupal\Core\Ajax\ReplaceCommand;
 
 /**
  * @file
@@ -41,7 +45,26 @@ function prodepem_solicitudes_rtm_webform_element_alter(array &$element, FormSta
       $element['#default_value'] = date('Y-m-d');
     }
 
-    //
+    // AJAX for 'codigo_de_verificacion'.
+    if ($key === 'codigo_de_verificacion') {
+      $element['#ajax'] = [
+        'callback' => 'prodepem_solicitudes_rtm_verificacion_otp_callback',
+        'wrapper' => 'validacion-otp-wrapper',
+        'event' => 'change',
+      ];
+    }
+
+    // Wrapper and logic for 'validacion_otp'.
+    if ($key === 'validacion_otp_result') {
+      $element['#prefix'] = '<div id="validacion-otp-wrapper">';
+      $element['#suffix'] = '</div>';
+
+      $code = $form_state->getValue('codigo_de_verificacion');
+      if ($code == '1234') {
+        $element['#value'] = 1;
+      }
+    }
+
 
     // AJAX for 'departamento'.
     if ($key === 'departamento') {
@@ -132,6 +155,9 @@ function prodepem_solicitudes_rtm_form_alter(&$form, FormStateInterface $form_st
   if ($form_id === 'webform_submission_formulario_touch_add_form') {
     // Attach the custom library.
     $form['#attached']['library'][] = 'prodepem_solicitudes_rtm/formulario_touch';
+
+    // Add custom validation handler.
+    $form['#validate'][] = 'prodepem_solicitudes_rtm_formulario_touch_validate';
 
     // Map of element keys to icons.
     $icons = [
@@ -240,5 +266,50 @@ function prodepem_solicitudes_rtm_webform_submission_presave(WebformSubmissionIn
         $webform_submission->setData($data);
       }
     }
+  }
+}
+
+/**
+ * AJAX callback for Verification OTP.
+ */
+function prodepem_solicitudes_rtm_verificacion_otp_callback(array &$form, FormStateInterface $form_state) {
+  $response = new AjaxResponse();
+
+  // Helper to find element by key recursively.
+  $find_element = function (array &$elements, $key) use (&$find_element) {
+    if (isset($elements[$key])) {
+      return $elements[$key];
+    }
+    foreach ($elements as &$element) {
+      if (is_array($element) && strpos($key, '#') !== 0) {
+        $found = $find_element($element, $key);
+        if ($found) {
+          return $found;
+        }
+      }
+    }
+    return NULL;
+  };
+
+
+  $otp_element = $find_element($form['elements'], 'validacion_otp_result');
+  if ($otp_element) {
+    $response->addCommand(new ReplaceCommand('#validacion-otp-wrapper', $otp_element));
+  }
+
+
+
+  return $response;
+}
+
+/**
+ * Custom validation for formulario_touch OTP.
+ */
+function prodepem_solicitudes_rtm_formulario_touch_validate(&$form, FormStateInterface $form_state) {
+  $values = $form_state->getValues();
+  $otp_result = $values['validacion_otp_result'] ?? NULL;
+
+  if ($otp_result != 1) {
+    $form_state->setErrorByName('codigo_de_verificacion', t('No se pudo validar el numero de telefono del cliente'));
   }
 }

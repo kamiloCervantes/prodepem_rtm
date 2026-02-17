@@ -30,8 +30,22 @@ class SettingsForm extends ConfigFormBase {
   public function buildForm(array $form, FormStateInterface $form_state) {
     $config = $this->config('prodepem_solicitudes_rtm.settings');
 
-    $form['message'] = [
-      '#markup' => $this->t('Esta es una página de configuración de ejemplo para el módulo RTM.'),
+    $form['softseguros_auth'] = [
+      '#type' => 'details',
+      '#title' => $this->t('Autenticación SoftSeguros'),
+      '#open' => TRUE,
+    ];
+
+    $form['softseguros_auth']['usuario_softseguros'] = [
+      '#type' => 'textfield',
+      '#title' => $this->t('Usuario SoftSeguros'),
+      '#default_value' => $config->get('usuario_softseguros'),
+    ];
+
+    $form['softseguros_auth']['clave_softseguros'] = [
+      '#type' => 'password',
+      '#title' => $this->t('Clave SoftSeguros'),
+      '#default_value' => $config->get('clave_softseguros'),
     ];
 
     return parent::buildForm($form, $form_state);
@@ -41,6 +55,11 @@ class SettingsForm extends ConfigFormBase {
    * {@inheritdoc}
    */
   public function submitForm(array &$form, FormStateInterface $form_state) {
+    $this->config('prodepem_solicitudes_rtm.settings')
+      ->set('usuario_softseguros', $form_state->getValue('usuario_softseguros'))
+      ->set('clave_softseguros', $form_state->getValue('clave_softseguros'))
+      ->save();
+
     parent::submitForm($form, $form_state);
   }
 
