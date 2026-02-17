@@ -68,16 +68,18 @@
 
     <div class="section">
         <div class="section-title">{{ 'Información General'|t }}</div>
+
+        <div class="field-group">
+            <div class="field-label">{{ 'Placa del Vehículo:'|t }}</div>
+            <div class="field-value">{{ data.placa_vehiculo|default('N/A') }}</div>
+        </div>
         
         <div class="field-group">
             <div class="field-label">{{ 'Nombre:'|t }}</div>
             <div class="field-value">{{ data.nombre_completo|default('N/A') }}</div>
         </div>
         
-        <div class="field-group">
-            <div class="field-label">{{ 'Placa del Vehículo:'|t }}</div>
-            <div class="field-value">{{ data.placa_vehiculo|default('N/A') }}</div>
-        </div>
+       
 
         <div class="field-group">
             <div class="field-label">{{ 'CDA:'|t }}</div>
