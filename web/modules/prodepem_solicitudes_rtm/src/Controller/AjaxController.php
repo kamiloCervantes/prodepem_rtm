@@ -9,7 +9,8 @@ use Drupal\taxonomy\Entity\Term;
 /**
  * Returns responses for Prodepem Solicitudes RTM routes.
  */
-class AjaxController extends ControllerBase {
+class AjaxController extends ControllerBase
+{
 
   /**
    * Returns details of a CDA taxonomy term.
@@ -20,7 +21,8 @@ class AjaxController extends ControllerBase {
    * @return \Symfony\Component\HttpFoundation\JsonResponse
    *   The JSON response.
    */
-  public function getCdaDetails($tid) {
+  public function getCdaDetails($tid)
+  {
     $term = Term::load($tid);
     $data = [];
 
@@ -82,8 +84,9 @@ class AjaxController extends ControllerBase {
    * @return \Symfony\Component\HttpFoundation\JsonResponse
    *   The JSON response.
    */
-  public function getTiposVehiculos() {
-    $vocabulary = 'tipos_de_vehiculos';
+  public function getTiposVehiculos()
+  {
+    $vocabulary = 'tipos_de_vehiculos_para_soat';
     $query = \Drupal::entityTypeManager()->getStorage('taxonomy_term')->getQuery();
     $tids = $query->condition('vid', $vocabulary)
       ->accessCheck(TRUE)
@@ -116,7 +119,8 @@ class AjaxController extends ControllerBase {
    * @return \Symfony\Component\HttpFoundation\JsonResponse
    *   The JSON response.
    */
-  public function getValorCotizacion($nid, $term_label) {
+  public function getValorCotizacion($nid, $term_label)
+  {
     $data = [
       'valor' => 0,
       'status' => 'not_found',
@@ -145,13 +149,14 @@ class AjaxController extends ControllerBase {
   }
 
 
-   /**
+  /**
    * Returns a list of terms from the metodos_de_pago taxonomy.
    *
    * @return \Symfony\Component\HttpFoundation\JsonResponse
    *   The JSON response.
    */
-  public function getMetodosDePago() {
+  public function getMetodosDePago()
+  {
     $vocabulary = 'metodos_de_pago';
     $query = \Drupal::entityTypeManager()->getStorage('taxonomy_term')->getQuery();
     $tids = $query->condition('vid', $vocabulary)
@@ -183,7 +188,8 @@ class AjaxController extends ControllerBase {
    * @return \Symfony\Component\HttpFoundation\JsonResponse
    *   The JSON response.
    */
-  public function getDatosMetodoPago($nid, $metodo_pago) {
+  public function getDatosMetodoPago($nid, $metodo_pago)
+  {
     $data = [];
     $node = \Drupal\node\Entity\Node::load($nid);
 
@@ -237,7 +243,7 @@ class AjaxController extends ControllerBase {
             $paragraphs = $node->get('field_convenios')->referencedEntities();
             foreach ($paragraphs as $paragraph) {
               $data['field_convenios'][] = $this->getEntityData($paragraph);
-              if($convenios !== ''){
+              if ($convenios !== '') {
                 $data['convenio'] = $convenio;
               }
             }
@@ -267,7 +273,8 @@ class AjaxController extends ControllerBase {
   /**
    * Helper to get all field values from an entity.
    */
-  private function getEntityData($entity) {
+  private function getEntityData($entity)
+  {
     $data = [];
     foreach ($entity->getFieldDefinitions() as $field_name => $definition) {
       if ($definition->getFieldStorageDefinition()->isBaseField()) {
@@ -283,7 +290,8 @@ class AjaxController extends ControllerBase {
   /**
    * Helper to get field value handle different field types.
    */
-  private function getFieldValue($entity, $field_name) {
+  private function getFieldValue($entity, $field_name)
+  {
     $field = $entity->get($field_name);
     $values = [];
 
@@ -299,16 +307,16 @@ class AjaxController extends ControllerBase {
               'name' => $referenced_entity->label(),
             ];
           } elseif ($referenced_entity->getEntityTypeId() === 'file') {
-             $values[] = [
+            $values[] = [
               'url' => \Drupal::service('file_url_generator')->generateAbsoluteString($referenced_entity->getFileUri()),
               'name' => $referenced_entity->getFilename(),
             ];
           } elseif ($referenced_entity->getEntityTypeId() === 'media') {
-             // Basic media support
-             $values[] = [
-               'mid' => $referenced_entity->id(),
-               'name' => $referenced_entity->label(),
-             ];
+            // Basic media support
+            $values[] = [
+              'mid' => $referenced_entity->id(),
+              'name' => $referenced_entity->label(),
+            ];
           } else {
             $values[] = $referenced_entity->id();
           }
