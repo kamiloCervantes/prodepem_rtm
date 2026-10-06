@@ -1,12 +1,12 @@
 /**
  * @file
- * Mobile swipe navigation for formulario_equidad_seguros.
+ * Mobile swipe navigation and styling enhancements for formulario_equidad_seguros.
  */
 
 (function (Drupal, once) {
   'use strict';
 
-  Drupal.behaviors.formularioEquidadSegurosSwipe = {
+  Drupal.behaviors.formularioEquidadSeguros = {
     attach: function (context) {
       const forms = once(
         'equidad-swipe-nav',
@@ -15,6 +15,20 @@
       );
 
       forms.forEach(function (form) {
+        // Homologar estilo de "?Est? interesado en otros productos?" con "Seguros adicionales"
+        const titles = form.querySelectorAll('label, legend, .fieldset-legend, .form-item__label, h2, h3, h4');
+        titles.forEach(function (el) {
+          const text = (el.textContent || '').trim();
+          if (text.toLowerCase().includes('interesado en otros productos')) {
+            el.classList.add('estilo-seguros-adicionales-title');
+            const formItem = el.closest('.form-item, fieldset');
+            if (formItem) {
+              formItem.classList.add('wrapper-estilo-seguros-adicionales');
+            }
+          }
+        });
+
+        // Swipe Navigation
         let touchStartX = 0;
         let touchStartY = 0;
         let touchStartTime = 0;
@@ -73,7 +87,7 @@
             if (diffX > 0) {
               // Slide de izquierda a derecha -> Anterior
               const prevButton = form.querySelector(
-                '.webform-button--previous, [data-drupal-selector*="wizard-prev"], input[name="wizard_prev"], button[name="wizard_prev"], input[value="Anterior"], button:contains("Anterior")'
+                '.webform-button--previous, [data-drupal-selector*="wizard-prev"], input[name="wizard_prev"], button[name="wizard_prev"], input[value="Anterior"]'
               );
 
               if (prevButton && !prevButton.disabled) {
@@ -86,7 +100,7 @@
             } else {
               // Slide de derecha a izquierda -> Siguiente
               const nextButton = form.querySelector(
-                '.webform-button--next, [data-drupal-selector*="wizard-next"], input[name="wizard_next"], button[name="wizard_next"], input[value="Siguiente"], button:contains("Siguiente")'
+                '.webform-button--next, [data-drupal-selector*="wizard-next"], input[name="wizard_next"], button[name="wizard_next"], input[value="Siguiente"]'
               );
 
               if (nextButton && !nextButton.disabled) {

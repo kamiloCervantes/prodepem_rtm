@@ -210,6 +210,24 @@ function prodepem_solicitudes_rtm_form_alter(&$form, FormStateInterface $form_st
     if (isset($form['elements'])) {
       $disable_add_more($form['elements']);
     }
+
+    // Homologar estilo de '?Est? interesado en otros productos?' al estilo de 'Seguros adicionales'.
+    $apply_style_interesado = function (&$elements) use (&$apply_style_interesado) {
+      foreach ($elements as $key => &$child) {
+        if (is_array($child) && strpos((string) $key, '#') !== 0) {
+          $title = (string) ($child['#title'] ?? '');
+          if (mb_stripos($title, 'interesado en otros productos') !== FALSE) {
+            $child['#attributes']['class'][] = 'estilo-seguros-adicionales';
+            $child['#wrapper_attributes']['class'][] = 'wrapper-estilo-seguros-adicionales';
+            $child['#label_attributes']['class'][] = 'label-estilo-seguros-adicionales';
+          }
+          $apply_style_interesado($child);
+        }
+      }
+    };
+    if (isset($form['elements'])) {
+      $apply_style_interesado($form['elements']);
+    }
   }
 }
 

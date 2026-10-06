@@ -415,3 +415,46 @@
     max-width: 820px;
   }
 }
+
+/* ==========================================================================
+   9. Homologacion de Estilo: "?Est? interesado en otros productos?"
+      con el estilo de "Seguros adicionales"
+   ========================================================================== */
+.webform-submission-formulario-equidad-seguros-add-form .estilo-seguros-adicionales-title,
+.webform-submission-formulario-equidad-seguros-add-form .label-estilo-seguros-adicionales,
+.webform-submission-formulario-equidad-seguros-add-form [data-drupal-selector*="interesado"] > label,
+.webform-submission-formulario-equidad-seguros-add-form [data-drupal-selector*="interesado"] > legend,
+.webform-submission-formulario-equidad-seguros-add-form [data-drupal-selector*="interesado"] .fieldset-legend,
+.webform-submission-formulario-equidad-seguros-add-form [class*="interesado"] > label,
+.webform-submission-formulario-equidad-seguros-add-form [class*="interesado"] > legend,
+.formulario-equidad-seguros .estilo-seguros-adicionales-title,
+.formulario-equidad-seguros .label-estilo-seguros-adicionales,
+.formulario-equidad-seguros [data-drupal-selector*="interesado"] > label,
+.formulario-equidad-seguros [data-drupal-selector*="interesado"] > legend,
+.formulario-equidad-seguros [data-drupal-selector*="interesado"] .fieldset-legend,
+.formulario-equidad-seguros [class*="interesado"] > label,
+.formulario-equidad-seguros [class*="interesado"] > legend {
+  font-size: 1.05rem !important;
+  font-weight: 700 !important;
+  color: #1f2937 !important;
+  padding: 0 0.5rem !important;
+  margin-top: 1.25rem !important;
+  margin-bottom: 0.75rem !important;
+  line-height: 1.35 !important;
+  display: block !important;
+}
+
+.webform-submission-formulario-equidad-seguros-add-form .wrapper-estilo-seguros-adicionales,
+.formulario-equidad-seguros .wrapper-estilo-seguros-adicionales {
+  margin-top: 1.5rem !important;
+  margin-bottom: 1.25rem !important;
+}
+
+@media (min-width: 640px) {
+  .webform-submission-formulario-equidad-seguros-add-form .estilo-seguros-adicionales-title,
+  .webform-submission-formulario-equidad-seguros-add-form .label-estilo-seguros-adicionales,
+  .formulario-equidad-seguros .estilo-seguros-adicionales-title,
+  .formulario-equidad-seguros .label-estilo-seguros-adicionales {
+    font-size: 1.15rem !important;
+  }
+}
