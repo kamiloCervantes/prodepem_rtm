@@ -27,3 +27,9 @@ formulario_touch:
       css/formulario_touch.css: {}
   dependencies:
     - prodepem_solicitudes_rtm/font-awesome
+
+formulario_equidad_seguros:
+  version: 1.x
+  css:
+    theme:
+      css/formulario_equidad_seguros.css: {}

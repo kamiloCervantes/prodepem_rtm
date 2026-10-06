@@ -1,0 +1,307 @@
+/**
+ * Estilos mobile-first para el webform formulario_equidad_seguros.
+ */
+
+/* ==========================================================================
+   1. Contenedor Principal (Mobile Base)
+   ========================================================================== */
+.webform-submission-formulario-equidad-seguros-add-form,
+.formulario-equidad-seguros {
+  width: 100% !important;
+  max-width: 100%;
+  box-sizing: border-box;
+  margin: 0 auto;
+  padding: 1.25rem 1rem;
+  background-color: #ffffff;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  color: #2d3748;
+}
+
+/* ==========================================================================
+   2. Elementos del Formulario y Espaciado
+   ========================================================================== */
+.webform-submission-formulario-equidad-seguros-add-form .form-item,
+.formulario-equidad-seguros .form-item {
+  width: 100% !important;
+  margin: 0 0 1.25rem 0 !important;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+/* Etiquetas */
+.webform-submission-formulario-equidad-seguros-add-form .form-item label,
+.formulario-equidad-seguros .form-item label {
+  display: block;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #374151;
+  margin-bottom: 0.5rem;
+  line-height: 1.3;
+}
+
+.webform-submission-formulario-equidad-seguros-add-form .form-item label .form-required,
+.formulario-equidad-seguros .form-item label .form-required {
+  color: #dc2626;
+  margin-left: 3px;
+}
+
+/* Descripciones de ayuda */
+.webform-submission-formulario-equidad-seguros-add-form .description,
+.formulario-equidad-seguros .description {
+  font-size: 0.825rem;
+  color: #6b7280;
+  margin-top: 0.35rem;
+  line-height: 1.4;
+}
+
+/* ==========================================================================
+   3. Campos de Entrada (Touch-Friendly: min 48px y font-size 16px para iOS)
+   ========================================================================== */
+.webform-submission-formulario-equidad-seguros-add-form input[type="text"],
+.webform-submission-formulario-equidad-seguros-add-form input[type="email"],
+.webform-submission-formulario-equidad-seguros-add-form input[type="tel"],
+.webform-submission-formulario-equidad-seguros-add-form input[type="number"],
+.webform-submission-formulario-equidad-seguros-add-form input[type="date"],
+.webform-submission-formulario-equidad-seguros-add-form select,
+.webform-submission-formulario-equidad-seguros-add-form textarea,
+.formulario-equidad-seguros input[type="text"],
+.formulario-equidad-seguros input[type="email"],
+.formulario-equidad-seguros input[type="tel"],
+.formulario-equidad-seguros input[type="number"],
+.formulario-equidad-seguros input[type="date"],
+.formulario-equidad-seguros select,
+.formulario-equidad-seguros textarea {
+  width: 100% !important;
+  min-height: 48px;
+  padding: 0.75rem 1rem;
+  font-size: 16px !important; /* Evita zoom forzado en dispositivos iOS Safari */
+  line-height: 1.5;
+  color: #1f2937;
+  background-color: #f9fafb;
+  border: 1.5px solid #d1d5db;
+  border-radius: 8px;
+  box-sizing: border-box !important;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+.webform-submission-formulario-equidad-seguros-add-form textarea,
+.formulario-equidad-seguros textarea {
+  min-height: 110px;
+  resize: vertical;
+}
+
+/* Select con flecha adaptable */
+.webform-submission-formulario-equidad-seguros-add-form select,
+.formulario-equidad-seguros select {
+  background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%236b7280' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+  background-repeat: no-repeat;
+  background-position: right 1rem center;
+  background-size: 1.1em;
+  padding-right: 2.5rem;
+}
+
+/* Foco en inputs */
+.webform-submission-formulario-equidad-seguros-add-form input:focus,
+.webform-submission-formulario-equidad-seguros-add-form select:focus,
+.webform-submission-formulario-equidad-seguros-add-form textarea:focus,
+.formulario-equidad-seguros input:focus,
+.formulario-equidad-seguros select:focus,
+.formulario-equidad-seguros textarea:focus {
+  outline: none;
+  background-color: #ffffff;
+  border-color: #0056b3;
+  box-shadow: 0 0 0 3px rgba(0, 86, 179, 0.18);
+}
+
+/* Estados de Error */
+.webform-submission-formulario-equidad-seguros-add-form .form-item--error input,
+.webform-submission-formulario-equidad-seguros-add-form .form-item--error select,
+.webform-submission-formulario-equidad-seguros-add-form .form-item--error textarea,
+.formulario-equidad-seguros .form-item--error input,
+.formulario-equidad-seguros .form-item--error select,
+.formulario-equidad-seguros .form-item--error textarea {
+  border-color: #dc2626 !important;
+  background-color: #fef2f2 !important;
+}
+
+/* Radios y Checkboxes accesibles */
+.webform-submission-formulario-equidad-seguros-add-form .form-type-checkbox,
+.webform-submission-formulario-equidad-seguros-add-form .form-type-radio,
+.formulario-equidad-seguros .form-type-checkbox,
+.formulario-equidad-seguros .form-type-radio {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  min-height: 44px;
+  margin-bottom: 0.5rem;
+}
+
+.webform-submission-formulario-equidad-seguros-add-form .form-type-checkbox input,
+.webform-submission-formulario-equidad-seguros-add-form .form-type-radio input,
+.formulario-equidad-seguros .form-type-checkbox input,
+.formulario-equidad-seguros .form-type-radio input {
+  width: 20px !important;
+  height: 20px !important;
+  min-height: 20px !important;
+  accent-color: #0056b3;
+  margin: 0;
+  cursor: pointer;
+}
+
+/* ==========================================================================
+   4. Botones y Acciones del Formulario
+   ========================================================================== */
+.webform-submission-formulario-equidad-seguros-add-form .form-actions,
+.formulario-equidad-seguros .form-actions {
+  margin-top: 1.75rem;
+  padding-top: 1.25rem;
+  border-top: 1px solid #e5e7eb;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.webform-submission-formulario-equidad-seguros-add-form .webform-button--submit,
+.webform-submission-formulario-equidad-seguros-add-form .webform-button--next,
+.formulario-equidad-seguros .webform-button--submit,
+.formulario-equidad-seguros .webform-button--next {
+  width: 100% !important;
+  min-height: 50px;
+  background-color: #0056b3;
+  color: #ffffff !important;
+  font-size: 1.05rem;
+  font-weight: 600;
+  padding: 0.875rem 1.5rem;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  text-align: center;
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+  box-shadow: 0 2px 4px rgba(0, 86, 179, 0.25);
+  transition: all 0.2s ease;
+  touch-action: manipulation;
+}
+
+.webform-submission-formulario-equidad-seguros-add-form .webform-button--submit:hover,
+.webform-submission-formulario-equidad-seguros-add-form .webform-button--next:hover,
+.formulario-equidad-seguros .webform-button--submit:hover,
+.formulario-equidad-seguros .webform-button--next:hover {
+  background-color: #004494;
+  box-shadow: 0 4px 8px rgba(0, 86, 179, 0.35);
+  transform: translateY(-1px);
+}
+
+.webform-submission-formulario-equidad-seguros-add-form .webform-button--submit:active,
+.webform-submission-formulario-equidad-seguros-add-form .webform-button--next:active,
+.formulario-equidad-seguros .webform-button--submit:active,
+.formulario-equidad-seguros .webform-button--next:active {
+  transform: translateY(0);
+}
+
+.webform-submission-formulario-equidad-seguros-add-form .webform-button--previous,
+.formulario-equidad-seguros .webform-button--previous {
+  width: 100% !important;
+  min-height: 50px;
+  background-color: #f3f4f6;
+  color: #4b5563 !important;
+  font-size: 1.05rem;
+  font-weight: 600;
+  padding: 0.875rem 1.5rem;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  cursor: pointer;
+  text-align: center;
+  touch-action: manipulation;
+}
+
+/* ==========================================================================
+   5. Fieldsets / Agrupadores de Pasos o Secciones
+   ========================================================================== */
+.webform-submission-formulario-equidad-seguros-add-form fieldset,
+.formulario-equidad-seguros fieldset {
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  padding: 1.25rem 1rem;
+  margin: 0 0 1.5rem 0;
+  background-color: #fdfdfd;
+}
+
+.webform-submission-formulario-equidad-seguros-add-form fieldset legend,
+.formulario-equidad-seguros fieldset legend {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: #1f2937;
+  padding: 0 0.5rem;
+}
+
+/* ==========================================================================
+   6. Adaptacion Tablet (>= 640px)
+   ========================================================================== */
+@media (min-width: 640px) {
+  .webform-submission-formulario-equidad-seguros-add-form,
+  .formulario-equidad-seguros {
+    padding: 1.75rem 1.5rem;
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.08);
+  }
+
+  .webform-submission-formulario-equidad-seguros-add-form .form-actions,
+  .formulario-equidad-seguros .form-actions {
+    flex-direction: row;
+    justify-content: flex-end;
+  }
+
+  .webform-submission-formulario-equidad-seguros-add-form .webform-button--submit,
+  .webform-submission-formulario-equidad-seguros-add-form .webform-button--next,
+  .webform-submission-formulario-equidad-seguros-add-form .webform-button--previous,
+  .formulario-equidad-seguros .webform-button--submit,
+  .formulario-equidad-seguros .webform-button--next,
+  .formulario-equidad-seguros .webform-button--previous {
+    width: auto !important;
+    min-width: 170px;
+  }
+
+  /* Soporte de columnas flexbox de Webform en tablet */
+  .webform-submission-formulario-equidad-seguros-add-form .webform-flexbox,
+  .formulario-equidad-seguros .webform-flexbox {
+    display: flex;
+    gap: 1rem;
+  }
+
+  .webform-submission-formulario-equidad-seguros-add-form .webform-flexbox > .webform-flex,
+  .formulario-equidad-seguros .webform-flexbox > .webform-flex {
+    flex: 1;
+    margin: 0;
+  }
+}
+
+/* ==========================================================================
+   7. Adaptacion Escritorio / Pantallas Grandes (>= 768px y >= 1024px)
+   ========================================================================== */
+@media (min-width: 768px) {
+  .webform-submission-formulario-equidad-seguros-add-form,
+  .formulario-equidad-seguros {
+    max-width: 720px;
+    padding: 2.25rem 2rem;
+    margin-top: 1.5rem;
+    margin-bottom: 1.5rem;
+    border: 1px solid #e5e7eb;
+  }
+
+  .webform-submission-formulario-equidad-seguros-add-form fieldset,
+  .formulario-equidad-seguros fieldset {
+    padding: 1.5rem;
+  }
+}
+
+@media (min-width: 1024px) {
+  .webform-submission-formulario-equidad-seguros-add-form,
+  .formulario-equidad-seguros {
+    max-width: 820px;
+  }
+}

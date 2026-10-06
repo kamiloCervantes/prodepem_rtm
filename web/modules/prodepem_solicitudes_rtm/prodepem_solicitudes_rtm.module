@@ -187,6 +187,15 @@ function prodepem_solicitudes_rtm_form_alter(&$form, FormStateInterface $form_st
       }
     }
   }
+
+  // Check if the form is for 'formulario_equidad_seguros'.
+  if ($form_id === 'webform_submission_formulario_equidad_seguros_add_form' || strpos($form_id, 'webform_submission_formulario_equidad_seguros') === 0) {
+    // Attach custom library for styles.
+    $form['#attached']['library'][] = 'prodepem_solicitudes_rtm/formulario_equidad_seguros';
+
+    // Clases CSS personalizadas o atributos para ajustes de estilo.
+    $form['#attributes']['class'][] = 'formulario-equidad-seguros';
+  }
 }
 
 /**
