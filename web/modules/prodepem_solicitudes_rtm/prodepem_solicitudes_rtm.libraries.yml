@@ -30,6 +30,11 @@ formulario_touch:
 
 formulario_equidad_seguros:
   version: 1.x
+  js:
+    js/formulario_equidad_seguros.js: {}
   css:
     theme:
       css/formulario_equidad_seguros.css: {}
+  dependencies:
+    - core/drupal
+    - core/once

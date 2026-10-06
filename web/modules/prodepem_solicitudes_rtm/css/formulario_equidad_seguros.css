@@ -17,6 +17,21 @@
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
   color: #2d3748;
+  position: relative;
+  transition: transform 0.15s ease-out, opacity 0.15s ease-out;
+}
+
+/* Feedback visual de transicion por gesto slide */
+.webform-submission-formulario-equidad-seguros-add-form.slide-transition-prev,
+.formulario-equidad-seguros.slide-transition-prev {
+  transform: translateX(18px);
+  opacity: 0.75;
+}
+
+.webform-submission-formulario-equidad-seguros-add-form.slide-transition-next,
+.formulario-equidad-seguros.slide-transition-next {
+  transform: translateX(-18px);
+  opacity: 0.75;
 }
 
 /* ==========================================================================
@@ -241,7 +256,102 @@
 }
 
 /* ==========================================================================
-   6. Adaptacion Tablet (>= 640px)
+   6. AJUSTES ESPEC?FICOS: Ocultar Bot?n Mostrar Pesos, Icono de Mover y More Items
+   ========================================================================== */
+
+/* 6.1. Ocultar el bot?n "Mostrar pesos de la fila" y columnas de peso */
+.webform-submission-formulario-equidad-seguros-add-form .tabledrag-toggle-weight-wrapper,
+.webform-submission-formulario-equidad-seguros-add-form .tabledrag-toggle-weight,
+.webform-submission-formulario-equidad-seguros-add-form button[data-drupal-selector*="tabledrag-toggle-weight"],
+.webform-submission-formulario-equidad-seguros-add-form a.tabledrag-toggle-weight,
+.webform-submission-formulario-equidad-seguros-add-form .tabledrag-hide,
+.webform-submission-formulario-equidad-seguros-add-form .webform-multiple-table--weight,
+.webform-submission-formulario-equidad-seguros-add-form th.tabledrag-hide,
+.webform-submission-formulario-equidad-seguros-add-form td.tabledrag-hide,
+.formulario-equidad-seguros .tabledrag-toggle-weight-wrapper,
+.formulario-equidad-seguros .tabledrag-toggle-weight,
+.formulario-equidad-seguros button[data-drupal-selector*="tabledrag-toggle-weight"],
+.formulario-equidad-seguros a.tabledrag-toggle-weight,
+.formulario-equidad-seguros .tabledrag-hide,
+.formulario-equidad-seguros .webform-multiple-table--weight,
+.formulario-equidad-seguros th.tabledrag-hide,
+.formulario-equidad-seguros td.tabledrag-hide {
+  display: none !important;
+}
+
+/* 6.2. Ocultar el icono de mover el registro (Drag Handle) */
+.webform-submission-formulario-equidad-seguros-add-form .tabledrag-handle,
+.webform-submission-formulario-equidad-seguros-add-form a.tabledrag-handle,
+.webform-submission-formulario-equidad-seguros-add-form .tabledrag-handle::after,
+.webform-submission-formulario-equidad-seguros-add-form .tabledrag-handle::before,
+.webform-submission-formulario-equidad-seguros-add-form .webform-multiple-table--handle,
+.webform-submission-formulario-equidad-seguros-add-form th.webform-multiple-table--handle,
+.webform-submission-formulario-equidad-seguros-add-form td.webform-multiple-table--handle,
+.webform-submission-formulario-equidad-seguros-add-form td:has(> .tabledrag-handle),
+.formulario-equidad-seguros .tabledrag-handle,
+.formulario-equidad-seguros a.tabledrag-handle,
+.formulario-equidad-seguros .tabledrag-handle::after,
+.formulario-equidad-seguros .tabledrag-handle::before,
+.formulario-equidad-seguros .webform-multiple-table--handle,
+.formulario-equidad-seguros th.webform-multiple-table--handle,
+.formulario-equidad-seguros td.webform-multiple-table--handle,
+.formulario-equidad-seguros td:has(> .tabledrag-handle) {
+  display: none !important;
+}
+
+/* 6.3. Ocultar frase "more items" y el input num?rico/texto que la precede */
+.webform-submission-formulario-equidad-seguros-add-form .webform-multiple-add .form-item,
+.webform-submission-formulario-equidad-seguros-add-form .webform-multiple-add input[type="number"],
+.webform-submission-formulario-equidad-seguros-add-form .webform-multiple-add input[type="text"],
+.webform-submission-formulario-equidad-seguros-add-form .webform-multiple-add .field-suffix,
+.webform-submission-formulario-equidad-seguros-add-form .webform-multiple-add [data-drupal-selector*="more-items"],
+.formulario-equidad-seguros .webform-multiple-add .form-item,
+.formulario-equidad-seguros .webform-multiple-add input[type="number"],
+.formulario-equidad-seguros .webform-multiple-add input[type="text"],
+.formulario-equidad-seguros .webform-multiple-add .field-suffix,
+.formulario-equidad-seguros .webform-multiple-add [data-drupal-selector*="more-items"] {
+  display: none !important;
+}
+
+/* Bot?n de a?adir limpio y estilizado en m?vil */
+.webform-submission-formulario-equidad-seguros-add-form .webform-multiple-add .button,
+.webform-submission-formulario-equidad-seguros-add-form .webform-multiple-add .form-submit,
+.formulario-equidad-seguros .webform-multiple-add .button,
+.formulario-equidad-seguros .webform-multiple-add .form-submit {
+  display: inline-flex !important;
+  align-items: center;
+  justify-content: center;
+  margin: 0.5rem 0 !important;
+  min-height: 44px;
+  padding: 0.5rem 1.25rem;
+  border-radius: 6px;
+  background-color: #2563eb;
+  color: #fff !important;
+  font-weight: 600;
+  font-size: 0.95rem;
+  border: none;
+  cursor: pointer;
+}
+
+/* Estilos de tabla m?ltiple adaptable a m?vil */
+.webform-submission-formulario-equidad-seguros-add-form .webform-multiple-table,
+.formulario-equidad-seguros .webform-multiple-table {
+  width: 100% !important;
+  border-collapse: collapse;
+  margin-bottom: 1rem;
+}
+
+@media (max-width: 639px) {
+  .webform-submission-formulario-equidad-seguros-add-form .webform-multiple-table,
+  .formulario-equidad-seguros .webform-multiple-table {
+    display: block;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+}
+
+/* ==========================================================================
+   7. Adaptaci?n Tablet (>= 640px)
    ========================================================================== */
 @media (min-width: 640px) {
   .webform-submission-formulario-equidad-seguros-add-form,
@@ -281,7 +391,7 @@
 }
 
 /* ==========================================================================
-   7. Adaptacion Escritorio / Pantallas Grandes (>= 768px y >= 1024px)
+   8. Adaptaci?n Escritorio / Pantallas Grandes (>= 768px y >= 1024px)
    ========================================================================== */
 @media (min-width: 768px) {
   .webform-submission-formulario-equidad-seguros-add-form,

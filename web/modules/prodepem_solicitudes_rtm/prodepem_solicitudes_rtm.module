@@ -190,11 +190,26 @@ function prodepem_solicitudes_rtm_form_alter(&$form, FormStateInterface $form_st
 
   // Check if the form is for 'formulario_equidad_seguros'.
   if ($form_id === 'webform_submission_formulario_equidad_seguros_add_form' || strpos($form_id, 'webform_submission_formulario_equidad_seguros') === 0) {
-    // Attach custom library for styles.
+    // Attach custom library for styles and gestures.
     $form['#attached']['library'][] = 'prodepem_solicitudes_rtm/formulario_equidad_seguros';
 
     // Clases CSS personalizadas o atributos para ajustes de estilo.
     $form['#attributes']['class'][] = 'formulario-equidad-seguros';
+
+    // Desactivar input de cantidad adicional y texto 'more items' en elementos m?ltiples.
+    $disable_add_more = function (&$elements) use (&$disable_add_more) {
+      foreach ($elements as $key => &$child) {
+        if (is_array($child) && strpos((string) $key, '#') !== 0) {
+          if (isset($child['#type']) && in_array($child['#type'], ['webform_multiple', 'webform_custom_composite'])) {
+            $child['#add_more_input'] = FALSE;
+          }
+          $disable_add_more($child);
+        }
+      }
+    };
+    if (isset($form['elements'])) {
+      $disable_add_more($form['elements']);
+    }
   }
 }
 
