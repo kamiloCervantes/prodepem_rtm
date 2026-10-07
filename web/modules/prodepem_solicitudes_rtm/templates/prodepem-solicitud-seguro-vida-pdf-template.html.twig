@@ -2,13 +2,14 @@
 /**
  * @file
  * Template for Formato Solicitud de Seguro - Declaración de Asegurabilidad (Vida Grupo / La Equidad Seguros).
- * Generado a partir de FORMATO SOLICITUD DE SEGURO VIDA GRUPO-1.pdf
+ * Replica exacta del documento oficial "FORMATO SOLICITUD DE SEGURO VIDA GRUPO-1.pdf".
  *
  * Variables disponibles:
  * - data: Arreglo con los valores de la solicitud (formulario_equidad_seguros / webform).
  * - submission: Objeto WebformSubmissionInterface.
  * - date: Fecha actual o de generación.
- * - logo_path: URI o base64 del logo de La Equidad o Prodepem.
+ * - logo_path: URI o base64 del logo de La Equidad Seguros.
+ * - vigilado_path: URI o base64 de la franja vertical Vigilado Superintendencia Financiera.
  * - serial: Consecutivo de la solicitud.
  */
 #}
@@ -19,627 +20,671 @@
     <title>{{ 'Solicitud de Seguro Vida Grupo - Declaración de Asegurabilidad'|t }}</title>
     <style>
         @page {
-            margin: 10mm 12mm 10mm 12mm;
+            margin: 5mm 8mm 4mm 12mm;
             size: letter portrait;
         }
+        * {
+            box-sizing: border-box;
+            -webkit-box-sizing: border-box;
+        }
         body {
-            font-family: Arial, Helvetica, sans-serif;
-            font-size: 8.5px;
-            line-height: 1.25;
-            color: #222;
+            font-family: 'Century Gothic', CenturyGothic, AppleGothic, 'Segoe UI', Arial, sans-serif;
+            font-size: 6.8pt;
+            line-height: 1.13;
+            color: #000000;
             margin: 0;
             padding: 0;
         }
+
+        /* Franja vertical Vigilado en el margen izquierdo */
+        .vigilado-ribbon {
+            position: absolute;
+            left: -9mm;
+            top: 105mm;
+            width: 6mm;
+            text-align: center;
+        }
+        .vigilado-ribbon img {
+            width: 6mm;
+            height: auto;
+            display: block;
+        }
+
+        /* Encabezado */
         .header-table {
             width: 100%;
             border-collapse: collapse;
-            margin-bottom: 8px;
+            margin-bottom: 3px;
         }
         .header-logo {
-            width: 25%;
+            width: 44%;
             vertical-align: middle;
             text-align: left;
         }
         .header-logo img {
-            max-width: 160px;
+            width: 175px;
             height: auto;
+            display: block;
         }
-        .header-title-cell {
-            width: 75%;
+        .header-banner-cell {
+            width: 56%;
             vertical-align: middle;
-            text-align: center;
+            text-align: right;
         }
-        .header-title-cell h1 {
-            margin: 0;
-            font-size: 13px;
+        .header-banner {
+            background-color: #549449;
+            color: #ffffff;
+            font-family: 'Century Gothic', CenturyGothic, Arial, sans-serif;
             font-weight: bold;
-            color: #00563f;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-        .header-title-cell .consecutivo {
-            font-size: 9px;
-            color: #444;
-            margin-top: 2px;
+            font-size: 10.5pt;
+            line-height: 1.22;
+            text-align: center;
+            padding: 5px 10px;
+            border-radius: 4px;
+            letter-spacing: 0.2px;
         }
 
-        /* Opciones de Producto */
-        .product-options-table {
+        /* Checkboxes de producto y plan */
+        .products-table {
             width: 100%;
             border-collapse: collapse;
-            margin-bottom: 6px;
-            background-color: #f7f9f8;
-            border: 1px solid #00563f;
+            margin-bottom: 3px;
+            font-size: 7pt;
         }
-        .product-options-table td {
-            padding: 4px 6px;
-            font-size: 8px;
-            font-weight: bold;
-            color: #00563f;
-        }
-        .check-box {
-            display: inline-block;
-            width: 10px;
-            height: 10px;
-            border: 1px solid #333;
-            text-align: center;
-            line-height: 9px;
-            font-size: 8px;
-            font-weight: bold;
-            margin-right: 3px;
+        .products-table td {
+            padding: 1px 2px;
             vertical-align: middle;
-            background-color: #fff;
+        }
+        .chk-label {
+            font-size: 7pt;
+            color: #000000;
+        }
+        .chk-box {
+            display: inline-block;
+            width: 9.5px;
+            height: 9.5px;
+            border: 0.6pt solid #000000;
+            line-height: 9px;
+            text-align: center;
+            font-size: 7pt;
+            font-weight: bold;
+            font-family: Arial, sans-serif;
+            vertical-align: middle;
+            margin-left: 2px;
+            background-color: #ffffff;
         }
 
-        /* Secciones y Tablas de Datos */
-        .section-header {
-            background-color: #00563f;
+        /* Barras de sección verdes */
+        .section-bar {
+            background-color: #549449;
             color: #ffffff;
-            font-size: 8.5px;
             font-weight: bold;
-            padding: 3px 6px;
-            text-transform: uppercase;
-            margin-top: 5px;
-            margin-bottom: 0;
+            font-size: 7.2pt;
+            text-align: center;
+            padding: 1.8px 4px;
+            border: 0.5pt solid #000000;
+            letter-spacing: 0.3px;
         }
+
+        /* Tablas de datos de Tomador y Asegurado */
         .data-table {
             width: 100%;
             border-collapse: collapse;
-            margin-bottom: 6px;
-            border-left: 1px solid #ccc;
-            border-right: 1px solid #ccc;
-            border-bottom: 1px solid #ccc;
+            margin-bottom: 1px;
+            border: 0.5pt solid #000000;
         }
         .data-table td {
-            padding: 3px 5px;
-            border: 1px solid #ddd;
-            font-size: 8px;
+            border: 0.5pt solid #000000;
+            padding: 1.5px 3.5px;
+            font-size: 6.8pt;
             vertical-align: middle;
         }
-        .data-table .label-cell {
-            background-color: #f9fbf9;
+        .cell-label {
             font-weight: bold;
-            color: #333;
-            width: 25%;
+            font-size: 6.5pt;
+            color: #000000;
+            margin-right: 3px;
+            text-transform: uppercase;
         }
-        .data-table .value-cell {
-            color: #111;
+        .cell-val {
+            font-weight: normal;
+            font-size: 7pt;
+            color: #111111;
+        }
+        .note-right {
+            text-align: right;
+            font-size: 5.4pt;
+            font-weight: bold;
+            margin-top: 1px;
+            margin-bottom: 1.5px;
+            color: #000000;
         }
 
-        /* Texto Legal y Aclaraciones */
-        .legal-notice {
-            font-size: 7px;
-            line-height: 1.15;
+        /* Cuadro de autorización de datos sensibles */
+        .legal-notice-box {
+            border: 0.5pt solid #000000;
+            padding: 2.5px 4.5px;
+            margin-bottom: 2px;
+            font-size: 5pt;
+            line-height: 1.13;
             text-align: justify;
-            color: #444;
-            margin: 4px 0 6px 0;
-            padding: 4px;
-            background-color: #fafafa;
-            border: 1px solid #e5e5e5;
-        }
-        .legal-notice strong {
-            color: #111;
+            color: #000000;
         }
 
         /* Tabla de Beneficiarios */
         .beneficiarios-table {
             width: 100%;
             border-collapse: collapse;
-            margin-bottom: 4px;
-            border: 1px solid #ccc;
+            border: 0.5pt solid #000000;
         }
         .beneficiarios-table th {
-            background-color: #e8f0eb;
-            color: #00563f;
-            font-size: 7.5px;
+            border: 0.5pt solid #000000;
+            padding: 1.5px 2px;
+            font-size: 6.3pt;
             font-weight: bold;
-            padding: 3px 4px;
-            border: 1px solid #ccc;
             text-align: center;
+            background-color: #ffffff;
+            line-height: 1.1;
         }
         .beneficiarios-table td {
-            font-size: 7.5px;
-            padding: 3px 4px;
-            border: 1px solid #ddd;
-            text-align: center;
+            border: 0.5pt solid #000000;
+            padding: 1px 3px;
+            font-size: 6.5pt;
+            height: 11px;
+        }
+        .bene-note {
+            font-size: 4.9pt;
+            line-height: 1.12;
+            margin-top: 1px;
+            margin-bottom: 1.5px;
+            text-align: justify;
+            color: #000000;
         }
 
-        /* Cuestionario de Salud */
-        .health-measurements {
+        /* Sección de Salud */
+        .health-title {
+            text-align: center;
+            font-weight: bold;
+            font-size: 7.4pt;
+            margin-top: 1px;
+            margin-bottom: 1px;
+            color: #000000;
+        }
+        .health-subtitle {
+            text-align: center;
+            font-size: 5.7pt;
+            line-height: 1.13;
+            margin-bottom: 1.5px;
+            padding: 0 4px;
+            color: #000000;
+        }
+        .health-divider {
+            border-top: 0.5pt solid #333333;
+            margin-bottom: 1.5px;
+        }
+        .measurements-line {
+            font-size: 6.6pt;
+            font-weight: bold;
+            margin-bottom: 1.5px;
+            color: #000000;
+        }
+        .measure-val {
+            font-weight: normal;
+            border-bottom: 0.5pt solid #000000;
+            padding: 0 14px;
+            display: inline-block;
+        }
+        .health-table {
             width: 100%;
             border-collapse: collapse;
-            margin-bottom: 4px;
-            border: 1px solid #ccc;
+            margin-bottom: 1px;
         }
-        .health-measurements td {
-            padding: 3px 6px;
-            font-size: 8px;
-            border: 1px solid #ddd;
-        }
-        .health-grid-table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-bottom: 4px;
-        }
-        .health-grid-table td {
-            width: 50%;
+        .health-table td {
             vertical-align: top;
-            padding: 0 3px;
+            padding: 0 2.5px;
         }
-        .health-inner-table {
+        .health-subtable {
             width: 100%;
             border-collapse: collapse;
-            border: 1px solid #ccc;
         }
-        .health-inner-table td {
-            padding: 2.5px 4px;
-            border: 1px solid #e0e0e0;
-            font-size: 7.5px;
-            line-height: 1.15;
+        .health-subtable tr {
+            height: 11.5px;
         }
-        .health-inner-table .q-text {
-            width: 78%;
-            text-align: left;
-        }
-        .health-inner-table .q-check {
-            width: 22%;
-            text-align: center;
-            white-space: nowrap;
-        }
-
-        /* Observaciones de Salud */
-        .explanation-box {
-            border: 1px solid #ccc;
-            padding: 3px 5px;
-            font-size: 7.5px;
-            margin-bottom: 5px;
-            background-color: #fafafa;
-            min-height: 22px;
-        }
-        .explanation-title {
-            font-weight: bold;
-            font-size: 7.5px;
-            margin-bottom: 2px;
-            color: #333;
-        }
-
-        /* Sección de Firmas */
-        .signature-section {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 6px;
-            page-break-inside: avoid;
-        }
-        .signature-box {
-            width: 65%;
-            vertical-align: bottom;
-            padding-right: 15px;
-        }
-        .signature-line {
-            border-top: 1px solid #333;
-            margin-top: 40px;
-            padding-top: 2px;
-            font-size: 8px;
-            font-weight: bold;
-            text-align: center;
-        }
-        .huella-box {
-            width: 35%;
+        .health-subtable td {
+            padding: 0.5px 0;
             vertical-align: middle;
-            text-align: center;
-            border: 1px dashed #666;
-            padding: 8px 5px;
-            background-color: #fcfcfc;
         }
-        .huella-box .huella-placeholder {
-            height: 48px;
-            line-height: 48px;
-            font-size: 7.5px;
-            color: #888;
+        .q-text {
+            font-size: 5.6pt;
+            line-height: 1.11;
+            color: #000000;
+            padding-right: 3px;
         }
-        .huella-box p {
-            margin: 3px 0 0 0;
-            font-size: 7.5px;
-            font-weight: bold;
-            color: #333;
+        .q-box-cell {
+            width: 13px;
+            text-align: right;
+            vertical-align: middle;
         }
 
-        /* Pie de página y código de formato */
+        /* Caja de explicación detallada */
+        .explanation-heading {
+            font-weight: bold;
+            font-size: 5.9pt;
+            line-height: 1.12;
+            margin-top: 1.5px;
+            margin-bottom: 1px;
+            color: #000000;
+        }
+        .explanation-table {
+            width: 100%;
+            border-collapse: collapse;
+            border: 0.5pt solid #000000;
+            margin-bottom: 1px;
+        }
+        .explanation-table td {
+            border: 0.5pt solid #000000;
+            height: 10.5px;
+            padding: 1px 3px;
+            font-size: 6.2pt;
+        }
+        .history-auth {
+            font-size: 4.9pt;
+            line-height: 1.12;
+            margin-top: 1px;
+            margin-bottom: 1.5px;
+            text-align: justify;
+            color: #000000;
+        }
+
+        /* Sección de Tratamiento de Datos Personales */
+        .tratamiento-box {
+            border: 0.5pt solid #000000;
+            padding: 2px 4px;
+            margin-bottom: 1.5px;
+            font-size: 4.8pt;
+            line-height: 1.11;
+            text-align: justify;
+            color: #000000;
+        }
+
+        /* Firma, fecha y huella */
+        .declaration-text {
+            font-size: 5.7pt;
+            line-height: 1.13;
+            text-align: justify;
+            margin-bottom: 1.5px;
+            color: #000000;
+        }
+        .fill-underline {
+            border-bottom: 0.5pt solid #000000;
+            padding: 0 8px;
+            font-weight: bold;
+        }
         .footer-table {
             width: 100%;
             border-collapse: collapse;
-            margin-top: 6px;
-            border-top: 1px solid #ccc;
-            padding-top: 3px;
+            margin-top: 1px;
         }
-        .footer-table td {
-            font-size: 7px;
-            color: #555;
+        .footer-left {
+            width: 73%;
+            vertical-align: top;
+            padding-right: 8px;
         }
-        .footer-table .code-cell {
+        .footer-right {
+            width: 27%;
+            vertical-align: top;
             text-align: right;
-            font-weight: bold;
+        }
+        .warning-text {
+            font-size: 5.4pt;
+            line-height: 1.13;
+            text-align: justify;
+            color: #000000;
+        }
+        .huella-box-border {
+            border: 0.7pt solid #000000;
+            width: 130px;
+            height: 42px;
+            float: right;
+            text-align: center;
+            background-color: #ffffff;
+            box-sizing: border-box;
+        }
+        .huella-box-border .huella-label {
+            font-size: 5pt;
+            color: #333333;
+            margin-top: 2px;
+        }
+        .doc-code {
+            text-align: right;
+            font-size: 5.5pt;
+            color: #333333;
+            margin-top: 1px;
+            clear: both;
         }
     </style>
 </head>
 <body>
 
-    <!-- ENCABEZADO -->
+    {# Franja vertical VIGILADO en el margen izquierdo si está disponible #}
+    {% if vigilado_path %}
+    <div class="vigilado-ribbon">
+        <img src="{{ vigilado_path }}" alt="Vigilado Superintendencia Financiera">
+    </div>
+    {% endif %}
+
+    <!-- 1. ENCABEZADO: LOGO Y BANNER VERDE -->
     <table class="header-table">
         <tr>
             <td class="header-logo">
                 {% if logo_path %}
                     <img src="{{ logo_path }}" alt="La Equidad Seguros">
                 {% else %}
-                    <div style="font-weight: bold; font-size: 14px; color: #00563f;">LA EQUIDAD SEGUROS</div>
+                    <div style="font-weight: bold; font-size: 13pt; color: #549449;">equidad seguros</div>
+                    <div style="font-size: 6.5pt; color: #333;">Una aseguradora cooperativa con sentido social</div>
                 {% endif %}
             </td>
-            <td class="header-title-cell">
-                <h1>{{ 'Formato Solicitud de Seguro Declaración de Asegurabilidad'|t }}</h1>
-                <div class="consecutivo">
-                    {{ 'Fecha de solicitud:'|t }} <strong>{{ date|default(data.fecha_solicitud|default('now'|date('d/m/Y'))) }}</strong>
-                    {% if serial %} | {{ 'Consecutivo:'|t }} <strong>EQ-{{ serial|trim }}</strong>{% endif %}
+            <td class="header-banner-cell">
+                <div class="header-banner">
+                    FORMATO SOLICITUD DE SEGURO -<br>
+                    DECLARACIÓN DE ASEGURABILIDAD
                 </div>
             </td>
         </tr>
     </table>
 
-    <!-- SELECCIÓN DE PRODUCTO Y PLAN -->
-    <table class="product-options-table">
+    <!-- 2. SUB-ENCABEZADO: PRODUCTOS Y PLAN -->
+    <table class="products-table">
+        <tr>
+            <td style="width: 32%;">
+                <span class="chk-label">Vida Grupo</span>
+                <span class="chk-box">{% if (data.producto|lower in ['vida grupo', 'vida', 'seguro de vida']) or (data.tipo_producto|lower in ['vida grupo', 'vida']) %}X{% else %}&nbsp;{% endif %}</span>
+            </td>
+            <td style="width: 32%;">
+                <span class="chk-label">Grupo Deudores</span>
+                <span class="chk-box">{% if 'deudor' in (data.producto|lower) or 'deudor' in (data.tipo_producto|lower) %}X{% else %}&nbsp;{% endif %}</span>
+            </td>
+            <td style="width: 36%;">
+                <span class="chk-label">Protección Familiar</span>
+                <span class="chk-box">{% if 'familiar' in (data.producto|lower) or 'familiar' in (data.tipo_producto|lower) %}X{% else %}&nbsp;{% endif %}</span>
+            </td>
+        </tr>
         <tr>
             <td>
-                <span class="check-box">{% if data.producto == 'vida_grupo' or data.tipo_producto == 'vida_grupo' or not data.producto %}X{% else %}&nbsp;{% endif %}</span> Vida Grupo
+                <span class="chk-label">Grupo Aportes</span>
+                <span class="chk-box">{% if 'aporte' in (data.producto|lower) or 'aporte' in (data.tipo_producto|lower) %}X{% else %}&nbsp;{% endif %}</span>
             </td>
             <td>
-                <span class="check-box">{% if data.producto == 'grupo_deudores' or data.tipo_producto == 'grupo_deudores' %}X{% else %}&nbsp;{% endif %}</span> Grupo Deudores
+                <span class="chk-label">Grupo Directivos</span>
+                <span class="chk-box">{% if 'directivo' in (data.producto|lower) or 'directivo' in (data.tipo_producto|lower) %}X{% else %}&nbsp;{% endif %}</span>
             </td>
             <td>
-                <span class="check-box">{% if data.producto == 'proteccion_familiar' or data.tipo_producto == 'proteccion_familiar' %}X{% else %}&nbsp;{% endif %}</span> Protección Familiar
-            </td>
-            <td>
-                <span class="check-box">{% if data.producto == 'grupo_aportes' or data.tipo_producto == 'grupo_aportes' %}X{% else %}&nbsp;{% endif %}</span> Grupo Aportes
-            </td>
-            <td>
-                <span class="check-box">{% if data.producto == 'grupo_directivos' or data.tipo_producto == 'grupo_directivos' %}X{% else %}&nbsp;{% endif %}</span> Grupo Directivos
-            </td>
-            <td style="text-align: right;">
-                <strong>Plan:</strong>
-                <span class="check-box">{% if data.plan == 'A' or data.plan == 'a' %}X{% else %}&nbsp;{% endif %}</span> A
-                <span class="check-box">{% if data.plan == 'B' or data.plan == 'b' %}X{% else %}&nbsp;{% endif %}</span> B
-                <span class="check-box">{% if data.plan == 'C' or data.plan == 'c' %}X{% else %}&nbsp;{% endif %}</span> C
+                <span class="chk-label" style="margin-right: 6px;">Plan</span>
+                <span class="chk-label">A</span>
+                <span class="chk-box">{% if data.plan|upper == 'A' or 'PLAN A' in (data.plan|upper) %}X{% else %}&nbsp;{% endif %}</span>&nbsp;
+                <span class="chk-label">B</span>
+                <span class="chk-box">{% if data.plan|upper == 'B' or 'PLAN B' in (data.plan|upper) %}X{% else %}&nbsp;{% endif %}</span>&nbsp;
+                <span class="chk-label">C</span>
+                <span class="chk-box">{% if data.plan|upper == 'C' or 'PLAN C' in (data.plan|upper) %}X{% else %}&nbsp;{% endif %}</span>
             </td>
         </tr>
     </table>
 
-    <!-- 1. DATOS TOMADOR -->
-    <div class="section-header">{{ 'Datos Tomador'|t }}</div>
+    <!-- 3. DATOS TOMADOR -->
+    <div class="section-bar">DATOS TOMADOR</div>
     <table class="data-table">
         <tr>
-            <td class="label-cell">{{ 'Tomador:'|t }}</td>
-            <td class="value-cell" colspan="3">{{ data.tomador|default(data.empresa|default('PRODEPEM')) }}</td>
-            <td class="label-cell">{{ 'C.C./NIT:'|t }}</td>
-            <td class="value-cell">{{ data.nit_tomador|default(data.documento_tomador|default('900.123.456-7')) }}</td>
+            <td style="width: 75%;">
+                <span class="cell-label">TOMADOR</span>
+                <span class="cell-val">{{ data.tomador|default('PRODEPEM S.A.S') }}</span>
+            </td>
+            <td style="width: 25%;">
+                <span class="cell-label">C.C./NIT</span>
+                <span class="cell-val">{{ data.nit_tomador|default('900.582.164-1') }}</span>
+            </td>
         </tr>
         <tr>
-            <td class="label-cell">{{ 'Dirección:'|t }}</td>
-            <td class="value-cell" colspan="3">{{ data.direccion_tomador|default(data.direccion_empresa|default('N/A')) }}</td>
-            <td class="label-cell">{{ 'Ciudad:'|t }}</td>
-            <td class="value-cell">{{ data.ciudad_tomador|default(data.ciudad|default('N/A')) }}</td>
-        </tr>
-        <tr>
-            <td class="label-cell">{{ 'Teléfono:'|t }}</td>
-            <td class="value-cell" colspan="5">{{ data.telefono_tomador|default(data.telefono_empresa|default('N/A')) }}</td>
+            <td style="width: 50%;">
+                <span class="cell-label">DIRECCIÓN</span>
+                <span class="cell-val">{{ data.direccion_tomador|default('CALLE 64 N 1-43') }}</span>
+            </td>
+            <td style="width: 25%;">
+                <span class="cell-label">CIUDAD</span>
+                <span class="cell-val">{{ data.ciudad_tomador|default('BOGOTÁ') }}</span>
+            </td>
+            <td style="width: 25%;">
+                <span class="cell-label">TELÉFONO</span>
+                <span class="cell-val">{{ data.telefono_tomador|default('3118228328') }}</span>
+            </td>
         </tr>
     </table>
 
-    <!-- 2. DATOS ASEGURADO -->
-    <div class="section-header">{{ 'Datos Asegurado'|t }}</div>
+    <!-- 4. DATOS ASEGURADO -->
+    <div class="section-bar" style="margin-top: 1px;">DATOS ASEGURADO</div>
     <table class="data-table">
         <tr>
-            <td class="label-cell">{{ 'Asegurado Principal:'|t }}</td>
-            <td class="value-cell" colspan="3">
-                <strong>{{ data.nombre_completo|default((data.nombre|default('') ~ ' ' ~ data.apellidos|default(''))|trim|default('N/A')) }}</strong>
+            <td style="width: 75%;">
+                <span class="cell-label">ASEGURADO PRINCIPAL</span>
+                <span class="cell-val">{{ data.nombre_completo|default('') }}</span>
             </td>
-            <td class="label-cell">{{ 'No. Documento (C.C.):'|t }}</td>
-            <td class="value-cell">{{ data.tipo_de_documento|default('C.C.') }} {{ data.numero_de_documento|default('N/A') }}</td>
+            <td style="width: 25%;">
+                <span class="cell-label">C.C.</span>
+                <span class="cell-val">{{ data.numero_de_documento|default('') }}</span>
+            </td>
         </tr>
         <tr>
-            <td class="label-cell">{{ 'Correo Electrónico:'|t }}</td>
-            <td class="value-cell" colspan="3">{{ data.email|default(data.correo_electronico|default('N/A')) }}</td>
-            <td class="label-cell">{{ 'Fecha de Nacimiento:'|t }}</td>
-            <td class="value-cell">{{ data.fecha_de_nacimiento|default(data.fecha_nacimiento|default('N/A')) }}</td>
+            <td style="width: 55%;">
+                <span class="cell-label">CORREO ELECTRÓNICO</span>
+                <span class="cell-val">{{ data.email|default('') }}</span>
+            </td>
+            <td style="width: 45%;">
+                <span class="cell-label">¿TRABAJA USTED ACTUALMENTE?</span>
+                <span class="cell-val">{% if data.trabaja_actualmente in ['si', 'Si', '1', true] %}SÍ{% else %}NO{% endif %}</span>
+            </td>
         </tr>
         <tr>
-            <td class="label-cell">{{ '¿Trabaja actualmente?:'|t }}</td>
-            <td class="value-cell">{{ data.trabaja_actualmente|default(data.trabaja_usted_actualmente|default('Sí')) }}</td>
-            <td class="label-cell">{{ 'Ocupación:'|t }}</td>
-            <td class="value-cell">{{ data.ocupacion|default('N/A') }}</td>
-            <td class="label-cell">{{ 'Cargo:'|t }}</td>
-            <td class="value-cell">{{ data.cargo|default('N/A') }}</td>
+            <td style="width: 36%;">
+                <span class="cell-label">OCUPACION</span>
+                <span class="cell-val">{{ data.ocupacion|default('') }}</span>
+            </td>
+            <td style="width: 30%;">
+                <span class="cell-label">CARGO</span>
+                <span class="cell-val">{{ data.cargo|default('') }}</span>
+            </td>
+            <td style="width: 34%;">
+                <span class="cell-label">FECHA DE NACIMIENTO</span>
+                <span class="cell-val">{{ data.fecha_de_nacimiento|default('') }}</span>
+            </td>
         </tr>
         <tr>
-            <td class="label-cell">{{ 'Estado Civil:'|t }}</td>
-            <td class="value-cell">{{ data.estado_civil|default('N/A') }}</td>
-            <td class="label-cell">{{ 'Valor Asegurado Solicitado:'|t }}</td>
-            <td class="value-cell">{{ data.valor_asegurado_solicitado|default(data.valor_asegurado|default('N/A')) }}</td>
-            <td class="label-cell">{{ 'Total Valor Asegurado:'|t }}</td>
-            <td class="value-cell">{{ data.total_valor_asegurado|default('N/A') }}</td>
+            <td style="width: 26%;">
+                <span class="cell-label">ESTADO CIVIL</span>
+                <span class="cell-val">{{ data.estado_civil|default('') }}</span>
+            </td>
+            <td style="width: 37%;">
+                <span class="cell-label">VALOR ASEGURADO SOLICITADO</span>
+                <span class="cell-val">{{ data.valor_asegurado_solicitado|default('') }}</span>
+            </td>
+            <td style="width: 37%;">
+                <span class="cell-label">TOTAL VALOR ASEGURADO</span>
+                <span class="cell-val">{{ data.total_valor_asegurado|default('') }}</span>
+            </td>
         </tr>
     </table>
-    <div style="font-size: 7px; color: #555; margin-top: -4px; margin-bottom: 4px;">
-        * El campo “TOTAL VALOR ASEGURADO” aplica únicamente para Vida Grupo Deudores.
+    <div class="note-right">El campo “TOTAL VALOR ASEGURADO” aplica únicamente para Vida Grupo Deudores</div>
+
+    <!-- 5. AUTORIZACIÓN TRATAMIENTO DATOS SENSIBLES Y DE MENORES DE EDAD -->
+    <div class="legal-notice-box">
+        <strong>AUTORIZACIÓN TRATAMIENTO DATOS SENSIBLES Y DE MENORES DE EDAD:</strong> a continuación solicitaremos información necesaria para gestionar adecuadamente su solicitud de seguro, cumplir con normas legales y procesos internos, por ello solicitaremos datos de su estado de salud y de sus beneficiarios que eventualmente podrían ser menores de edad, por ello confirmamos que usted puede decidir si los suministra, al hacerlo y firmar este documento está autorizando a LA EQUIDAD SEGUROS GENERALES ORGANISMO COOPERATIVO y a LA EQUIDAD SEGUROS DE VIDA ORGANISMO COOPERATIVO identificadas con Nit. 860.028.415-5 y 830.008.686-1 respectivamente a realizar el tratamiento de aquellos para todo lo relacionado con la gestión de la póliza.<br><br>
+        LA EQUIDAD SEGUROS GENERALES ORGANISMO COOPERATIVO y a LA EQUIDAD SEGUROS DE VIDA ORGANISMO COOPERATIVO identificadas con Nit. 860.028.415-5 y 830.008.686-1 respectivamente a realizar el tratamiento de sus datos sensibles, en especial los contendios en la definición de la normatividad aplicable sobre la materia particularmente, los relativos a la salud. Asimismo, son facultativas las respuestas a las preguntas sobre datos de niños, niñas y adolescentes y en consencuencia no ha sido obligado a responderlas.
     </div>
 
-    <!-- AUTORIZACIÓN TRATAMIENTO DATOS SENSIBLES Y MENORES -->
-    <div class="legal-notice">
-        <strong>AUTORIZACIÓN TRATAMIENTO DATOS SENSIBLES Y DE MENORES DE EDAD:</strong> A continuación solicitaremos información necesaria para gestionar adecuadamente su solicitud de seguro, cumplir con normas legales y procesos internos, por ello solicitaremos datos de su estado de salud y de sus beneficiarios que eventualmente podrían ser menores de edad, por ello confirmamos que usted puede decidir si los suministra, al hacerlo y firmar este documento está autorizando a <strong>LA EQUIDAD SEGUROS GENERALES ORGANISMO COOPERATIVO</strong> y a <strong>LA EQUIDAD SEGUROS DE VIDA ORGANISMO COOPERATIVO</strong> identificadas con Nit. 860.028.415-5 y 830.008.686-1 respectivamente a realizar el tratamiento de aquellos para todo lo relacionado con la gestión de la póliza y en especial los contenidos en la definición de la normatividad aplicable sobre la materia particularmente, los relativos a la salud. Asimismo, son facultativas las respuestas a las preguntas sobre datos de niños, niñas y adolescentes y en consecuencia no ha sido obligado a responderlas.
-    </div>
-
-    <!-- 3. BENEFICIARIOS -->
-    <div class="section-header">{{ 'Escriba el nombre de los beneficiarios de este seguro y su respectivo porcentaje'|t }}</div>
+    <!-- 6. TABLA DE BENEFICIARIOS -->
+    <div class="section-bar">ESCRIBA EL NOMBRE DE LOS BENEFICIARIOS DE ESTE SEGURO Y SU RESPECTIVO PORCENTAJE</div>
     <table class="beneficiarios-table">
         <thead>
             <tr>
-                <th style="width: 34%;">{{ 'Nombre y Apellido'|t }}</th>
-                <th style="width: 14%;">{{ 'Documento (CC/CE/TI/RC)'|t }}</th>
-                <th style="width: 20%;">{{ 'N° de Documento'|t }}</th>
-                <th style="width: 16%;">{{ 'Parentesco'|t }}</th>
-                <th style="width: 8%;">{{ 'Edad'|t }}</th>
-                <th style="width: 8%;">{{ '%'|t }}</th>
+                <th style="width: 39%;">NOMBRE Y APELLIDO</th>
+                <th style="width: 14%;">Documento<br>(C.C -C.E.-T.I. - R.C)</th>
+                <th style="width: 19%;">N° DE DOCUMENTO</th>
+                <th style="width: 14%;">PARENTESCO</th>
+                <th style="width: 7%;">EDAD</th>
+                <th style="width: 7%;">%</th>
             </tr>
         </thead>
         <tbody>
-            {% if data.beneficiarios is iterable and data.beneficiarios|length > 0 %}
-                {% for ben in data.beneficiarios %}
-                    <tr>
-                        <td style="text-align: left;">{{ ben.nombre_y_apellido|default(ben.nombre_completo|default(ben.nombre|default(''))) }}</td>
-                        <td>{{ ben.tipo_de_documento|default(ben.tipo_documento|default('C.C.')) }}</td>
-                        <td>{{ ben.numero_de_documento|default(ben.documento|default('')) }}</td>
-                        <td>{{ ben.parentesco|default('') }}</td>
-                        <td>{{ ben.edad|default('') }}</td>
-                        <td><strong>{{ ben.porcentaje|default(ben.porcentaje_participacion|default('')) }}%</strong></td>
-                    </tr>
-                {% endfor %}
-            {% else %}
-                {# Si no hay beneficiarios dinámicos, mostrar campos si vienen individuales o renglones limpios #}
-                {% if data.beneficiario_nombre or data.nombre_beneficiario %}
-                    <tr>
-                        <td style="text-align: left;">{{ data.beneficiario_nombre|default(data.nombre_beneficiario|default('')) }}</td>
-                        <td>{{ data.beneficiario_tipo_doc|default('C.C.') }}</td>
-                        <td>{{ data.beneficiario_documento|default(data.documento_beneficiario|default('')) }}</td>
-                        <td>{{ data.beneficiario_parentesco|default(data.parentesco_beneficiario|default('')) }}</td>
-                        <td>{{ data.beneficiario_edad|default('') }}</td>
-                        <td><strong>{{ data.beneficiario_porcentaje|default('100') }}%</strong></td>
-                    </tr>
-                {% else %}
-                    <tr>
-                        <td style="text-align: left; height: 16px;">&nbsp;</td>
-                        <td>&nbsp;</td>
-                        <td>&nbsp;</td>
-                        <td>&nbsp;</td>
-                        <td>&nbsp;</td>
-                        <td>&nbsp;</td>
-                    </tr>
-                    <tr>
-                        <td style="text-align: left; height: 16px;">&nbsp;</td>
-                        <td>&nbsp;</td>
-                        <td>&nbsp;</td>
-                        <td>&nbsp;</td>
-                        <td>&nbsp;</td>
-                        <td>&nbsp;</td>
-                    </tr>
-                {% endif %}
-            {% endif %}
+            {% for i in 0..4 %}
+                {% set b = (data.beneficiarios is defined and data.beneficiarios[i] is defined) ? data.beneficiarios[i] : null %}
+                <tr>
+                    <td style="text-align: left;">{{ b ? b.nombre_y_apellido : '&nbsp;' }}</td>
+                    <td style="text-align: center;">{{ b ? b.tipo_de_documento : '&nbsp;' }}</td>
+                    <td style="text-align: center;">{{ b ? b.numero_de_documento : '&nbsp;' }}</td>
+                    <td style="text-align: center;">{{ b ? b.parentesco : '&nbsp;' }}</td>
+                    <td style="text-align: center;">{{ b ? b.edad : '&nbsp;' }}</td>
+                    <td style="text-align: center;">{{ b ? b.porcentaje : '&nbsp;' }}</td>
+                </tr>
+            {% endfor %}
         </tbody>
     </table>
-    <div style="font-size: 6.8px; color: #555; margin-bottom: 5px;">
-        * Si es póliza de Vida Deudores, el tomador será el beneficiario hasta cubrir la deuda vigente a la fecha de la reclamación ante la aseguradora. Aun así, se solicita información de otros beneficiarios por si aplica otra cobertura o queda un saldo adicional. * En caso del seguro de Protección Familiar esta declaración se extiende al grupo familiar relacionado en la solicitud (cónyuge e hijos). Los padres deben diligenciar cada uno por separado esta declaración.
+    <div class="bene-note">
+        *Si es póliza de Vida Deudores, el tomador será el beneficiario hasta cubrir la deuda vigente a la fecha de la reclamación ante la aseguradora. Aun así, se solicita información de otros beneficiarios por si aplica otra cobertura o queda un saldo adicional. * En caso del seguro de Protección Familiar esta declaración se extiende al grupo familiar relacionado en la solicitud (cónyuge e hijos). Los padres deben diligenciar cada uno por separado esta declaración
     </div>
 
-    <!-- 4. DATOS RELATIVOS A LA SALUD -->
-    <div class="section-header">{{ 'Datos Relativos a la Salud'|t }}</div>
-    <div style="font-size: 7px; color: #333; margin: 3px 0; text-align: justify;">
+    <!-- 7. DATOS RELATIVOS A LA SALUD -->
+    <div class="health-title">DATOS RELATIVOS A LA SALUD</div>
+    <div class="health-subtitle">
         Aunque no está obligado a compartir información sobre su salud, estos datos son necesarios para contratar el seguro, que se otorga a personas que gozan de buena salud, si omite información relevante (reticencia), incorrecta, incompleta o engañosa (falsedad) sobre su estado de salud es posible que el seguro pierda validez. Por eso, le pedimos que responda con sinceridad a los siguientes interrogantes:
     </div>
+    <div class="health-divider"></div>
 
-    <table class="health-measurements">
-        <tr>
-            <td style="width: 50%;"><strong>PESO:</strong> {{ data.peso|default(data.peso_kg|default('______')) }} kg</td>
-            <td style="width: 50%;"><strong>ESTATURA:</strong> {{ data.estatura|default(data.estatura_cm|default('______')) }} cm</td>
-        </tr>
-    </table>
+    <div class="measurements-line">
+        PESO <span class="measure-val">{{ data.peso|default('&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;') }} kg</span>
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+        ESTATURA <span class="measure-val">{{ data.estatura|default('&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;') }} cm</span>
+    </div>
 
-    <table class="health-grid-table">
+    <table class="health-table">
         <tr>
-            <!-- Columna 1 de preguntas -->
-            <td>
-                <table class="health-inner-table">
+            <!-- Columna Izquierda (Preguntas 1 a 7) -->
+            <td style="width: 50%;">
+                <table class="health-subtable">
                     <tr>
-                        <td class="q-text">1. Afecciones cardiovasculares</td>
-                        <td class="q-check">
-                            <span class="check-box">{% if data.afecciones_cardiovasculares == 'si' or data.salud_1 == 'si' %}X{% else %}&nbsp;{% endif %}</span> Sí
-                            <span class="check-box">{% if data.afecciones_cardiovasculares != 'si' and data.salud_1 != 'si' %}X{% else %}&nbsp;{% endif %}</span> No
-                        </td>
+                        <td class="q-text">1. AFECCIONES CARDIOVASCULARES</td>
+                        <td class="q-box-cell"><span class="chk-box">{% if data.salud_1 == 'si' or data.afecciones_cardiovasculares == 'si' %}X{% else %}&nbsp;{% endif %}</span></td>
                     </tr>
                     <tr>
-                        <td class="q-text">2. Afecciones cerebrovasculares</td>
-                        <td class="q-check">
-                            <span class="check-box">{% if data.afecciones_cerebrovasculares == 'si' or data.salud_2 == 'si' %}X{% else %}&nbsp;{% endif %}</span> Sí
-                            <span class="check-box">{% if data.afecciones_cerebrovasculares != 'si' and data.salud_2 != 'si' %}X{% else %}&nbsp;{% endif %}</span> No
-                        </td>
+                        <td class="q-text">2. AFECCIONES CEREBROVASCULARES</td>
+                        <td class="q-box-cell"><span class="chk-box">{% if data.salud_2 == 'si' or data.afecciones_cerebrovasculares == 'si' %}X{% else %}&nbsp;{% endif %}</span></td>
                     </tr>
                     <tr>
-                        <td class="q-text">3. ¿Durante los últimos 4 años ha sido diagnosticado o tratado por alguna enfermedad oncológica?</td>
-                        <td class="q-check">
-                            <span class="check-box">{% if data.enfermedad_oncologica == 'si' or data.salud_3 == 'si' %}X{% else %}&nbsp;{% endif %}</span> Sí
-                            <span class="check-box">{% if data.enfermedad_oncologica != 'si' and data.salud_3 != 'si' %}X{% else %}&nbsp;{% endif %}</span> No
-                        </td>
+                        <td class="q-text">3. ¿DURANTE LOS ÚLTIMOS 4 AÑOS HA SIDO DIAGNOSTICADO O TRATADO POR ALGUNA ENFERMEDAD ONCOLÓGICA? No será necesario declarar antecedentes de cáncer respecto de los cuales haya operado el derecho al olvido oncológico conforme a la normativa vigente.</td>
+                        <td class="q-box-cell"><span class="chk-box">{% if data.salud_6 == 'si' or data.enfermedad_oncologica == 'si' %}X{% else %}&nbsp;{% endif %}</span></td>
                     </tr>
                     <tr>
-                        <td class="q-text">4. Diabetes</td>
-                        <td class="q-check">
-                            <span class="check-box">{% if data.diabetes == 'si' or data.salud_4 == 'si' %}X{% else %}&nbsp;{% endif %}</span> Sí
-                            <span class="check-box">{% if data.diabetes != 'si' and data.salud_4 != 'si' %}X{% else %}&nbsp;{% endif %}</span> No
-                        </td>
+                        <td class="q-text">4. DIABETES</td>
+                        <td class="q-box-cell"><span class="chk-box">{% if data.salud_5 == 'si' or data.diabetes == 'si' %}X{% else %}&nbsp;{% endif %}</span></td>
                     </tr>
                     <tr>
-                        <td class="q-text">5. VIH Positivo / SIDA</td>
-                        <td class="q-check">
-                            <span class="check-box">{% if data.vih_sida == 'si' or data.salud_5 == 'si' %}X{% else %}&nbsp;{% endif %}</span> Sí
-                            <span class="check-box">{% if data.vih_sida != 'si' and data.salud_5 != 'si' %}X{% else %}&nbsp;{% endif %}</span> No
-                        </td>
+                        <td class="q-text">5. VIH POSITIVO / SIDA</td>
+                        <td class="q-box-cell"><span class="chk-box">{% if data.salud_9 == 'si' or data.vih_sida == 'si' %}X{% else %}&nbsp;{% endif %}</span></td>
                     </tr>
                     <tr>
-                        <td class="q-text">6. Insuficiencia renal crónica</td>
-                        <td class="q-check">
-                            <span class="check-box">{% if data.insuficiencia_renal == 'si' or data.salud_6 == 'si' %}X{% else %}&nbsp;{% endif %}</span> Sí
-                            <span class="check-box">{% if data.insuficiencia_renal != 'si' and data.salud_6 != 'si' %}X{% else %}&nbsp;{% endif %}</span> No
-                        </td>
+                        <td class="q-text">6. INSUFICIENCIA RENAL CRÓNICA</td>
+                        <td class="q-box-cell"><span class="chk-box">{% if data.salud_8 == 'si' or data.insuficiencia_renal == 'si' %}X{% else %}&nbsp;{% endif %}</span></td>
                     </tr>
                     <tr>
-                        <td class="q-text">7. EPOC - Enfermedad pulmonar obstructiva crónica</td>
-                        <td class="q-check">
-                            <span class="check-box">{% if data.epoc == 'si' or data.salud_7 == 'si' %}X{% else %}&nbsp;{% endif %}</span> Sí
-                            <span class="check-box">{% if data.epoc != 'si' and data.salud_7 != 'si' %}X{% else %}&nbsp;{% endif %}</span> No
-                        </td>
+                        <td class="q-text">7. EPOC - ENFERMEDAD PULMONAR OBSTRUCTIVA CRÓNICA</td>
+                        <td class="q-box-cell"><span class="chk-box">{% if data.salud_7 == 'si' or data.epoc == 'si' %}X{% else %}&nbsp;{% endif %}</span></td>
                     </tr>
                 </table>
             </td>
-            <!-- Columna 2 de preguntas -->
-            <td>
-                <table class="health-inner-table">
+            <!-- Columna Derecha (Preguntas 8 a 14) -->
+            <td style="width: 50%;">
+                <table class="health-subtable">
                     <tr>
-                        <td class="q-text">8. Cirugía</td>
-                        <td class="q-check">
-                            <span class="check-box">{% if data.cirugia == 'si' or data.salud_8 == 'si' %}X{% else %}&nbsp;{% endif %}</span> Sí
-                            <span class="check-box">{% if data.cirugia != 'si' and data.salud_8 != 'si' %}X{% else %}&nbsp;{% endif %}</span> No
-                        </td>
+                        <td class="q-text">8. CIRUGÍA</td>
+                        <td class="q-box-cell"><span class="chk-box">{% if data.salud_4 == 'si' or data.cirugia == 'si' %}X{% else %}&nbsp;{% endif %}</span></td>
                     </tr>
                     <tr>
-                        <td class="q-text">9. Alcoholismo</td>
-                        <td class="q-check">
-                            <span class="check-box">{% if data.alcoholismo == 'si' or data.salud_9 == 'si' %}X{% else %}&nbsp;{% endif %}</span> Sí
-                            <span class="check-box">{% if data.alcoholismo != 'si' and data.salud_9 != 'si' %}X{% else %}&nbsp;{% endif %}</span> No
-                        </td>
+                        <td class="q-text">9. ALCOHOLISMO</td>
+                        <td class="q-box-cell"><span class="chk-box">{% if data.salud_3 == 'si' or data.alcoholismo == 'si' %}X{% else %}&nbsp;{% endif %}</span></td>
                     </tr>
                     <tr>
-                        <td class="q-text">10. Tabaquismo / Drogadicción</td>
-                        <td class="q-check">
-                            <span class="check-box">{% if data.tabaquismo_drogadiccion == 'si' or data.salud_10 == 'si' %}X{% else %}&nbsp;{% endif %}</span> Sí
-                            <span class="check-box">{% if data.tabaquismo_drogadiccion != 'si' and data.salud_10 != 'si' %}X{% else %}&nbsp;{% endif %}</span> No
-                        </td>
+                        <td class="q-text">10. TABAQUISMO / DROGADICCIÓN</td>
+                        <td class="q-box-cell"><span class="chk-box">{% if data.salud_10 == 'si' or data.tabaquismo_drogadiccion == 'si' %}X{% else %}&nbsp;{% endif %}</span></td>
                     </tr>
                     <tr>
-                        <td class="q-text">11. Hipertensión arterial</td>
-                        <td class="q-check">
-                            <span class="check-box">{% if data.hipertension == 'si' or data.salud_11 == 'si' %}X{% else %}&nbsp;{% endif %}</span> Sí
-                            <span class="check-box">{% if data.hipertension != 'si' and data.salud_11 != 'si' %}X{% else %}&nbsp;{% endif %}</span> No
-                        </td>
+                        <td class="q-text">11. HIPERTENSIÓN ARTERIAL</td>
+                        <td class="q-box-cell"><span class="chk-box">{% if data.salud_11 == 'si' or data.hipertension == 'si' %}X{% else %}&nbsp;{% endif %}</span></td>
                     </tr>
                     <tr>
-                        <td class="q-text">12. Enfermedades congénitas</td>
-                        <td class="q-check">
-                            <span class="check-box">{% if data.enfermedades_congenitas == 'si' or data.salud_12 == 'si' %}X{% else %}&nbsp;{% endif %}</span> Sí
-                            <span class="check-box">{% if data.enfermedades_congenitas != 'si' and data.salud_12 != 'si' %}X{% else %}&nbsp;{% endif %}</span> No
-                        </td>
+                        <td class="q-text">12. ENFERMEDADES CONGÉNITAS</td>
+                        <td class="q-box-cell"><span class="chk-box">{% if data.salud_12 == 'si' or data.enfermedades_congenitas == 'si' %}X{% else %}&nbsp;{% endif %}</span></td>
                     </tr>
                     <tr>
-                        <td class="q-text">13. Enfermedades hematológicas</td>
-                        <td class="q-check">
-                            <span class="check-box">{% if data.enfermedades_hematologicas == 'si' or data.salud_13 == 'si' %}X{% else %}&nbsp;{% endif %}</span> Sí
-                            <span class="check-box">{% if data.enfermedades_hematologicas != 'si' and data.salud_13 != 'si' %}X{% else %}&nbsp;{% endif %}</span> No
-                        </td>
+                        <td class="q-text">13. ENFERMEDADES HEMATOLÓGICAS</td>
+                        <td class="q-box-cell"><span class="chk-box">{% if data.salud_13 == 'si' or data.enfermedades_hematologicas == 'si' %}X{% else %}&nbsp;{% endif %}</span></td>
                     </tr>
                     <tr>
-                        <td class="q-text">14. Enfermedades del colágeno (sistema autoinmune)</td>
-                        <td class="q-check">
-                            <span class="check-box">{% if data.enfermedades_colageno == 'si' or data.salud_14 == 'si' %}X{% else %}&nbsp;{% endif %}</span> Sí
-                            <span class="check-box">{% if data.enfermedades_colageno != 'si' and data.salud_14 != 'si' %}X{% else %}&nbsp;{% endif %}</span> No
-                        </td>
+                        <td class="q-text">14. ENFERMEDADES DEL COLÁGENO (ENFERMEDAD QUE AFECTA EL SISTEMA AUTOINMUNE)</td>
+                        <td class="q-box-cell"><span class="chk-box">{% if data.salud_14 == 'si' or data.enfermedades_colageno == 'si' %}X{% else %}&nbsp;{% endif %}</span></td>
                     </tr>
                 </table>
             </td>
         </tr>
     </table>
 
-    <div class="explanation-box">
-        <div class="explanation-title">
-            {{ 'EN CASO DE HABER MARCADO ALGUNA DE LAS CONDICIONES ANTERIORES O SI PADECE ALGUNA ENFERMEDAD MENTAL, ENFERMEDAD AGUDA O CRÓNICA, AFECCIÓN O ADICCIÓN FAVOR EXPLICAR DETALLADAMENTE:'|t }}
-        </div>
-        <div>
-            {{ data.explicacion_salud|default(data.explicacion_condiciones_salud|default('Ninguna')) }}
-        </div>
+    <!-- Explicación de Salud -->
+    <div class="explanation-heading">
+        EN CASO DE HABER MARCADO ALGUNA DE LAS CONDICIONES ANTERIORES O SI PADECE ALGUNA ENFERMEDAD MENTAL, ENFERMEDAD AGUDA O CRÓNICA, AFECCIÓN O ADICCIÓN FAVOR EXPLICAR DETALLADAMENTE:
     </div>
-
-    <div style="font-size: 6.8px; color: #555; margin-bottom: 5px;">
-        Autorizo expresamente a cualquier médico, funcionario de hospital o persona que me haya atendido a suministrar a La Equidad Seguros de Vida copia de la historia clínica. Esta autorización se hace extensiva aún después de mi fallecimiento. En caso del seguro de Protección Familiar esta declaración se extiende al grupo familiar relacionado en la solicitud (cónyuge e hijos). Los padres deben diligenciar cada uno por separado esta declaración.
-    </div>
-
-    <!-- 5. AUTORIZACIÓN TRATAMIENTO DE DATOS PERSONALES -->
-    <div class="section-header">{{ 'Autorización Tratamiento de Datos Personales (Ley 1581 de 2012)'|t }}</div>
-    <div class="legal-notice">
-        En cumplimiento de lo dispuesto en la Ley 1581 de 2012 y sus normas reglamentarias, para efectos de acceder a la prestación de servicios por parte de La Equidad Seguros Generales Organismo Cooperativo y/o La Equidad Seguros de Vida Organismo Cooperativo (en adelante La Equidad), declaro que he suministrado datos personales para la finalidad y tratamiento descritos en la presente autorización. Asimismo, autorizo y declaro que he sido informado que durante la etapa precontractual y contractual, La Equidad puede acceder a otras bases de datos para obtener información no suministrada en el presente documento, para los fines y tratamiento descritos a continuación: <strong>1. Finalidades:</strong> Trámite de vinculación, gestión integral del contrato, verificación del riesgo, prevención del fraude, liquidación de siniestros, estudios técnico-actuariales, ofertas comerciales y reporte a centrales de información. <strong>2. Tratamiento sin relación contractual:</strong> Se mantiene para las finalidades informadas aún si no se formaliza el contrato. <strong>3. Transferencia:</strong> A operadores, intermediarios, coaseguradores, reaseguradores y administradores de bases de datos de control de fraude y seguridad social. <strong>4. Datos sensibles y menores:</strong> Autorizo expresamente el tratamiento de datos sensibles (salud y biométricos), reconociendo que su respuesta es facultativa. <strong>5. Derechos:</strong> Conocer, actualizar y rectificar mis datos personales ante La Equidad (www.laequidadseguros.coop). Con la firma del presente documento autorizo dicho tratamiento.
-    </div>
-
-    <!-- 6. DECLARACIÓN Y FIRMAS -->
-    <div style="font-size: 7.2px; text-align: justify; margin-bottom: 4px;">
-        Con mi firma y huella en el presente documento, declaro que: <strong>1.</strong> Acepto el tratamiento de los datos personales previamente relacionado. <strong>2.</strong> Acepto expresamente que durante el proceso de negociación me han sido informadas de manera anticipada las condiciones del contrato de seguro y que en virtud de tal entendimiento, acepto y decido tomar la póliza.
-    </div>
-
-    <div style="font-size: 7.5px; margin-bottom: 6px;">
-        En constancia se firma en <strong>{{ data.ciudad_firma|default(data.ciudad|default('Bogotá D.C.')) }}</strong> a los <strong>{{ data.dia_firma|default('now'|date('d')) }}</strong> días del mes de <strong>{{ data.mes_firma|default('now'|date('m')) }}</strong> del año <strong>{{ data.anio_firma|default('now'|date('Y')) }}</strong>.
-    </div>
-
-    <table class="signature-section">
+    <table class="explanation-table">
         <tr>
-            <td class="signature-box">
-                <div class="signature-line">
-                    FIRMA DEL ASEGURADO<br>
-                    <span style="font-size: 7.5px; font-weight: normal; color: #555;">
-                        {{ data.nombre_completo|default((data.nombre|default('') ~ ' ' ~ data.apellidos|default(''))|trim|default('')) }} - {{ data.tipo_de_documento|default('C.C.') }} {{ data.numero_de_documento|default('') }}
-                    </span>
-                </div>
-            </td>
-            <td class="huella-box">
-                <div class="huella-placeholder">
-                    [ ESPACIO HUELLA DACTILAR ]
-                </div>
-                <p>Huella del índice derecho del asegurado</p>
-            </td>
+            <td>{{ data.explicacion_salud|default('&nbsp;') }}</td>
+        </tr>
+        <tr>
+            <td>&nbsp;</td>
+        </tr>
+        <tr>
+            <td>&nbsp;</td>
         </tr>
     </table>
 
-    <div style="font-size: 6.8px; color: #777; margin-top: 6px; text-align: justify;">
-        <strong>Importante:</strong> La falta de veracidad y exactitud de la información suministrada y consignada en este documento en todas sus partes será causal de nulidad del contrato de seguro; esta situación da derecho a la compañía de seguros a objetar cualquier posterior reclamación por omisión de información existente con anterioridad a la fecha de contratación del seguro (código de comercio, artículo 1058).
+    <div class="history-auth">
+        Autorizo expresamente a cualquier médico, funcionario de hospital o persona que me haya atendido a suministrar a La Equidad Seguros de Vida copia de la historia clínica. Esta autorización se hace extensiva aún después de mi fallecimiento. En caso del seguro de Protección Familiar esta declaración se extiende al grupo familiar relacionado en la solicitud(cónyuge e hijos). Los padres deben diligenciar cada uno por seprado esta declaración.
     </div>
 
-    <!-- PIE DE PÁGINA INSTITUCIONAL -->
+    <!-- 8. AUTORIZACIÓN TRATAMIENTO DE DATOS PERSONALES -->
+    <div class="section-bar">AUTORIZACIÓN TRATAMIENTO DE DATOS PERSONALES</div>
+    <div class="tratamiento-box">
+        En cumplimiento de lo dispuesto en la Ley 1581 de 2012 y sus normas reglamentarias, para efectos de acceder a la prestación de servicios por parte de La Equidad Seguros Generales Organismo Cooperativo y/o La Equidad Seguros de Vida Organismo Cooperativo (en adelante La Equidad), declaro que he suministrado datos personales para la finalidad y tratamiento descritos en la presente autorización. Asimismo, autorizo y declaro que he sido informado que durante la etapa precontractual y contractual, La Equidad puede acceder a otras bases de datos para obtener información no suministrada en el presente documento, para los fines y tratamiento descritos a continuación: <strong>1. Finalidades del tratamiento de datos personales:</strong> Mis datos personales serán tratados por La Equidad para: a) El trámite de vinculación como consumidor financiero. b) Todas las actividades referentes al proceso de negociación contractual, su ejecución, cumplimiento y en general, la gestión integral del seguro contratado. c) Verificación del estado del riesgo en cualquier tiempo. d) El control y la prevención del fraude. e) La liquidación y eventual pago de siniestros. f) La elaboración de estudios técnico-actuariales, estadísticas, encuestas, verificación, actualización de datos y análisis de tendencias del mercado. g) Envío de información de actualización en las políticas de tratamiento de datos y ofertas comerciales de seguros de La Equidad. h) Consulta, almacenamiento, administración, transferencia, procesamiento y reporte de información a las Centrales de Información o bases de datos debidamente constituidas referentes al comportamiento crediticio, financiero y comercial. i) Cuando aplique, para controlar el cumplimiento de requisitos para acceder al Sistema General de Seguridad Social Integral. <strong>2. Tratamiento sin relación contractual:</strong> Para efectos del cumplimiento de las finalidades indicadas en el numeral anterior, el tratamiento podrá realizarse aún en el caso de que no se llegue a formalizar una relación contractual con La Equidad, o que ésta ya hubiere terminado, conforme al término de vigencia del tratamiento. <strong>3. Transferencia de datos personales:</strong> Los datos podrán ser transferidos o transmitidos para las finalidades mencionadas a: a) Los operadores necesarios para el cumplimiento de derechos y obligaciones derivados de los contratos de seguro celebrados con La Equidad, tales como, pero no limitados a: ajustadores, call centers, investigadores, compañías de asistencia, abogados externos, gestores de cartera, entre otros. b) Los intermediarios de seguros que intervengan en el proceso de celebración, ejecución y terminación del contrato de seguro. c) Las entidades jurídicas con las cuales La Equidad adelante gestiones para efectos de coaseguro o reaseguro. d) Las personas jurídicas que administran bases de datos para efectos de prevención y control de fraudes, la selección de riesgos, y control de requisitos para acceder al Sistema General de Seguridad Social Integral, así como la elaboración de estudios estadísticos actuariales. <strong>4. Consulta de bases de datos externas:</strong> Para las finalidades indicadas en esta autorización, La Equidad podrá consultar las bases de datos mencionadas en el literal d) del numeral 3. <strong>5. Datos personales sensibles:</strong> Son facultativas las respuestas a las preguntas que me han hecho o me hagan sobre datos personales sensibles, de conformidad con la definición legal vigente. En consecuencia, no he sido obligado a responderlas. <strong>6. Autorización para tratar datos sensibles:</strong> Autorizo expresamente para que se lleve a cabo el tratamiento de mis datos sensibles, en especial si la información suministrada es relativa a la salud y a los datos biométricos. <strong>7. Datos de menores de edad:</strong> Son facultativas las respuestas a las preguntas sobre datos de niñas, niños y adolescentes. En consecuencia, no he sido obligado a responderlas. <strong>8. Derechos del titular de la información:</strong> Como titular de la información, me asisten los derechos previstos en la normatividad vigente sobre datos personales. En especial, tengo derecho a conocer, actualizar y rectificar las informaciones que hayan sido objeto de tratamiento. <strong>9. Responsable del tratamiento:</strong> El responsable del tratamiento de la información es La Equidad Seguros Generales Organismo Cooperativo y/o La Equidad Seguros de Vida Organismo Cooperativo, cuyos datos de contacto se encuentran publicados en la página web: www.laequidadseguros.coop <strong>10. Aceptación del tratamiento:</strong> Con la suscripción del presente documento, autorizo el tratamiento de los datos personales, por las personas, para las finalidades y en los términos que me fueron informados en esta autorización.
+    </div>
+
+    <!-- 9. DECLARACIÓN Y FIRMAS -->
+    <div class="declaration-text">
+        Con mi firma y huella en el presente documento, declaro que 1. Acepto el tratamiento de los datos personales previamente relacionado 2. Acepto expresamente que durante el proceso de negociación me han sido informadas de manera anticipada las condiciones del contrato de seguro y que en virtud de tal entendimiento, acepto y decido tomar la póliza En constancia se firma en <span class="fill-underline">{{ data.ciudad_firma|default(data.ciudad|default('Bogotá D.C.')) }}</span> a los <span class="fill-underline">{{ data.dia_firma|default('now'|date('d')) }}</span> dias del mes de <span class="fill-underline">{{ data.mes_firma|default('now'|date('m')) }}</span> del año <span class="fill-underline">{{ data.anio_firma|default('now'|date('Y')) }}</span>
+    </div>
+
     <table class="footer-table">
         <tr>
-            <td>&copy; {{ "now"|date("Y") }} La Equidad Seguros Organismo Cooperativo - Documento generado automáticamente por el sistema</td>
-            <td class="code-cell">SUS-FO-0006 (06-2026)</td>
+            <td class="footer-left">
+                <div class="warning-text">
+                    <strong>Importante:</strong> la falta de veracidad y exactitud de la información suministrada y consignada en este documento en todas sus partes será causal de nulidad del contrato de seguro; esta situación da derecho a la compañía de seguros a objetar cualquier posterior reclamación por omisión de información existente con anterioridad a la fecha de contratación del seguro <strong>(código de comercio, articulo 1058)</strong>.
+                </div>
+                <div style="margin-top: 6px; font-size: 6.2pt; color: #000000;">
+                    <strong>Asegurado:</strong> {{ data.nombre_completo|default('') }} &nbsp;&nbsp;&nbsp;&nbsp;
+                    <strong>Identificación:</strong> {{ data.tipo_de_documento|default('C.C.') }} {{ data.numero_de_documento|default('') }}
+                </div>
+            </td>
+            <td class="footer-right">
+                <div class="huella-box-border">
+                    <div class="huella-label">Huella del índice derecho del asegurado</div>
+                </div>
+            </td>
         </tr>
     </table>
+
+    <div class="doc-code">SUS-FO-0006 (06-2026)</div>
 
 </body>
 </html>

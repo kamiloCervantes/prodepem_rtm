@@ -297,9 +297,14 @@ class AdminController extends ControllerBase {
       // 3. Renderizar la plantilla Twig.
       $logo_uri = NULL;
       $module_path = \Drupal::service('extension.list.module')->getPath('prodepem_solicitudes_rtm');
-      $equidad_logo = \Drupal::root() . '/' . $module_path . '/images/la_equidad_logo.png';
-      if (file_exists($equidad_logo)) {
-        $logo_data = base64_encode(file_get_contents($equidad_logo));
+      $equidad_logo_jpg = \Drupal::root() . '/' . $module_path . '/images/la_equidad_logo.jpg';
+      $equidad_logo_png = \Drupal::root() . '/' . $module_path . '/images/la_equidad_logo.png';
+      if (file_exists($equidad_logo_jpg)) {
+        $logo_data = base64_encode(file_get_contents($equidad_logo_jpg));
+        $logo_uri = 'data:image/jpeg;base64,' . $logo_data;
+      }
+      elseif (file_exists($equidad_logo_png)) {
+        $logo_data = base64_encode(file_get_contents($equidad_logo_png));
         $logo_uri = 'data:image/png;base64,' . $logo_data;
       }
       else {
@@ -310,6 +315,19 @@ class AdminController extends ControllerBase {
         }
       }
 
+      // Franja vertical Vigilado Superintendencia Financiera.
+      $vigilado_uri = NULL;
+      $vigilado_jpg = \Drupal::root() . '/' . $module_path . '/images/vigilado_superfinanciera.jpg';
+      $vigilado_png = \Drupal::root() . '/' . $module_path . '/images/vigilado_superfinanciera.png';
+      if (file_exists($vigilado_jpg)) {
+        $vigilado_data = base64_encode(file_get_contents($vigilado_jpg));
+        $vigilado_uri = 'data:image/jpeg;base64,' . $vigilado_data;
+      }
+      elseif (file_exists($vigilado_png)) {
+        $vigilado_data = base64_encode(file_get_contents($vigilado_png));
+        $vigilado_uri = 'data:image/png;base64,' . $vigilado_data;
+      }
+
       $serial = $webform_submission->serial->value ?? $webform_submission->id();
 
       $render_array = [
@@ -318,6 +336,7 @@ class AdminController extends ControllerBase {
         '#submission' => $webform_submission,
         '#date' => date('d/m/Y'),
         '#logo_path' => $logo_uri,
+        '#vigilado_path' => $vigilado_uri,
         '#serial' => $serial,
       ];
 
