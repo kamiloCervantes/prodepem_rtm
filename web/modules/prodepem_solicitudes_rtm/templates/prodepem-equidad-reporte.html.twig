@@ -1,0 +1,181 @@
+{#
+/**
+ * @file
+ * Template for Reporte de Equidad Seguros (con buscador, filtros, tabla y descarga XLS).
+ *
+ * Variables:
+ * - reporte_key: 'aspu' | 'foneducor' | 'aspu-adicionales' | 'foneducor-adicionales'
+ * - reporte_title: Titulo del reporte
+ * - reporte_desc: Descripcion
+ * - tomador_badge: Badge text
+ * - tipo_reporte: 'vida' | 'adicionales'
+ * - items: Registros encontrados
+ * - total: Cantidad de registros
+ * - filters: Array con 'search', 'fecha_desde', 'fecha_hasta'
+ * - export_url: URL para descarga XLS respetando filtros
+ */
+#}
+<div class="reportes-equidad-container">
+  <!-- Encabezado del Reporte -->
+  <div class="reportes-header">
+    <div>
+      <div style="margin-bottom: 0.35rem;">
+        <span class="reportes-badge {% if 'aspu' in reporte_key %}reportes-badge--aspu{% else %}reportes-badge--foneducor{% endif %}">
+          {{ tomador_badge }}
+        </span>
+      </div>
+      <h2 class="reportes-header__title">{{ reporte_title }}</h2>
+      <p class="reportes-header__desc">{{ reporte_desc }}</p>
+    </div>
+    <div style="display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap;">
+      <a href="{{ export_url }}" class="btn-reporte btn-reporte--excel" id="btn-exportar-xls" title="{{ 'Descargar estos registros filtrados en Excel'|t }}">
+        <i class="fa-solid fa-file-excel"></i> {{ 'Descargar XLS'|t }}
+      </a>
+      <a href="{{ path('prodepem_solicitudes_rtm.reportes_equidad_index') }}" class="btn-reporte btn-reporte--secondary">
+        <i class="fa-solid fa-arrow-left"></i> {{ 'Volver a Reportes'|t }}
+      </a>
+    </div>
+  </div>
+
+  <!-- Barra de Filtros y Búsqueda -->
+  <div class="reportes-toolbar">
+    <form method="get" class="reportes-toolbar__form" action="">
+      <div class="reportes-form-group">
+        <label for="filter-search"><i class="fa-solid fa-magnifying-glass"></i> {{ 'Buscar'|t }}</label>
+        <input type="text" id="filter-search" name="search" value="{{ filters.search }}" class="reportes-input reportes-input--search" placeholder="{{ 'Buscar por nombre, documento, correo, teléfono...'|t }}" />
+      </div>
+
+      <div class="reportes-form-group">
+        <label for="filter-fecha-desde"><i class="fa-regular fa-calendar"></i> {{ 'Fecha Desde'|t }}</label>
+        <input type="date" id="filter-fecha-desde" name="fecha_desde" value="{{ filters.fecha_desde }}" class="reportes-input" />
+      </div>
+
+      <div class="reportes-form-group">
+        <label for="filter-fecha-hasta"><i class="fa-regular fa-calendar"></i> {{ 'Fecha Hasta'|t }}</label>
+        <input type="date" id="filter-fecha-hasta" name="fecha_hasta" value="{{ filters.fecha_hasta }}" class="reportes-input" />
+      </div>
+
+      <div style="display: flex; gap: 0.5rem; margin-top: auto;">
+        <button type="submit" class="btn-reporte btn-reporte--primary">
+          <i class="fa-solid fa-filter"></i> {{ 'Filtrar'|t }}
+        </button>
+
+        {% if filters.search or filters.fecha_desde or filters.fecha_hasta %}
+          <a href="{{ app.request.pathInfo }}" class="btn-reporte btn-reporte--secondary" title="{{ 'Restablecer todos los filtros'|t }}">
+            <i class="fa-solid fa-rotate-left"></i> {{ 'Limpiar'|t }}
+          </a>
+        {% endif %}
+      </div>
+    </form>
+  </div>
+
+  <!-- Contador de Resultados -->
+  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem; font-size: 0.885rem; color: #4b5563;">
+    <div>
+      {{ 'Mostrando'|t }} <strong>{{ total }}</strong> {{ 'registro(s)'|t }}
+      {% if filters.search %} • {{ 'Filtro de búsqueda:'|t }} "<em>{{ filters.search }}</em>"{% endif %}
+      {% if filters.fecha_desde %} • {{ 'Desde:'|t }} {{ filters.fecha_desde }}{% endif %}
+      {% if filters.fecha_hasta %} • {{ 'Hasta:'|t }} {{ filters.fecha_hasta }}{% endif %}
+    </div>
+  </div>
+
+  <!-- Tabla de Registros -->
+  <div class="reportes-table-wrapper">
+    {% if items is empty %}
+      <div class="reportes-empty">
+        <div class="reportes-empty__icon"><i class="fa-regular fa-folder-open"></i></div>
+        <h3 class="reportes-empty__title">{{ 'No se encontraron registros'|t }}</h3>
+        <p>{{ 'No hay solicitudes que coincidan con los criterios de búsqueda o filtros seleccionados.'|t }}</p>
+      </div>
+    {% else %}
+      <table class="reportes-table">
+        <thead>
+          {% if tipo_reporte == 'vida' %}
+            <tr>
+              <th>{{ 'SID'|t }}</th>
+              <th>{{ 'Fecha'|t }}</th>
+              <th>{{ 'Asegurado Principal'|t }}</th>
+              <th>{{ 'Documento'|t }}</th>
+              <th>{{ 'Correo'|t }}</th>
+              <th>{{ 'Teléfono'|t }}</th>
+              <th>{{ 'Ocupación / Cargo'|t }}</th>
+              <th>{{ 'Valor Solicitado'|t }}</th>
+              <th>{{ 'Beneficiarios'|t }}</th>
+              <th style="text-align: right;">{{ 'Acciones'|t }}</th>
+            </tr>
+          {% else %}
+            <tr>
+              <th>{{ 'SID'|t }}</th>
+              <th>{{ 'Fecha'|t }}</th>
+              <th>{{ 'Solicitante'|t }}</th>
+              <th>{{ 'Documento'|t }}</th>
+              <th>{{ 'Teléfono'|t }}</th>
+              <th>{{ 'Correo'|t }}</th>
+              <th>{{ 'Ciudad'|t }}</th>
+              <th>{{ 'Seguros de Interés'|t }}</th>
+              <th>{{ 'Rifa / Sorteo'|t }}</th>
+              <th style="text-align: right;">{{ 'Acciones'|t }}</th>
+            </tr>
+          {% endif %}
+        </thead>
+        <tbody>
+          {% for item in items %}
+            <tr>
+              <td class="reportes-table__sid">#{{ item.sid }}</td>
+              <td style="white-space: nowrap;">{{ item.fecha }}</td>
+              <td style="font-weight: 600; color: #111827;">{{ item.nombre|default('N/A') }}</td>
+              <td style="white-space: nowrap;">{{ item.tipo_documento }} {{ item.documento }}</td>
+
+              {% if tipo_reporte == 'vida' %}
+                <td>{{ item.email|default('N/A') }}</td>
+                <td style="white-space: nowrap;">{{ item.telefono|default('N/A') }}</td>
+                <td>{{ item.ocupacion }} {% if item.cargo %}<small style="color: #6b7280;">({{ item.cargo }})</small>{% endif %}</td>
+                <td style="font-weight: 600; color: #047857;">{{ item.valor_asegurado|default('N/A') }}</td>
+                <td>
+                  {% if item.beneficiarios_count > 0 %}
+                    <span style="display: inline-block; padding: 2px 7px; background: #ecfdf5; color: #065f46; border-radius: 4px; font-weight: 600; font-size: 0.785rem;">
+                      {{ item.beneficiarios_count }} {{ 'declarado(s)'|t }}
+                    </span>
+                  {% else %}
+                    <span style="color: #9ca3af; font-size: 0.785rem;">{{ 'Sin beneficiarios'|t }}</span>
+                  {% endif %}
+                </td>
+              {% else %}
+                <td style="white-space: nowrap;">{{ item.telefono|default('N/A') }}</td>
+                <td>{{ item.email|default('N/A') }}</td>
+                <td>{{ item.ciudad|default('N/A') }}</td>
+                <td>
+                  {% if item.seguros_adicionales_texto %}
+                    <span style="font-weight: 500; color: #1e40af;">{{ item.seguros_adicionales_texto }}</span>
+                  {% else %}
+                    <span style="color: #6b7280; font-size: 0.8rem;">{{ 'Ninguno'|t }}</span>
+                  {% endif %}
+                </td>
+                <td style="white-space: nowrap;">
+                  {% if 'Boleta' in item.rifa_texto or item.participa_rifa == 'SÍ' %}
+                    <span style="display: inline-block; padding: 2px 7px; background: #fdf4ff; color: #86198f; border-radius: 4px; font-weight: 600; font-size: 0.785rem;">
+                      <i class="fa-solid fa-ticket"></i> {{ item.rifa_texto }}
+                    </span>
+                  {% else %}
+                    <span style="color: #9ca3af; font-size: 0.785rem;">{{ 'No participa'|t }}</span>
+                  {% endif %}
+                </td>
+              {% endif %}
+
+              <td style="text-align: right;">
+                <div class="reportes-table__actions" style="justify-content: flex-end;">
+                  <a href="{{ item.url_detalle }}" class="btn-reporte btn-reporte--secondary btn-reporte--sm" title="{{ 'Ver desglose completo de la respuesta'|t }}">
+                    <i class="fa-solid fa-eye"></i> {{ 'Ver Detalle'|t }}
+                  </a>
+                  <a href="{{ item.url_pdf }}" class="btn-reporte btn-reporte--primary btn-reporte--sm" target="_blank" title="{{ 'Generar PDF oficial firmado de seguro de vida'|t }}">
+                    <i class="fa-solid fa-file-pdf"></i> {{ 'PDF'|t }}
+                  </a>
+                </div>
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    {% endif %}
+  </div>
+</div>

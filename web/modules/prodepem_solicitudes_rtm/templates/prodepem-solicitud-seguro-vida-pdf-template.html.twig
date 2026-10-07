@@ -393,56 +393,58 @@
         </tr>
     </table>
 
-    <!-- 2. SUB-ENCABEZADO: PRODUCTOS Y PLAN -->
+    <!-- 2. SUB-ENCABEZADO: PRODUCTOS Y PLAN (Casillas siempre vacías según formato oficial) -->
     <table class="products-table">
         <tr>
             <td style="width: 32%;">
                 <span class="chk-label">Vida Grupo</span>
-                <span class="chk-box">{% if (data.producto|lower in ['vida grupo', 'vida', 'seguro de vida']) or (data.tipo_producto|lower in ['vida grupo', 'vida']) %}X{% else %}&nbsp;{% endif %}</span>
+                <span class="chk-box">&nbsp;</span>
             </td>
             <td style="width: 32%;">
                 <span class="chk-label">Grupo Deudores</span>
-                <span class="chk-box">{% if 'deudor' in (data.producto|lower) or 'deudor' in (data.tipo_producto|lower) %}X{% else %}&nbsp;{% endif %}</span>
+                <span class="chk-box">&nbsp;</span>
             </td>
             <td style="width: 36%;">
                 <span class="chk-label">Protección Familiar</span>
-                <span class="chk-box">{% if 'familiar' in (data.producto|lower) or 'familiar' in (data.tipo_producto|lower) %}X{% else %}&nbsp;{% endif %}</span>
+                <span class="chk-box">&nbsp;</span>
             </td>
         </tr>
         <tr>
             <td>
                 <span class="chk-label">Grupo Aportes</span>
-                <span class="chk-box">{% if 'aporte' in (data.producto|lower) or 'aporte' in (data.tipo_producto|lower) %}X{% else %}&nbsp;{% endif %}</span>
+                <span class="chk-box">&nbsp;</span>
             </td>
             <td>
                 <span class="chk-label">Grupo Directivos</span>
-                <span class="chk-box">{% if 'directivo' in (data.producto|lower) or 'directivo' in (data.tipo_producto|lower) %}X{% else %}&nbsp;{% endif %}</span>
+                <span class="chk-box">&nbsp;</span>
             </td>
             <td>
                 <span class="chk-label" style="margin-right: 6px;">Plan</span>
                 <span class="chk-label">A</span>
-                <span class="chk-box">{% if data.plan|upper == 'A' or 'PLAN A' in (data.plan|upper) %}X{% else %}&nbsp;{% endif %}</span>&nbsp;
+                <span class="chk-box">&nbsp;</span>&nbsp;
                 <span class="chk-label">B</span>
-                <span class="chk-box">{% if data.plan|upper == 'B' or 'PLAN B' in (data.plan|upper) %}X{% else %}&nbsp;{% endif %}</span>&nbsp;
+                <span class="chk-box">&nbsp;</span>&nbsp;
                 <span class="chk-label">C</span>
-                <span class="chk-box">{% if data.plan|upper == 'C' or 'PLAN C' in (data.plan|upper) %}X{% else %}&nbsp;{% endif %}</span>
+                <span class="chk-box">&nbsp;</span>
             </td>
         </tr>
     </table>
 
     <!-- 3. DATOS TOMADOR -->
     <div class="section-bar">DATOS TOMADOR</div>
-    <table class="data-table">
+    <table class="data-table" style="margin-top: 0;">
         <tr>
-            <td style="width: 75%;">
+            <td style="width: 68%;">
                 <span class="cell-label">TOMADOR</span>
                 <span class="cell-val">{{ data.tomador|default('PRODEPEM S.A.S') }}</span>
             </td>
-            <td style="width: 25%;">
+            <td style="width: 32%;">
                 <span class="cell-label">C.C./NIT</span>
                 <span class="cell-val">{{ data.nit_tomador|default(data.c_c_nit|default('900.582.164-1')) }}</span>
             </td>
         </tr>
+    </table>
+    <table class="data-table" style="margin-top: -1px;">
         <tr>
             <td style="width: 50%;">
                 <span class="cell-label">DIRECCIÓN</span>
@@ -461,29 +463,35 @@
 
     <!-- 4. DATOS ASEGURADO -->
     <div class="section-bar" style="margin-top: 1px;">DATOS ASEGURADO</div>
-    <table class="data-table">
+    <table class="data-table" style="margin-top: 0;">
         <tr>
-            <td style="width: 75%;">
+            <td style="width: 68%;">
                 <span class="cell-label">ASEGURADO PRINCIPAL</span>
                 <span class="cell-val">{{ data.nombre_completo|default('') }}</span>
             </td>
-            <td style="width: 25%;">
-                <span class="cell-label">C.C.</span>
+            <td style="width: 32%;">
+                <span class="cell-label">{{ data.tipo_de_documento|default('C.C.') }}</span>
                 <span class="cell-val">{{ data.numero_de_documento|default('') }}</span>
             </td>
         </tr>
+    </table>
+    <table class="data-table" style="margin-top: -1px;">
         <tr>
-            <td style="width: 55%;">
+            <td style="width: 46%;">
                 <span class="cell-label">CORREO ELECTRÓNICO</span>
                 <span class="cell-val">{{ data.email|default('') }}</span>
             </td>
-            <td style="width: 45%;">
+            <td style="width: 22%;">
                 <span class="cell-label">¿TRABAJA USTED ACTUALMENTE?</span>
-                <span class="cell-val">{% if data.trabaja_actualmente in ['si', 'Si', '1', true] %}SÍ{% else %}NO{% endif %}</span>
+            </td>
+            <td style="width: 32%; text-align: left;">
+                <span class="cell-val" style="padding-left: 4px;">{% if data.trabaja_actualmente in ['si', 'Si', '1', true, 'SI'] %}SÍ{% elseif data.trabaja_actualmente in ['no', 'No', '0', false, 'NO'] %}NO{% else %}&nbsp;{% endif %}</span>
             </td>
         </tr>
+    </table>
+    <table class="data-table" style="margin-top: -1px;">
         <tr>
-            <td style="width: 36%;">
+            <td style="width: 38%;">
                 <span class="cell-label">OCUPACION</span>
                 <span class="cell-val">{{ data.ocupacion|default('') }}</span>
             </td>
@@ -491,21 +499,23 @@
                 <span class="cell-label">CARGO</span>
                 <span class="cell-val">{{ data.cargo|default('') }}</span>
             </td>
-            <td style="width: 34%;">
+            <td style="width: 32%;">
                 <span class="cell-label">FECHA DE NACIMIENTO</span>
                 <span class="cell-val">{{ data.fecha_de_nacimiento|default('') }}</span>
             </td>
         </tr>
+    </table>
+    <table class="data-table" style="margin-top: -1px;">
         <tr>
             <td style="width: 26%;">
                 <span class="cell-label">ESTADO CIVIL</span>
                 <span class="cell-val">{{ data.estado_civil|default('') }}</span>
             </td>
-            <td style="width: 37%;">
+            <td style="width: 42%;">
                 <span class="cell-label">VALOR ASEGURADO SOLICITADO</span>
                 <span class="cell-val">{{ data.valor_asegurado_solicitado|default('') }}</span>
             </td>
-            <td style="width: 37%;">
+            <td style="width: 32%;">
                 <span class="cell-label">TOTAL VALOR ASEGURADO</span>
                 <span class="cell-val">{{ data.total_valor_asegurado|default('') }}</span>
             </td>
@@ -533,15 +543,16 @@
             </tr>
         </thead>
         <tbody>
+            {% set bene_items = data.beneficiarios|default([]) %}
             {% for i in 0..4 %}
-                {% set b = (data.beneficiarios is defined and data.beneficiarios[i] is defined) ? data.beneficiarios[i] : null %}
+                {% set b = (bene_items[i] is defined) ? bene_items[i] : null %}
                 <tr>
-                    <td style="text-align: left;">{{ b ? b.nombre_y_apellido : '&nbsp;' }}</td>
-                    <td style="text-align: center;">{{ b ? b.tipo_de_documento : '&nbsp;' }}</td>
-                    <td style="text-align: center;">{{ b ? b.numero_de_documento : '&nbsp;' }}</td>
-                    <td style="text-align: center;">{{ b ? b.parentesco : '&nbsp;' }}</td>
-                    <td style="text-align: center;">{{ b ? b.edad : '&nbsp;' }}</td>
-                    <td style="text-align: center;">{{ b ? b.porcentaje : '&nbsp;' }}</td>
+                    <td style="text-align: left;">{{ b and b.nombre_y_apellido ? b.nombre_y_apellido : '&nbsp;' }}</td>
+                    <td style="text-align: center;">{{ b and b.tipo_de_documento ? b.tipo_de_documento : '&nbsp;' }}</td>
+                    <td style="text-align: center;">{{ b and b.numero_de_documento ? b.numero_de_documento : '&nbsp;' }}</td>
+                    <td style="text-align: center;">{{ b and b.parentesco ? b.parentesco : '&nbsp;' }}</td>
+                    <td style="text-align: center;">{{ b and b.edad ? b.edad : '&nbsp;' }}</td>
+                    <td style="text-align: center;">{{ b and b.porcentaje ? b.porcentaje : '&nbsp;' }}</td>
                 </tr>
             {% endfor %}
         </tbody>
@@ -640,7 +651,7 @@
     </div>
     <table class="explanation-table">
         <tr>
-            <td>{{ data.explicacion_salud|default('&nbsp;') }}</td>
+            <td>{% if data.explicacion_salud is not empty %}{{ data.explicacion_salud }}{% else %}&nbsp;{% endif %}</td>
         </tr>
         <tr>
             <td>&nbsp;</td>
@@ -678,7 +689,7 @@
             </td>
             <td class="footer-right">
                 <div class="huella-box-border">
-                    <div class="huella-label">Huella del índice derecho del asegurado</div>
+                    
                 </div>
             </td>
         </tr>

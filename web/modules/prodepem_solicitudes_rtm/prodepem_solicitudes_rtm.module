@@ -29,6 +29,39 @@ function prodepem_solicitudes_rtm_theme($existing, $type, $theme, $path) {
         'serial' => NULL,
       ],
     ],
+    'prodepem_equidad_reportes_index' => [
+      'variables' => [
+        'stats' => NULL,
+      ],
+    ],
+    'prodepem_equidad_reporte' => [
+      'variables' => [
+        'reporte_key' => NULL,
+        'reporte_title' => NULL,
+        'reporte_desc' => NULL,
+        'tomador_badge' => NULL,
+        'tipo_reporte' => NULL,
+        'items' => NULL,
+        'total' => NULL,
+        'filters' => NULL,
+        'export_url' => NULL,
+      ],
+    ],
+    'prodepem_equidad_submission_detalle' => [
+      'variables' => [
+        'sid' => NULL,
+        'serial' => NULL,
+        'created' => NULL,
+        'tomador_data' => NULL,
+        'asegurado_data' => NULL,
+        'adicionales_data' => NULL,
+        'beneficiarios' => NULL,
+        'salud_data' => NULL,
+        'pdf_url' => NULL,
+        'back_url' => NULL,
+        'raw_keys' => NULL,
+      ],
+    ],
   ];
 }
 

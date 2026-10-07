@@ -38,3 +38,11 @@ formulario_equidad_seguros:
   dependencies:
     - core/drupal
     - core/once
+
+reportes_equidad:
+  version: 1.x
+  css:
+    theme:
+      css/reportes_equidad.css: {}
+  dependencies:
+    - prodepem_solicitudes_rtm/font-awesome

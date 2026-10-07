@@ -221,15 +221,76 @@ class AdminController extends ControllerBase {
       $data['telefono_tomador'] = !empty($raw_data['telefono_tomador']) ? $raw_data['telefono_tomador'] : (!empty($raw_data['telefono']) ? $raw_data['telefono'] : '3118228328');
 
       // B. Datos del Asegurado.
-      $nombre_completo = $raw_data['nombre_completo'] ?? '';
+      $nombre_completo = $raw_data['nombre_completo']
+        ?? $raw_data['asegurado_principal']
+        ?? $raw_data['nombre_del_asegurado']
+        ?? $raw_data['nombre_asegurado']
+        ?? $raw_data['asegurado']
+        ?? $raw_data['nombres_y_apellidos']
+        ?? $raw_data['nombre_y_apellidos']
+        ?? $raw_data['nombres_apellidos']
+        ?? $raw_data['nombre_y_apellido']
+        ?? $raw_data['titular']
+        ?? $raw_data['solicitante']
+        ?? $raw_data['cliente']
+        ?? '';
+
       if (empty($nombre_completo)) {
-        $nombres = $raw_data['nombre'] ?? $raw_data['nombres'] ?? '';
-        $apellidos = $raw_data['apellidos'] ?? $raw_data['primer_apellido'] ?? '';
+        $nombres = $raw_data['nombres'] ?? $raw_data['nombre'] ?? trim(($raw_data['primer_nombre'] ?? '') . ' ' . ($raw_data['segundo_nombre'] ?? ''));
+        $apellidos = $raw_data['apellidos'] ?? $raw_data['primer_apellido'] ?? trim(($raw_data['primer_apellido'] ?? '') . ' ' . ($raw_data['segundo_apellido'] ?? ''));
         $nombre_completo = trim($nombres . ' ' . $apellidos);
       }
+
+      // Búsqueda heurística en raw_data por si el campo tiene otra clave que contenga 'nombre' o 'asegurad'.
+      if (empty($nombre_completo)) {
+        foreach ($raw_data as $k => $v) {
+          if (is_string($v) && !empty(trim($v)) && !in_array($k, ['tomador', 'empresa', 'direccion_empresa', 'email', 'correo_electronico']) && stripos($k, 'beneficiar') === FALSE && stripos($k, 'tomador') === FALSE) {
+            if (stripos($k, 'nombre') !== FALSE || stripos($k, 'asegurad') !== FALSE) {
+              $nombre_completo = trim($v);
+              break;
+            }
+          }
+        }
+      }
+
+      // En caso de estar autenticado o asociado al usuario de Drupal.
+      if (empty($nombre_completo) && $webform_submission->getOwnerId()) {
+        $owner = $webform_submission->getOwner();
+        if ($owner) {
+          $nombre_completo = $owner->getDisplayName();
+        }
+      }
+
       $data['nombre_completo'] = $nombre_completo;
-      $data['tipo_de_documento'] = $resolve_term($raw_data['tipo_de_documento'] ?? $raw_data['tipo_documento'] ?? 'C.C.');
-      $data['numero_de_documento'] = $raw_data['numero_de_documento'] ?? $raw_data['numero_documento'] ?? $raw_data['documento'] ?? '';
+
+      // Número y tipo de documento del asegurado.
+      $numero_documento = $raw_data['numero_de_documento']
+        ?? $raw_data['numero_documento']
+        ?? $raw_data['documento']
+        ?? $raw_data['numero_de_identificacion']
+        ?? $raw_data['numero_identificacion']
+        ?? $raw_data['identificacion']
+        ?? $raw_data['cedula']
+        ?? $raw_data['cedula_de_ciudadania']
+        ?? $raw_data['no_documento']
+        ?? $raw_data['no_de_documento']
+        ?? $raw_data['documento_asegurado']
+        ?? '';
+
+      if (empty($numero_documento)) {
+        foreach ($raw_data as $k => $v) {
+          if ((is_string($v) || is_numeric($v)) && !empty($v) && stripos($k, 'beneficiar') === FALSE && stripos($k, 'tomador') === FALSE && stripos($k, 'nit') === FALSE) {
+            if (stripos($k, 'documento') !== FALSE || stripos($k, 'cedula') !== FALSE || stripos($k, 'identifica') !== FALSE) {
+              $numero_documento = (string) $v;
+              break;
+            }
+          }
+        }
+      }
+      $data['numero_de_documento'] = $numero_documento;
+
+      $tipo_doc = $raw_data['tipo_de_documento'] ?? $raw_data['tipo_documento'] ?? $raw_data['tipo_doc'] ?? 'C.C.';
+      $data['tipo_de_documento'] = $resolve_term($tipo_doc);
       $data['email'] = $raw_data['email'] ?? $raw_data['correo_electronico'] ?? '';
       $data['fecha_de_nacimiento'] = $raw_data['fecha_de_nacimiento'] ?? $raw_data['fecha_nacimiento'] ?? '';
       $data['trabaja_actualmente'] = $raw_data['trabaja_actualmente'] ?? $raw_data['trabaja_usted_actualmente'] ?? 'Si';
@@ -249,28 +310,170 @@ class AdminController extends ControllerBase {
       $data['valor_asegurado_solicitado'] = $raw_data['valor_asegurado_solicitado'] ?? $raw_data['valor_asegurado'] ?? '';
       $data['total_valor_asegurado'] = $raw_data['total_valor_asegurado'] ?? $data['valor_asegurado_solicitado'];
 
-      // D. Beneficiarios (filtrar solo los campos requeridos para la tabla).
+      // D. Beneficiarios (soporte exhaustivo para composites, múltiples y detección dinámica).
       $data['beneficiarios'] = [];
-      $raw_beneficiarios = $raw_data['beneficiarios'] ?? $raw_data['tabla_beneficiarios'] ?? [];
-      if (is_array($raw_beneficiarios)) {
-        foreach ($raw_beneficiarios as $ben) {
-          if (!is_array($ben)) {
-            continue;
-          }
-          $nombre_ben = $ben['nombre_y_apellido'] ?? $ben['nombre'] ?? $ben['nombre_completo'] ?? $ben['beneficiario_nombre'] ?? '';
-          if (empty($nombre_ben) && empty($ben['numero_de_documento']) && empty($ben['numero_documento'])) {
-            continue;
-          }
-          $data['beneficiarios'][] = [
-            'nombre_y_apellido' => $nombre_ben,
-            'tipo_de_documento' => $resolve_term($ben['tipo_de_documento'] ?? $ben['tipo_documento'] ?? $ben['beneficiario_tipo_doc'] ?? 'C.C.'),
-            'numero_de_documento' => $ben['numero_de_documento'] ?? $ben['numero_documento'] ?? $ben['beneficiario_documento'] ?? '',
-            'parentesco' => $resolve_term($ben['parentesco'] ?? $ben['beneficiario_parentesco'] ?? ''),
-            'edad' => $ben['edad'] ?? $ben['beneficiario_edad'] ?? '',
-            'porcentaje' => $ben['porcentaje'] ?? $ben['beneficiario_porcentaje'] ?? '',
-          ];
+      $candidate_lists = [];
+
+      // 1. Buscar cualquier clave que contenga 'beneficiar'.
+      foreach ($raw_data as $k => $v) {
+        if (stripos($k, 'beneficiar') !== FALSE && !empty($v)) {
+          $candidate_lists[] = $v;
         }
       }
+
+      // 2. Claves comunes conocidas de tablas o campos compuestos de beneficiarios.
+      $common_bene_keys = [
+        'beneficiarios',
+        'tabla_beneficiarios',
+        'beneficiario',
+        'beneficiarios_tabla',
+        'tabla_de_beneficiarios',
+        'datos_beneficiarios',
+        'designacion_beneficiarios',
+        'designacion_de_beneficiarios',
+        'beneficiarios_del_seguro',
+        'datos_de_los_beneficiarios',
+        'escriba_el_nombre_de_los_beneficiarios_de_este_seguro_y_su_respectivo_porcentaje',
+        'escriba_el_nombre_de_los_beneficiarios',
+      ];
+      foreach ($common_bene_keys as $k) {
+        if (isset($raw_data[$k]) && !empty($raw_data[$k])) {
+          $candidate_lists[] = $raw_data[$k];
+        }
+      }
+
+      // 3. Buscar cualquier arreglo cuyos elementos tengan estructura de beneficiarios (porcentaje, parentesco, etc.).
+      foreach ($raw_data as $k => $v) {
+        if (is_array($v) && !empty($v)) {
+          $sample = reset($v);
+          if (is_array($sample)) {
+            $sample_keys = array_map('mb_strtolower', array_keys($sample));
+            $found_signals = 0;
+            foreach ($sample_keys as $sk) {
+              if (strpos($sk, 'parentesco') !== FALSE || strpos($sk, 'porcent') !== FALSE || strpos($sk, 'edad') !== FALSE || strpos($sk, 'document') !== FALSE) {
+                $found_signals++;
+              }
+            }
+            if ($found_signals >= 2) {
+              $candidate_lists[] = $v;
+            }
+          }
+        }
+      }
+
+      // Procesar candidatos hasta obtener registros válidos.
+      foreach ($candidate_lists as $candidate) {
+        if (is_string($candidate)) {
+          $decoded = json_decode($candidate, TRUE);
+          if (is_array($decoded)) {
+            $candidate = $decoded;
+          }
+        }
+        if (!is_array($candidate) || empty($candidate)) {
+          continue;
+        }
+
+        $parsed_list = [];
+        foreach ($candidate as $item) {
+          if (!is_array($item)) {
+            continue;
+          }
+
+          // Nombre del beneficiario.
+          $nombre_ben = '';
+          foreach ($item as $ik => $iv) {
+            if (is_string($iv) && !empty(trim($iv))) {
+              $ik_lower = mb_strtolower((string) $ik);
+              if ($ik_lower === 'nombre_y_apellido' || $ik_lower === 'nombre_completo' || $ik_lower === 'nombre' || $ik_lower === 'nombres' || $ik_lower === 'nombres_y_apellidos' || strpos($ik_lower, 'nombre') !== FALSE) {
+                $nombre_ben = trim($iv);
+                break;
+              }
+            }
+          }
+
+          // Tipo de documento.
+          $tipo_doc = '';
+          foreach ($item as $ik => $iv) {
+            $ik_lower = mb_strtolower((string) $ik);
+            if (strpos($ik_lower, 'tipo') !== FALSE || $ik_lower === 'documento' || strpos($ik_lower, 'tipo_doc') !== FALSE) {
+              if (is_string($iv) || is_numeric($iv)) {
+                $tipo_doc = (string) $iv;
+                break;
+              }
+            }
+          }
+          if (empty($tipo_doc)) {
+            $tipo_doc = 'C.C.';
+          }
+
+          // Número de documento.
+          $num_doc = '';
+          foreach ($item as $ik => $iv) {
+            $ik_lower = mb_strtolower((string) $ik);
+            if ((strpos($ik_lower, 'numero') !== FALSE || strpos($ik_lower, 'no_') !== FALSE || strpos($ik_lower, 'num') !== FALSE || strpos($ik_lower, 'cedula') !== FALSE || strpos($ik_lower, 'identifica') !== FALSE || $ik_lower === 'documento') && strpos($ik_lower, 'tipo') === FALSE) {
+              if (is_string($iv) || is_numeric($iv)) {
+                $num_doc = (string) $iv;
+                break;
+              }
+            }
+          }
+
+          // Parentesco.
+          $parentesco = '';
+          foreach ($item as $ik => $iv) {
+            $ik_lower = mb_strtolower((string) $ik);
+            if (strpos($ik_lower, 'parentesco') !== FALSE || strpos($ik_lower, 'vinculo') !== FALSE || strpos($ik_lower, 'relacion') !== FALSE) {
+              $parentesco = (string) $iv;
+              break;
+            }
+          }
+
+          // Edad.
+          $edad = '';
+          foreach ($item as $ik => $iv) {
+            $ik_lower = mb_strtolower((string) $ik);
+            if (strpos($ik_lower, 'edad') !== FALSE || strpos($ik_lower, 'anos') !== FALSE || strpos($ik_lower, 'años') !== FALSE) {
+              $edad = (string) $iv;
+              break;
+            }
+          }
+
+          // Porcentaje.
+          $porcentaje = '';
+          foreach ($item as $ik => $iv) {
+            $ik_lower = mb_strtolower((string) $ik);
+            if (strpos($ik_lower, 'porcent') !== FALSE || strpos($ik_lower, 'particip') !== FALSE || $ik_lower === '%') {
+              $porcentaje = (string) $iv;
+              break;
+            }
+          }
+          if (!empty($porcentaje) && is_numeric($porcentaje)) {
+            $porcentaje .= '%';
+          }
+
+          // Si la fila cuenta con al menos uno de los atributos relevantes.
+          if (!empty($nombre_ben) || !empty($num_doc) || !empty($parentesco) || !empty($porcentaje)) {
+            $parsed_list[] = [
+              'nombre_y_apellido' => $nombre_ben,
+              'tipo_de_documento' => $resolve_term($tipo_doc),
+              'numero_de_documento' => $num_doc,
+              'parentesco' => $resolve_term($parentesco),
+              'edad' => $edad,
+              'porcentaje' => $porcentaje,
+            ];
+          }
+        }
+
+        if (!empty($parsed_list)) {
+          $data['beneficiarios'] = array_values($parsed_list);
+          break;
+        }
+      }
+
+      \Drupal::logger('prodepem_solicitudes_rtm')->info('Beneficiarios procesados para SID @sid: @count registros encontrados.', [
+        '@sid' => $sid,
+        '@count' => count($data['beneficiarios']),
+      ]);
 
       // E. Cuestionario de Salud (1 a 14 preguntas).
       $salud_map = [
@@ -304,7 +507,33 @@ class AdminController extends ControllerBase {
           $data[$key] = $normalized_status;
         }
       }
-      $data['explicacion_salud'] = $raw_data['explicacion_salud'] ?? $raw_data['explicacion_condiciones_salud'] ?? '';
+      // Explicación de salud en caso de haber marcado condiciones médicas.
+      $explicacion = $raw_data['explicacion_salud']
+        ?? $raw_data['explicacion_condiciones_salud']
+        ?? $raw_data['favor_explicar_detalladamente']
+        ?? $raw_data['explicar_detalladamente']
+        ?? $raw_data['explicacion']
+        ?? $raw_data['explicacion_enfermedad']
+        ?? $raw_data['observaciones_salud']
+        ?? $raw_data['observaciones']
+        ?? $raw_data['detalle_salud']
+        ?? $raw_data['descripcion_salud']
+        ?? $raw_data['aclaracion_salud']
+        ?? $raw_data['enfermedad_explicacion']
+        ?? '';
+
+      if (empty($explicacion)) {
+        foreach ($raw_data as $k => $v) {
+          if (is_string($v) && !empty(trim($v))) {
+            $k_lower = mb_strtolower((string) $k);
+            if (strpos($k_lower, 'explica') !== FALSE || strpos($k_lower, 'detall') !== FALSE || strpos($k_lower, 'observaci') !== FALSE || (strpos($k_lower, 'salud') !== FALSE && strlen($v) > 3 && !in_array(mb_strtolower(trim($v)), ['si', 'no', '0', '1', 'true', 'false']))) {
+              $explicacion = trim($v);
+              break;
+            }
+          }
+        }
+      }
+      $data['explicacion_salud'] = $explicacion;
 
       // F. Fechas y Firmas.
       $created_time = $webform_submission->getCreatedTime() ?: time();

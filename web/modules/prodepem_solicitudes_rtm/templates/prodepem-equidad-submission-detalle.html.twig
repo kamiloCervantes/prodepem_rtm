@@ -1,0 +1,254 @@
+{#
+/**
+ * @file
+ * Plantilla para visualizar el detalle completo de una sumisión de Equidad Seguros.
+ *
+ * Variables disponibles:
+ * - sid: ID de la sumisión
+ * - serial: Número de radicado/serial
+ * - created: Fecha de radicación
+ * - tomador_data: Array con datos del tomador
+ * - asegurado_data: Array con datos del asegurado principal
+ * - adicionales_data: Array con datos adicionales (seguros extra, rifa, etc.)
+ * - beneficiarios: Array con beneficiarios designados
+ * - salud_data: Array con respuestas de salud (14 ítems), peso, estatura, explicación
+ * - pdf_url: Enlace para descargar/generar el PDF oficial
+ * - back_url: Enlace para volver al reporte
+ */
+#}
+<div class="reportes-equidad-container">
+  <!-- Encabezado con acciones -->
+  <div class="reportes-header">
+    <div>
+      <h1 class="reportes-header__title">
+        <span>📋</span> Solicitud de Seguro #{{ serial }}
+        <span class="reportes-badge reportes-badge--aspu">SID: {{ sid }}</span>
+      </h1>
+      <p class="reportes-header__desc">
+        Registrada el <strong>{{ created }}</strong> a través de <em>formulario_equidad_seguros</em>.
+      </p>
+    </div>
+    <div class="reportes-toolbar__actions">
+      <a href="{{ back_url }}" class="btn-reporte btn-reporte--secondary">
+        ← Volver al Reporte
+      </a>
+      {% if pdf_url %}
+        <a href="{{ pdf_url }}" target="_blank" class="btn-reporte btn-reporte--primary">
+          📄 Descargar PDF Oficial
+        </a>
+      {% endif %}
+    </div>
+  </div>
+
+  <div class="detalle-grid">
+    <!-- 1. Tomador de la Póliza -->
+    <div class="detalle-card">
+      <div class="detalle-card__header">
+        🏢 Datos del Tomador
+      </div>
+      <div class="detalle-list">
+        <div class="detalle-item">
+          <span class="detalle-item__label">Razón Social / Nombre</span>
+          <span class="detalle-item__value"><strong>{{ tomador_data.nombre }}</strong></span>
+        </div>
+        <div class="detalle-item">
+          <span class="detalle-item__label">NIT / C.C.</span>
+          <span class="detalle-item__value">{{ tomador_data.nit }}</span>
+        </div>
+        <div class="detalle-item">
+          <span class="detalle-item__label">Dirección</span>
+          <span class="detalle-item__value">{{ tomador_data.direccion }}</span>
+        </div>
+        <div class="detalle-item">
+          <span class="detalle-item__label">Ciudad</span>
+          <span class="detalle-item__value">{{ tomador_data.ciudad }}</span>
+        </div>
+        <div class="detalle-item">
+          <span class="detalle-item__label">Teléfono</span>
+          <span class="detalle-item__value">{{ tomador_data.telefono }}</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- 2. Datos del Asegurado Principal -->
+    <div class="detalle-card">
+      <div class="detalle-card__header">
+        👤 Asegurado Principal
+      </div>
+      <div class="detalle-list">
+        <div class="detalle-item">
+          <span class="detalle-item__label">Nombre Completo</span>
+          <span class="detalle-item__value"><strong>{{ asegurado_data.nombre }}</strong></span>
+        </div>
+        <div class="detalle-item">
+          <span class="detalle-item__label">Tipo y Documento</span>
+          <span class="detalle-item__value">{{ asegurado_data.tipo_documento }} {{ asegurado_data.documento }}</span>
+        </div>
+        <div class="detalle-item">
+          <span class="detalle-item__label">Correo Electrónico</span>
+          <span class="detalle-item__value">{{ asegurado_data.email }}</span>
+        </div>
+        <div class="detalle-item">
+          <span class="detalle-item__label">Teléfono / Móvil</span>
+          <span class="detalle-item__value">{{ asegurado_data.telefono }}</span>
+        </div>
+        <div class="detalle-item">
+          <span class="detalle-item__label">Ciudad</span>
+          <span class="detalle-item__value">{{ asegurado_data.ciudad }}</span>
+        </div>
+        <div class="detalle-item">
+          <span class="detalle-item__label">Ocupación / Cargo</span>
+          <span class="detalle-item__value">{{ asegurado_data.ocupacion }} {% if asegurado_data.cargo %}- {{ asegurado_data.cargo }}{% endif %}</span>
+        </div>
+        {% if asegurado_data.fecha_nacimiento %}
+          <div class="detalle-item">
+            <span class="detalle-item__label">Fecha Nacimiento</span>
+            <span class="detalle-item__value">{{ asegurado_data.fecha_nacimiento }}</span>
+          </div>
+        {% endif %}
+        {% if asegurado_data.estado_civil %}
+          <div class="detalle-item">
+            <span class="detalle-item__label">Estado Civil</span>
+            <span class="detalle-item__value">{{ asegurado_data.estado_civil }}</span>
+          </div>
+        {% endif %}
+        <div class="detalle-item">
+          <span class="detalle-item__label">Trabaja Actualmente</span>
+          <span class="detalle-item__value">{{ asegurado_data.trabaja_actualmente }}</span>
+        </div>
+        <div class="detalle-item">
+          <span class="detalle-item__label">Valor Asegurado</span>
+          <span class="detalle-item__value"><strong>{{ asegurado_data.valor_solicitado }}</strong></span>
+        </div>
+        <div class="detalle-item">
+          <span class="detalle-item__label">Total Asegurado</span>
+          <span class="detalle-item__value"><strong>{{ asegurado_data.total_asegurado }}</strong></span>
+        </div>
+      </div>
+    </div>
+
+    <!-- 3. Datos Adicionales (No incluidos en PDF oficial) -->
+    <div class="detalle-card detalle-card--full" style="background-color: #fdfdfe; border-left: 4px solid #15803d;">
+      <div class="detalle-card__header" style="color: #15803d;">
+        ⭐ Datos Adicionales / Comerciales (No incluidos en Formato PDF Oficial)
+      </div>
+      <div class="detalle-list">
+        <div class="detalle-item">
+          <span class="detalle-item__label">¿Interesado en otros productos de seguro?</span>
+          <span class="detalle-item__value">
+            {% if adicionales_data.interes_otros == 'Sí' %}
+              <span class="detalle-badge-yes" style="background-color: #ecfdf5; color: #065f46;">SÍ</span>
+            {% else %}
+              <span class="detalle-badge-no">NO</span>
+            {% endif %}
+          </span>
+        </div>
+        <div class="detalle-item" style="grid-column: span 2;">
+          <span class="detalle-item__label">Seguros de Interés / Portafolio Adicional</span>
+          <span class="detalle-item__value"><strong>{{ adicionales_data.seguros_adicionales }}</strong></span>
+        </div>
+        <div class="detalle-item">
+          <span class="detalle-item__label">¿Participa en Rifa / Campaña?</span>
+          <span class="detalle-item__value">
+            {% if adicionales_data.participa_rifa == 'Sí' %}
+              <span class="detalle-badge-yes" style="background-color: #fef3c7; color: #92400e;">SÍ</span>
+            {% else %}
+              <span class="detalle-badge-no">NO</span>
+            {% endif %}
+          </span>
+        </div>
+        <div class="detalle-item" style="grid-column: span 2;">
+          <span class="detalle-item__label">Detalle de Rifa / Número de Boleta</span>
+          <span class="detalle-item__value"><strong>{{ adicionales_data.rifa_detalle }}</strong></span>
+        </div>
+      </div>
+
+      {% if adicionales_data.otros_campos %}
+        <div style="margin-top: 1.25rem; padding-top: 1rem; border-top: 1px dashed #e5e7eb;">
+          <span class="detalle-item__label" style="display: block; margin-bottom: 0.5rem;">Otros Parámetros Registrados:</span>
+          <p style="font-size: 0.85rem; color: #4b5563; margin: 0; line-height: 1.5;">
+            {{ adicionales_data.otros_campos }}
+          </p>
+        </div>
+      {% endif %}
+    </div>
+
+    <!-- 4. Beneficiarios Designados -->
+    <div class="detalle-card detalle-card--full">
+      <div class="detalle-card__header">
+        👥 Beneficiarios Designados
+      </div>
+      {% if beneficiarios and beneficiarios|length > 0 %}
+        <div class="reportes-table-wrapper" style="margin-bottom: 0;">
+          <table class="reportes-table">
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Nombre y Apellidos</th>
+                <th>Tipo Doc.</th>
+                <th>Número Doc.</th>
+                <th>Parentesco</th>
+                <th>Edad</th>
+                <th style="text-align: right;">Porcentaje (%)</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for b in beneficiarios %}
+                <tr>
+                  <td>{{ loop.index }}</td>
+                  <td><strong>{{ b.nombre }}</strong></td>
+                  <td>{{ b.tipo_doc }}</td>
+                  <td>{{ b.num_doc }}</td>
+                  <td>{{ b.parentesco }}</td>
+                  <td>{{ b.edad }}</td>
+                  <td style="text-align: right; font-weight: 700; color: #15803d;">{{ b.porcentaje }}%</td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      {% else %}
+        <p style="color: #6b7280; font-size: 0.875rem; font-style: italic; margin: 0;">
+          A ley (herederos de ley según normatividad vigente) o no se especificaron beneficiarios particulares.
+        </p>
+      {% endif %}
+    </div>
+
+    <!-- 5. Estado de Salud y Declaración Médica -->
+    <div class="detalle-card detalle-card--full">
+      <div class="detalle-card__header">
+        🩺 Declaración de Estado de Salud
+      </div>
+      <div style="display: flex; gap: 2rem; margin-bottom: 1rem; padding-bottom: 0.85rem; border-bottom: 1px solid #f3f4f6;">
+        <div>
+          <span class="detalle-item__label">Peso:</span>
+          <span class="detalle-item__value"><strong>{{ salud_data.peso ? salud_data.peso ~ ' kg' : 'N/A' }}</strong></span>
+        </div>
+        <div>
+          <span class="detalle-item__label">Estatura:</span>
+          <span class="detalle-item__value"><strong>{{ salud_data.estatura ? salud_data.estatura ~ ' m / cm' : 'N/A' }}</strong></span>
+        </div>
+      </div>
+
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 0.65rem; margin-bottom: 1.25rem;">
+        {% for s in salud_data.respuestas %}
+          <div style="display: flex; justify-content: space-between; align-items: center; padding: 0.45rem 0.75rem; background: #f9fafb; border-radius: 6px; font-size: 0.825rem;">
+            <span>{{ s.num }}. {{ s.pregunta }}</span>
+            {% if s.respuesta == 'SÍ' %}
+              <span class="detalle-badge-yes">SÍ</span>
+            {% else %}
+              <span class="detalle-badge-no">NO</span>
+            {% endif %}
+          </div>
+        {% endfor %}
+      </div>
+
+      <div class="detalle-item">
+        <span class="detalle-item__label">Explicación detallada de afecciones o tratamientos:</span>
+        <div style="background: #f9fafb; padding: 0.85rem; border-radius: 6px; border: 1px solid #e5e7eb; font-size: 0.875rem; color: #374151; margin-top: 0.35rem; line-height: 1.5;">
+          {{ salud_data.explicacion }}
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
