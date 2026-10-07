@@ -110,10 +110,14 @@
               <th>{{ 'Solicitante'|t }}</th>
               <th>{{ 'Documento'|t }}</th>
               <th>{{ 'Teléfono'|t }}</th>
-              <th>{{ 'Correo'|t }}</th>
-              <th>{{ 'Ciudad'|t }}</th>
-              <th>{{ 'Seguros de Interés'|t }}</th>
-              <th>{{ 'Rifa / Sorteo'|t }}</th>
+              <th>{{ 'Ampliar Amparo / Por qué'|t }}</th>
+              <th style="text-align: center;">{{ 'SOAT'|t }}</th>
+              <th style="text-align: center;">{{ 'Todo Riesgo'|t }}</th>
+              <th style="text-align: center;">{{ 'Hogar'|t }}</th>
+              <th>{{ 'Seguros Adicionales'|t }}</th>
+              <th style="text-align: center;">{{ 'Placa'|t }}</th>
+              <th style="text-align: center;">{{ 'Rifa 1'|t }}</th>
+              <th style="text-align: center;">{{ 'Rifa 2'|t }}</th>
               <th style="text-align: right;">{{ 'Acciones'|t }}</th>
             </tr>
           {% endif %}
@@ -142,22 +146,98 @@
                 </td>
               {% else %}
                 <td style="white-space: nowrap;">{{ item.telefono|default('N/A') }}</td>
-                <td>{{ item.email|default('N/A') }}</td>
-                <td>{{ item.ciudad|default('N/A') }}</td>
-                <td>
-                  {% if item.seguros_adicionales_texto %}
-                    <span style="font-weight: 500; color: #1e40af;">{{ item.seguros_adicionales_texto }}</span>
-                  {% else %}
-                    <span style="color: #6b7280; font-size: 0.8rem;">{{ 'Ninguno'|t }}</span>
+                <!-- Columna combinada: esta_interesado_en_ampliar_el_amparo_de_vida y por_que -->
+                <td style="min-width: 170px;">
+                  <div>
+                    {% if item.esta_interesado_en_ampliar_el_amparo_de_vida == 'SÍ' %}
+                      <span class="reportes-tag reportes-tag--yes">SÍ</span>
+                    {% elseif item.esta_interesado_en_ampliar_el_amparo_de_vida == 'NO' %}
+                      <span class="reportes-tag reportes-tag--no">NO</span>
+                    {% elseif item.esta_interesado_en_ampliar_el_amparo_de_vida %}
+                      <span class="reportes-tag">{{ item.esta_interesado_en_ampliar_el_amparo_de_vida }}</span>
+                    {% else %}
+                      <span style="color: #9ca3af; font-size: 0.8rem;">-</span>
+                    {% endif %}
+                  </div>
+                  {% if item.por_que %}
+                    <div class="reportes-subtext">
+                      <span class="reportes-subtext__label">{{ 'Por qué:'|t }}</span> {{ item.por_que }}
+                    </div>
                   {% endif %}
                 </td>
-                <td style="white-space: nowrap;">
-                  {% if 'Boleta' in item.rifa_texto or item.participa_rifa == 'SÍ' %}
-                    <span style="display: inline-block; padding: 2px 7px; background: #fdf4ff; color: #86198f; border-radius: 4px; font-weight: 600; font-size: 0.785rem;">
-                      <i class="fa-solid fa-ticket"></i> {{ item.rifa_texto }}
-                    </span>
+
+                <!-- Columna independiente: interesado_soat -->
+                <td style="text-align: center; white-space: nowrap;">
+                  {% if item.interesado_soat == 'SÍ' %}
+                    <span class="reportes-tag reportes-tag--yes">SÍ</span>
+                  {% elseif item.interesado_soat == 'NO' %}
+                    <span class="reportes-tag reportes-tag--no">NO</span>
+                  {% elseif item.interesado_soat %}
+                    <span class="reportes-tag">{{ item.interesado_soat }}</span>
                   {% else %}
-                    <span style="color: #9ca3af; font-size: 0.785rem;">{{ 'No participa'|t }}</span>
+                    <span style="color: #9ca3af; font-size: 0.8rem;">-</span>
+                  {% endif %}
+                </td>
+
+                <!-- Columna independiente: interesado_todo_riesgo -->
+                <td style="text-align: center; white-space: nowrap;">
+                  {% if item.interesado_todo_riesgo == 'SÍ' %}
+                    <span class="reportes-tag reportes-tag--yes">SÍ</span>
+                  {% elseif item.interesado_todo_riesgo == 'NO' %}
+                    <span class="reportes-tag reportes-tag--no">NO</span>
+                  {% elseif item.interesado_todo_riesgo %}
+                    <span class="reportes-tag">{{ item.interesado_todo_riesgo }}</span>
+                  {% else %}
+                    <span style="color: #9ca3af; font-size: 0.8rem;">-</span>
+                  {% endif %}
+                </td>
+
+                <!-- Columna independiente: interesado_hogar -->
+                <td style="text-align: center; white-space: nowrap;">
+                  {% if item.interesado_hogar == 'SÍ' %}
+                    <span class="reportes-tag reportes-tag--yes">SÍ</span>
+                  {% elseif item.interesado_hogar == 'NO' %}
+                    <span class="reportes-tag reportes-tag--no">NO</span>
+                  {% elseif item.interesado_hogar %}
+                    <span class="reportes-tag">{{ item.interesado_hogar }}</span>
+                  {% else %}
+                    <span style="color: #9ca3af; font-size: 0.8rem;">-</span>
+                  {% endif %}
+                </td>
+
+                <!-- Columna independiente: seguros_adicionales -->
+                <td style="min-width: 150px;">
+                  {% if item.seguros_adicionales %}
+                    <span style="font-weight: 500; color: #1e40af;">{{ item.seguros_adicionales }}</span>
+                  {% else %}
+                    <span style="color: #9ca3af; font-size: 0.8rem;">-</span>
+                  {% endif %}
+                </td>
+
+                <!-- Columna independiente: placa -->
+                <td style="text-align: center; white-space: nowrap;">
+                  {% if item.placa %}
+                    <span class="reportes-placa-badge">{{ item.placa }}</span>
+                  {% else %}
+                    <span style="color: #9ca3af; font-size: 0.8rem;">-</span>
+                  {% endif %}
+                </td>
+
+                <!-- Columna independiente: numero_de_rifa_1 -->
+                <td style="text-align: center; white-space: nowrap;">
+                  {% if item.numero_de_rifa_1 %}
+                    <span class="reportes-rifa-badge">{{ item.numero_de_rifa_1 }}</span>
+                  {% else %}
+                    <span style="color: #9ca3af; font-size: 0.8rem;">-</span>
+                  {% endif %}
+                </td>
+
+                <!-- Columna independiente: numero_de_rifa_2 -->
+                <td style="text-align: center; white-space: nowrap;">
+                  {% if item.numero_de_rifa_2 %}
+                    <span class="reportes-rifa-badge">{{ item.numero_de_rifa_2 }}</span>
+                  {% else %}
+                    <span style="color: #9ca3af; font-size: 0.8rem;">-</span>
                   {% endif %}
                 </td>
               {% endif %}

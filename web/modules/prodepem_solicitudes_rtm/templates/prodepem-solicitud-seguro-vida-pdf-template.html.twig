@@ -471,7 +471,7 @@
             </td>
             <td style="width: 32%;">
                 <span class="cell-label">{{ data.tipo_de_documento|default('C.C.') }}</span>
-                <span class="cell-val">{{ data.numero_de_documento|default('') }}</span>
+                <span class="cell-val">{{ data.c_c|default(data.numero_de_documento|default('')) }}</span>
             </td>
         </tr>
     </table>
@@ -651,7 +651,7 @@
     </div>
     <table class="explanation-table">
         <tr>
-            <td>{% if data.explicacion_salud is not empty %}{{ data.explicacion_salud }}{% else %}&nbsp;{% endif %}</td>
+            <td style="vertical-align: top;">{% if data.en_caso_de_haber_marcado_alguna_de_las_condiciones_anteriores_o is not empty %}{{ data.en_caso_de_haber_marcado_alguna_de_las_condiciones_anteriores_o }}{% elseif data.explicacion_salud is not empty %}{{ data.explicacion_salud }}{% else %}&nbsp;{% endif %}</td>
         </tr>
         <tr>
             <td>&nbsp;</td>

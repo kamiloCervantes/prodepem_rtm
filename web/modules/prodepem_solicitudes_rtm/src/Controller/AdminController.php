@@ -187,38 +187,16 @@ class AdminController extends ControllerBase {
       // 2. Filtrar y estructurar ÚNICAMENTE los datos necesarios para el reporte del seguro de vida.
       $data = [];
 
-      // A. Datos del Tomador (mapeo según 'selector_tomador' o valores por defecto institucionales).
-      if (isset($raw_data['selector_tomador'])) {
-        $selector = (string) $raw_data['selector_tomador'];
-        if ($selector === '1') {
-          $raw_data['tomador'] = 'Fondo de empleado de docente de la Universidad de Córdoba';
-          $raw_data['direccion'] = 'Cra 6 # 76-103';
-          $raw_data['direccion_tomador'] = 'Cra 6 # 76-103';
-          $raw_data['telefono'] = '3014619585';
-          $raw_data['telefono_tomador'] = '3014619585';
-          $raw_data['ciudad'] = 'Montería';
-          $raw_data['ciudad_tomador'] = 'Montería';
-          $raw_data['c_c_nit'] = '900834726';
-          $raw_data['nit_tomador'] = '900834726';
-        }
-        elseif ($selector === '2') {
-          $raw_data['tomador'] = 'Asociación Sindical de Profesores Universitarios - ASPU';
-          $raw_data['c_c_nit'] = '830001998';
-          $raw_data['nit_tomador'] = '830001998';
-          $raw_data['direccion'] = 'Cra 6 # 77-305';
-          $raw_data['direccion_tomador'] = 'Cra 6 # 77-305';
-          $raw_data['ciudad'] = 'Montería';
-          $raw_data['ciudad_tomador'] = 'Montería';
-          $raw_data['telefono'] = '3242560489';
-          $raw_data['telefono_tomador'] = '3242560489';
-        }
-      }
-
+      // A. Datos del Tomador (corresponden directamente a los campos: tomador, c_c_nit, direccion, ciudad, telefono).
       $data['tomador'] = !empty($raw_data['tomador']) ? $raw_data['tomador'] : 'PRODEPEM S.A.S';
-      $data['nit_tomador'] = !empty($raw_data['nit_tomador']) ? $raw_data['nit_tomador'] : (!empty($raw_data['c_c_nit']) ? $raw_data['c_c_nit'] : '900.582.164-1');
-      $data['direccion_tomador'] = !empty($raw_data['direccion_tomador']) ? $raw_data['direccion_tomador'] : (!empty($raw_data['direccion']) ? $raw_data['direccion'] : 'CALLE 64 N 1-43');
-      $data['ciudad_tomador'] = !empty($raw_data['ciudad_tomador']) ? $resolve_term($raw_data['ciudad_tomador']) : (!empty($raw_data['ciudad']) ? $resolve_term($raw_data['ciudad']) : 'BOGOTÁ');
-      $data['telefono_tomador'] = !empty($raw_data['telefono_tomador']) ? $raw_data['telefono_tomador'] : (!empty($raw_data['telefono']) ? $raw_data['telefono'] : '3118228328');
+      $data['nit_tomador'] = !empty($raw_data['c_c_nit']) ? $raw_data['c_c_nit'] : (!empty($raw_data['nit_tomador']) ? $raw_data['nit_tomador'] : '900.582.164-1');
+      $data['c_c_nit'] = $data['nit_tomador'];
+      $data['direccion_tomador'] = !empty($raw_data['direccion']) ? $raw_data['direccion'] : (!empty($raw_data['direccion_tomador']) ? $raw_data['direccion_tomador'] : 'CALLE 64 N 1-43');
+      $data['direccion'] = $data['direccion_tomador'];
+      $data['ciudad_tomador'] = !empty($raw_data['ciudad']) ? $resolve_term($raw_data['ciudad']) : (!empty($raw_data['ciudad_tomador']) ? $resolve_term($raw_data['ciudad_tomador']) : 'BOGOTÁ');
+      $data['ciudad'] = $data['ciudad_tomador'];
+      $data['telefono_tomador'] = !empty($raw_data['telefono']) ? $raw_data['telefono'] : (!empty($raw_data['telefono_tomador']) ? $raw_data['telefono_tomador'] : '3118228328');
+      $data['telefono'] = $data['telefono_tomador'];
 
       // B. Datos del Asegurado.
       $nombre_completo = $raw_data['nombre_completo']
@@ -263,8 +241,9 @@ class AdminController extends ControllerBase {
 
       $data['nombre_completo'] = $nombre_completo;
 
-      // Número y tipo de documento del asegurado.
-      $numero_documento = $raw_data['numero_de_documento']
+      // Número y tipo de documento del asegurado principal (campo c_c).
+      $numero_documento = $raw_data['c_c']
+        ?? $raw_data['numero_de_documento']
         ?? $raw_data['numero_documento']
         ?? $raw_data['documento']
         ?? $raw_data['numero_de_identificacion']
@@ -288,6 +267,7 @@ class AdminController extends ControllerBase {
         }
       }
       $data['numero_de_documento'] = $numero_documento;
+      $data['c_c'] = $numero_documento;
 
       $tipo_doc = $raw_data['tipo_de_documento'] ?? $raw_data['tipo_documento'] ?? $raw_data['tipo_doc'] ?? 'C.C.';
       $data['tipo_de_documento'] = $resolve_term($tipo_doc);
@@ -507,8 +487,9 @@ class AdminController extends ControllerBase {
           $data[$key] = $normalized_status;
         }
       }
-      // Explicación de salud en caso de haber marcado condiciones médicas.
-      $explicacion = $raw_data['explicacion_salud']
+      // Explicación de salud en caso de haber marcado condiciones médicas (campo: en_caso_de_haber_marcado_alguna_de_las_condiciones_anteriores_o).
+      $explicacion = $raw_data['en_caso_de_haber_marcado_alguna_de_las_condiciones_anteriores_o']
+        ?? $raw_data['explicacion_salud']
         ?? $raw_data['explicacion_condiciones_salud']
         ?? $raw_data['favor_explicar_detalladamente']
         ?? $raw_data['explicar_detalladamente']
@@ -526,7 +507,7 @@ class AdminController extends ControllerBase {
         foreach ($raw_data as $k => $v) {
           if (is_string($v) && !empty(trim($v))) {
             $k_lower = mb_strtolower((string) $k);
-            if (strpos($k_lower, 'explica') !== FALSE || strpos($k_lower, 'detall') !== FALSE || strpos($k_lower, 'observaci') !== FALSE || (strpos($k_lower, 'salud') !== FALSE && strlen($v) > 3 && !in_array(mb_strtolower(trim($v)), ['si', 'no', '0', '1', 'true', 'false']))) {
+            if (strpos($k_lower, 'condiciones_anteriores') !== FALSE || strpos($k_lower, 'explica') !== FALSE || strpos($k_lower, 'detall') !== FALSE || strpos($k_lower, 'observaci') !== FALSE || (strpos($k_lower, 'salud') !== FALSE && strlen($v) > 3 && !in_array(mb_strtolower(trim($v)), ['si', 'no', '0', '1', 'true', 'false']))) {
               $explicacion = trim($v);
               break;
             }
@@ -534,6 +515,7 @@ class AdminController extends ControllerBase {
         }
       }
       $data['explicacion_salud'] = $explicacion;
+      $data['en_caso_de_haber_marcado_alguna_de_las_condiciones_anteriores_o'] = $explicacion;
 
       // F. Fechas y Firmas.
       $created_time = $webform_submission->getCreatedTime() ?: time();

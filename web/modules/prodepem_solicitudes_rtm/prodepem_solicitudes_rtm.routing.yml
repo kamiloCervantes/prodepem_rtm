@@ -139,7 +139,7 @@ prodepem_solicitudes_rtm.reporte_aspu_adicionales:
   path: '/admin/config/prodepem/rtm-admin/reportes-equidad/aspu-adicionales'
   defaults:
     _controller: '\Drupal\prodepem_solicitudes_rtm\Controller\EquidadReportesController::reporteAspuAdicionales'
-    _title: 'Reporte ASPU - Seguros Adicionales y Rifa'
+    _title: 'Reporte ASPU - Datos Complementarios'
   requirements:
     _permission: 'administer rtm solicitudes'
 
@@ -147,7 +147,7 @@ prodepem_solicitudes_rtm.reporte_foneducor_adicionales:
   path: '/admin/config/prodepem/rtm-admin/reportes-equidad/foneducor-adicionales'
   defaults:
     _controller: '\Drupal\prodepem_solicitudes_rtm\Controller\EquidadReportesController::reporteFoneducorAdicionales'
-    _title: 'Reporte FONEDUCOR - Seguros Adicionales y Rifa'
+    _title: 'Reporte FONEDUCOR - Datos Complementarios'
   requirements:
     _permission: 'administer rtm solicitudes'
 

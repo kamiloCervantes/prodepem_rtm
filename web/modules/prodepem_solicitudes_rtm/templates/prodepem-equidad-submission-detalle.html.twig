@@ -127,39 +127,79 @@
       </div>
     </div>
 
-    <!-- 3. Datos Adicionales (No incluidos en PDF oficial) -->
+    <!-- 3. Datos Complementarios / Comerciales (No incluidos en PDF oficial) -->
     <div class="detalle-card detalle-card--full" style="background-color: #fdfdfe; border-left: 4px solid #15803d;">
       <div class="detalle-card__header" style="color: #15803d;">
-        ⭐ Datos Adicionales / Comerciales (No incluidos en Formato PDF Oficial)
+        ⭐ Datos Complementarios / Comerciales (No incluidos en Formato PDF Oficial)
       </div>
       <div class="detalle-list">
         <div class="detalle-item">
-          <span class="detalle-item__label">¿Interesado en otros productos de seguro?</span>
+          <span class="detalle-item__label">¿Interesado en ampliar amparo de vida?</span>
           <span class="detalle-item__value">
-            {% if adicionales_data.interes_otros == 'Sí' %}
+            {% if adicionales_data.esta_interesado_en_ampliar_el_amparo_de_vida == 'SÍ' %}
               <span class="detalle-badge-yes" style="background-color: #ecfdf5; color: #065f46;">SÍ</span>
-            {% else %}
+            {% elseif adicionales_data.esta_interesado_en_ampliar_el_amparo_de_vida == 'NO' %}
               <span class="detalle-badge-no">NO</span>
+            {% else %}
+              {{ adicionales_data.esta_interesado_en_ampliar_el_amparo_de_vida|default('-') }}
             {% endif %}
           </span>
         </div>
         <div class="detalle-item" style="grid-column: span 2;">
-          <span class="detalle-item__label">Seguros de Interés / Portafolio Adicional</span>
-          <span class="detalle-item__value"><strong>{{ adicionales_data.seguros_adicionales }}</strong></span>
+          <span class="detalle-item__label">¿Por qué? (Razón ampliación de amparo)</span>
+          <span class="detalle-item__value">{{ adicionales_data.por_que|default('No registrado') }}</span>
         </div>
         <div class="detalle-item">
-          <span class="detalle-item__label">¿Participa en Rifa / Campaña?</span>
+          <span class="detalle-item__label">Interesado SOAT</span>
           <span class="detalle-item__value">
-            {% if adicionales_data.participa_rifa == 'Sí' %}
-              <span class="detalle-badge-yes" style="background-color: #fef3c7; color: #92400e;">SÍ</span>
-            {% else %}
+            {% if adicionales_data.interesado_soat == 'SÍ' %}
+              <span class="detalle-badge-yes" style="background-color: #ecfdf5; color: #065f46;">SÍ</span>
+            {% elseif adicionales_data.interesado_soat == 'NO' %}
               <span class="detalle-badge-no">NO</span>
+            {% else %}
+              {{ adicionales_data.interesado_soat|default('-') }}
             {% endif %}
           </span>
         </div>
-        <div class="detalle-item" style="grid-column: span 2;">
-          <span class="detalle-item__label">Detalle de Rifa / Número de Boleta</span>
-          <span class="detalle-item__value"><strong>{{ adicionales_data.rifa_detalle }}</strong></span>
+        <div class="detalle-item">
+          <span class="detalle-item__label">Interesado Todo Riesgo</span>
+          <span class="detalle-item__value">
+            {% if adicionales_data.interesado_todo_riesgo == 'SÍ' %}
+              <span class="detalle-badge-yes" style="background-color: #ecfdf5; color: #065f46;">SÍ</span>
+            {% elseif adicionales_data.interesado_todo_riesgo == 'NO' %}
+              <span class="detalle-badge-no">NO</span>
+            {% else %}
+              {{ adicionales_data.interesado_todo_riesgo|default('-') }}
+            {% endif %}
+          </span>
+        </div>
+        <div class="detalle-item">
+          <span class="detalle-item__label">Interesado Hogar</span>
+          <span class="detalle-item__value">
+            {% if adicionales_data.interesado_hogar == 'SÍ' %}
+              <span class="detalle-badge-yes" style="background-color: #ecfdf5; color: #065f46;">SÍ</span>
+            {% elseif adicionales_data.interesado_hogar == 'NO' %}
+              <span class="detalle-badge-no">NO</span>
+            {% else %}
+              {{ adicionales_data.interesado_hogar|default('-') }}
+            {% endif %}
+          </span>
+        </div>
+        <div class="detalle-item">
+          <span class="detalle-item__label">Placa</span>
+          <span class="detalle-item__value"><strong>{{ adicionales_data.placa|default('-') }}</strong></span>
+        </div>
+        <div class="detalle-item">
+          <span class="detalle-item__label">Número de Rifa 1</span>
+          <span class="detalle-item__value"><strong>{{ adicionales_data.numero_de_rifa_1|default('-') }}</strong></span>
+        </div>
+        <div class="detalle-item">
+          <span class="detalle-item__label">Número de Rifa 2</span>
+          <span class="detalle-item__value"><strong>{{ adicionales_data.numero_de_rifa_2|default('-') }}</strong></span>
+        </div>
+        <div class="detalle-item" style="grid-column: span 3;">
+          <span class="detalle-item__label">Seguros Adicionales</span>
+          <span class="detalle-item__value"><strong>{{ adicionales_data.seguros_adicionales|default('Ninguno') }}</strong></span>
         </div>
       </div>
 

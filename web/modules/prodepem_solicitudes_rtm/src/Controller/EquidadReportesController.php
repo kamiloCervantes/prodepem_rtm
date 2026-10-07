@@ -83,14 +83,14 @@ class EquidadReportesController extends ControllerBase {
         'badge' => 'FONEDUCOR (Tomador)',
       ],
       'aspu_adicionales' => [
-        'title' => 'Reporte ASPU - Seguros Adicionales y Rifa',
-        'desc' => 'Datos complementarios comerciales fuera del formato original: interés en otros productos de seguro y participación en rifa (ASPU).',
-        'badge' => 'ASPU (Adicionales & Rifa)',
+        'title' => 'Reporte ASPU - Datos Complementarios',
+        'desc' => 'Datos complementarios comerciales: ampliación de amparo de vida, interés en seguros (SOAT, todo riesgo, hogar, adicionales), placa y rifa (ASPU).',
+        'badge' => 'ASPU (Datos Complementarios)',
       ],
       'foneducor_adicionales' => [
-        'title' => 'Reporte FONEDUCOR - Seguros Adicionales y Rifa',
-        'desc' => 'Datos complementarios comerciales fuera del formato original: interés en otros productos de seguro y participación en rifa (FONEDUCOR).',
-        'badge' => 'FONEDUCOR (Adicionales & Rifa)',
+        'title' => 'Reporte FONEDUCOR - Datos Complementarios',
+        'desc' => 'Datos complementarios comerciales: ampliación de amparo de vida, interés en seguros (SOAT, todo riesgo, hogar, adicionales), placa y rifa (FONEDUCOR).',
+        'badge' => 'FONEDUCOR (Datos Complementarios)',
       ],
     ];
 
@@ -194,7 +194,7 @@ class EquidadReportesController extends ControllerBase {
     $items = $this->obtenerRegistrosFiltrados($tomador, $tipo, $search, $fecha_desde, $fecha_hasta);
 
     $nombre_tomador = ($tomador === 'aspu') ? 'ASPU' : 'FONEDUCOR';
-    $tipo_nombre = ($tipo === 'adicionales') ? 'Seguros_Adicionales_y_Rifa' : 'Seguro_Vida';
+    $tipo_nombre = ($tipo === 'adicionales') ? 'Datos_Complementarios' : 'Seguro_Vida';
     $filename = 'reporte_' . strtolower($nombre_tomador) . '_' . $tipo_nombre . '_' . date('Ymd_His') . '.xls';
 
     $xml = $this->construirXmlExcel($items, $tomador, $tipo);
@@ -278,8 +278,15 @@ class EquidadReportesController extends ControllerBase {
           $item['ciudad'],
           $item['ocupacion'],
           $item['cargo'],
-          $item['seguros_adicionales_texto'],
-          $item['rifa_texto'],
+          $item['esta_interesado_en_ampliar_el_amparo_de_vida'],
+          $item['por_que'],
+          $item['interesado_soat'],
+          $item['interesado_todo_riesgo'],
+          $item['interesado_hogar'],
+          $item['seguros_adicionales'],
+          $item['placa'],
+          $item['numero_de_rifa_1'],
+          $item['numero_de_rifa_2'],
         ]));
 
         if (strpos($corpus, $search_lower) === FALSE) {
@@ -329,8 +336,9 @@ class EquidadReportesController extends ControllerBase {
       $nombre = $sub->getOwner()->getDisplayName();
     }
 
-    // Documento:
-    $num_doc = $raw['numero_de_documento']
+    // Documento del asegurado (campo c_c):
+    $num_doc = $raw['c_c']
+      ?? $raw['numero_de_documento']
       ?? $raw['numero_documento']
       ?? $raw['documento']
       ?? $raw['numero_de_identificacion']
@@ -403,61 +411,106 @@ class EquidadReportesController extends ControllerBase {
       }
     }
 
-    // SEGUROS ADICIONALES (fuera del formulario PDF):
-    $seguros_adicionales = [];
-    $interes_otros = '';
-    foreach ($raw as $k => $v) {
-      $k_lower = mb_strtolower($k);
-      if (strpos($k_lower, 'interes') !== FALSE || strpos($k_lower, 'adicional') !== FALSE) {
-        if (is_array($v)) {
-          foreach ($v as $sub_k => $sub_v) {
-            if ($sub_v && $sub_v !== '0') {
-              $seguros_adicionales[] = is_string($sub_k) ? $sub_k : $sub_v;
+    // Helper para normalizar respuestas Si/No/Valores booleanos:
+    $normalizar_sino = function ($val) {
+      if (is_null($val) || $val === '') {
+        return '';
+      }
+      if (is_bool($val)) {
+        return $val ? 'SÍ' : 'NO';
+      }
+      $s = mb_strtolower(trim((string) $val));
+      if (in_array($s, ['1', 'si', 'sí', 'true', 'yes', 'on'])) {
+        return 'SÍ';
+      }
+      if (in_array($s, ['0', 'no', 'false', 'off'])) {
+        return 'NO';
+      }
+      return (string) $val;
+    };
+
+    // DATOS COMPLEMENTARIOS:
+    // 1. esta_interesado_en_ampliar_el_amparo_de_vida y por_que:
+    $ampliar_amparo_val = $raw['esta_interesado_en_ampliar_el_amparo_de_vida']
+      ?? $raw['ampliar_el_amparo_de_vida']
+      ?? $raw['ampliar_amparo_de_vida']
+      ?? $raw['ampliar_amparo']
+      ?? '';
+    $esta_interesado_ampliar_vida = $normalizar_sino($ampliar_amparo_val);
+    $por_que = trim((string) ($raw['por_que'] ?? $raw['porque'] ?? ''));
+
+    // 2. interesado_soat:
+    $interesado_soat_val = $raw['interesado_soat']
+      ?? $raw['interes_soat']
+      ?? $raw['soat']
+      ?? '';
+    $interesado_soat = $normalizar_sino($interesado_soat_val);
+
+    // 3. interesado_todo_riesgo:
+    $interesado_todo_riesgo_val = $raw['interesado_todo_riesgo']
+      ?? $raw['interes_todo_riesgo']
+      ?? $raw['todo_riesgo']
+      ?? '';
+    $interesado_todo_riesgo = $normalizar_sino($interesado_todo_riesgo_val);
+
+    // 4. interesado_hogar:
+    $interesado_hogar_val = $raw['interesado_hogar']
+      ?? $raw['interes_hogar']
+      ?? $raw['hogar']
+      ?? '';
+    $interesado_hogar = $normalizar_sino($interesado_hogar_val);
+
+    // 5. seguros_adicionales:
+    $seguros_adicionales = '';
+    $raw_seg_adic = $raw['seguros_adicionales'] ?? $raw['seguros_de_interes'] ?? [];
+    if (is_array($raw_seg_adic)) {
+      $seg_list = [];
+      foreach ($raw_seg_adic as $sub_k => $sub_v) {
+        if ($sub_v && $sub_v !== '0') {
+          $seg_list[] = is_string($sub_k) && !is_numeric($sub_k) ? $sub_k : $sub_v;
+        }
+      }
+      $seguros_adicionales = implode(', ', array_unique($seg_list));
+    }
+    elseif (is_string($raw_seg_adic)) {
+      $seguros_adicionales = trim($raw_seg_adic);
+    }
+
+    if (empty($seguros_adicionales)) {
+      $seg_list = [];
+      foreach ($raw as $k => $v) {
+        $k_lower = mb_strtolower($k);
+        if (in_array($k_lower, ['esta_interesado_en_ampliar_el_amparo_de_vida', 'por_que', 'interesado_soat', 'interesado_todo_riesgo', 'interesado_hogar', 'placa', 'numero_de_rifa_1', 'numero_de_rifa_2'])) {
+          continue;
+        }
+        if (strpos($k_lower, 'interes') !== FALSE || strpos($k_lower, 'adicional') !== FALSE) {
+          if (is_array($v)) {
+            foreach ($v as $sub_k => $sub_v) {
+              if ($sub_v && $sub_v !== '0') {
+                $seg_list[] = is_string($sub_k) && !is_numeric($sub_k) ? $sub_k : $sub_v;
+              }
             }
           }
-        }
-        elseif (is_string($v) && !empty($v)) {
-          if (in_array(mb_strtolower(trim($v)), ['si', '1', 'sí'])) {
-            $interes_otros = 'SÍ';
-          }
-          elseif (in_array(mb_strtolower(trim($v)), ['no', '0'])) {
-            $interes_otros = 'NO';
-          }
-          else {
-            $seguros_adicionales[] = $v;
+          elseif (is_string($v) && !empty($v) && !in_array(mb_strtolower(trim($v)), ['si', '1', 'no', '0', 'sí'])) {
+            $seg_list[] = $v;
           }
         }
       }
+      $seguros_adicionales = implode(', ', array_unique($seg_list));
     }
-    if (empty($interes_otros)) {
-      $interes_otros = !empty($seguros_adicionales) ? 'SÍ' : 'NO';
-    }
-    $seguros_adicionales_texto = implode(', ', array_unique($seguros_adicionales));
 
-    // RIFA / SORTEO (fuera del formulario PDF):
-    $rifa_val = '';
-    $participa_rifa = '';
-    foreach ($raw as $k => $v) {
-      $k_lower = mb_strtolower($k);
-      if (strpos($k_lower, 'rifa') !== FALSE || strpos($k_lower, 'sorteo') !== FALSE || strpos($k_lower, 'boleta') !== FALSE) {
-        if (is_string($v) || is_numeric($v)) {
-          $val_str = trim((string) $v);
-          if (in_array(mb_strtolower($val_str), ['si', '1', 'sí'])) {
-            $participa_rifa = 'SÍ';
-          }
-          elseif (in_array(mb_strtolower($val_str), ['no', '0'])) {
-            $participa_rifa = 'NO';
-          }
-          else {
-            $rifa_val = $val_str;
-          }
-        }
+    // 6. placa:
+    $placa = strtoupper(trim((string) ($raw['placa'] ?? $raw['placas'] ?? $raw['numero_placa'] ?? '')));
+
+    // 7. numero_de_rifa_1 y numero_de_rifa_2:
+    $numero_de_rifa_1 = trim((string) ($raw['numero_de_rifa_1'] ?? $raw['numero_rifa_1'] ?? $raw['rifa_1'] ?? $raw['boleta_1'] ?? ''));
+    $numero_de_rifa_2 = trim((string) ($raw['numero_de_rifa_2'] ?? $raw['numero_rifa_2'] ?? $raw['rifa_2'] ?? $raw['boleta_2'] ?? ''));
+    if (empty($numero_de_rifa_1)) {
+      $rifa_gen = trim((string) ($raw['numero_de_rifa'] ?? $raw['numero_rifa'] ?? $raw['rifa'] ?? $raw['boleta'] ?? ''));
+      if (!empty($rifa_gen)) {
+        $numero_de_rifa_1 = $rifa_gen;
       }
     }
-    if (empty($participa_rifa)) {
-      $participa_rifa = !empty($rifa_val) ? 'SÍ' : 'NO';
-    }
-    $rifa_texto = !empty($rifa_val) ? ('Boleta/N°: ' . $rifa_val) : ($participa_rifa === 'SÍ' ? 'Participa' : 'No participa');
 
     // Otros campos fuera del formulario original:
     $otros_adicionales = [];
@@ -468,7 +521,9 @@ class EquidadReportesController extends ControllerBase {
       'email', 'correo_electronico', 'trabaja_actualmente', 'trabaja_usted_actualmente',
       'ocupacion', 'cargo', 'fecha_de_nacimiento', 'fecha_nacimiento', 'estado_civil',
       'valor_asegurado_solicitado', 'total_valor_asegurado', 'beneficiarios', 'tabla_beneficiarios',
-      'peso', 'estatura', 'explicacion_salud', 'explicacion_condiciones_salud',
+      'peso', 'estatura', 'explicacion_salud', 'explicacion_condiciones_salud', 'en_caso_de_haber_marcado_alguna_de_las_condiciones_anteriores_o',
+      'esta_interesado_en_ampliar_el_amparo_de_vida', 'por_que', 'interesado_soat', 'interesado_todo_riesgo', 'interesado_hogar',
+      'seguros_adicionales', 'placa', 'numero_de_rifa_1', 'numero_de_rifa_2',
     ];
     for ($i = 1; $i <= 14; $i++) {
       $keys_originales[] = 'salud_' . $i;
@@ -503,11 +558,20 @@ class EquidadReportesController extends ControllerBase {
       'beneficiarios_count' => $beneficiarios_count,
       'beneficiarios_nombres' => implode(', ', $beneficiarios_nombres),
       'salud_positivas' => $salud_positivas,
-      // Datos adicionales:
-      'interes_otros' => $interes_otros,
-      'seguros_adicionales_texto' => $seguros_adicionales_texto,
-      'participa_rifa' => $participa_rifa,
-      'rifa_texto' => $rifa_texto,
+      // Datos complementarios:
+      'esta_interesado_en_ampliar_el_amparo_de_vida' => $esta_interesado_ampliar_vida,
+      'por_que' => $por_que,
+      'interesado_soat' => $interesado_soat,
+      'interesado_todo_riesgo' => $interesado_todo_riesgo,
+      'interesado_hogar' => $interesado_hogar,
+      'seguros_adicionales' => $seguros_adicionales,
+      'seguros_adicionales_texto' => $seguros_adicionales,
+      'placa' => $placa,
+      'numero_de_rifa_1' => $numero_de_rifa_1,
+      'numero_de_rifa_2' => $numero_de_rifa_2,
+      'interes_otros' => (!empty($seguros_adicionales) || $interesado_soat === 'SÍ' || $interesado_todo_riesgo === 'SÍ' || $interesado_hogar === 'SÍ') ? 'SÍ' : 'NO',
+      'participa_rifa' => (!empty($numero_de_rifa_1) || !empty($numero_de_rifa_2)) ? 'SÍ' : 'NO',
+      'rifa_texto' => trim($numero_de_rifa_1 . (!empty($numero_de_rifa_2) ? ' / ' . $numero_de_rifa_2 : '')),
       'otros_adicionales' => $otros_adicionales,
       // Acciones:
       'url_detalle' => $url_detalle,
@@ -577,11 +641,11 @@ class EquidadReportesController extends ControllerBase {
 
     return [
       'tomador' => [
-        'nombre' => $raw['tomador'] ?? $tomador_nombre,
-        'nit' => $raw['nit_tomador'] ?? $tomador_nit,
-        'direccion' => $raw['direccion_tomador'] ?? $tomador_dir,
-        'ciudad' => $raw['ciudad_tomador'] ?? $tomador_ciudad,
-        'telefono' => $raw['telefono_tomador'] ?? $tomador_tel,
+        'nombre' => !empty($raw['tomador']) ? $raw['tomador'] : $tomador_nombre,
+        'nit' => !empty($raw['c_c_nit']) ? $raw['c_c_nit'] : (!empty($raw['nit_tomador']) ? $raw['nit_tomador'] : $tomador_nit),
+        'direccion' => !empty($raw['direccion']) ? $raw['direccion'] : (!empty($raw['direccion_tomador']) ? $raw['direccion_tomador'] : $tomador_dir),
+        'ciudad' => !empty($raw['ciudad']) ? $raw['ciudad'] : (!empty($raw['ciudad_tomador']) ? $raw['ciudad_tomador'] : $tomador_ciudad),
+        'telefono' => !empty($raw['telefono']) ? $raw['telefono'] : (!empty($raw['telefono_tomador']) ? $raw['telefono_tomador'] : $tomador_tel),
       ],
       'asegurado' => [
         'nombre' => $item['nombre'],
@@ -599,8 +663,16 @@ class EquidadReportesController extends ControllerBase {
         'total_asegurado' => $item['total_asegurado'],
       ],
       'adicionales' => [
+        'esta_interesado_en_ampliar_el_amparo_de_vida' => $item['esta_interesado_en_ampliar_el_amparo_de_vida'],
+        'por_que' => $item['por_que'],
+        'interesado_soat' => $item['interesado_soat'],
+        'interesado_todo_riesgo' => $item['interesado_todo_riesgo'],
+        'interesado_hogar' => $item['interesado_hogar'],
+        'seguros_adicionales' => $item['seguros_adicionales'],
+        'placa' => $item['placa'],
+        'numero_de_rifa_1' => $item['numero_de_rifa_1'],
+        'numero_de_rifa_2' => $item['numero_de_rifa_2'],
         'interes_otros' => $item['interes_otros'],
-        'seguros_adicionales' => $item['seguros_adicionales_texto'],
         'participa_rifa' => $item['participa_rifa'],
         'rifa_detalle' => $item['rifa_texto'],
         'otros_campos' => $item['otros_adicionales'],
@@ -610,7 +682,7 @@ class EquidadReportesController extends ControllerBase {
         'peso' => $raw['peso'] ?? '',
         'estatura' => $raw['estatura'] ?? '',
         'respuestas' => $salud_respuestas,
-        'explicacion' => $raw['explicacion_salud'] ?? $raw['favor_explicar_detalladamente'] ?? 'Ninguna condición declarada.',
+        'explicacion' => $raw['en_caso_de_haber_marcado_alguna_de_las_condiciones_anteriores_o'] ?? $raw['explicacion_salud'] ?? $raw['favor_explicar_detalladamente'] ?? 'Ninguna condición declarada.',
       ],
     ];
   }
@@ -620,7 +692,8 @@ class EquidadReportesController extends ControllerBase {
    */
   protected function construirXmlExcel(array $items, $tomador, $tipo) {
     $nombre_tomador = ($tomador === 'aspu') ? 'ASPU' : 'FONEDUCOR';
-    $titulo_hoja = ($tipo === 'adicionales') ? ('Datos Adicionales ' . $nombre_tomador) : ('Seguro Vida ' . $nombre_tomador);
+    $nombre_tomador = ($tomador === 'aspu') ? 'ASPU' : 'FONEDUCOR';
+    $titulo_hoja = ($tipo === 'adicionales') ? ('Datos Complementarios ' . $nombre_tomador) : ('Seguro Vida ' . $nombre_tomador);
 
     ob_start();
     echo '<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40">' . "\n";
@@ -639,8 +712,8 @@ class EquidadReportesController extends ControllerBase {
     echo '<body>' . "\n";
 
     echo '<table border="1">' . "\n";
-    echo '<tr><td colspan="' . ($tipo === 'adicionales' ? '9' : '10') . '" class="header-title">REPORTE DE SOLICITUDES DE EQUIDAD SEGUROS - ' . htmlspecialchars($nombre_tomador) . ' (' . strtoupper($tipo) . ')</td></tr>' . "\n";
-    echo '<tr><td colspan="' . ($tipo === 'adicionales' ? '9' : '10') . '" class="header-meta">Generado el: ' . date('d/m/Y H:i:s') . ' | Total Registros: ' . count($items) . '</td></tr>' . "\n";
+    echo '<tr><td colspan="' . ($tipo === 'adicionales' ? '14' : '10') . '" class="header-title">REPORTE DE SOLICITUDES DE EQUIDAD SEGUROS - ' . htmlspecialchars($nombre_tomador) . ' (' . ($tipo === 'adicionales' ? 'DATOS COMPLEMENTARIOS' : 'SEGURO VIDA') . ')</td></tr>' . "\n";
+    echo '<tr><td colspan="' . ($tipo === 'adicionales' ? '14' : '10') . '" class="header-meta">Generado el: ' . date('d/m/Y H:i:s') . ' | Total Registros: ' . count($items) . '</td></tr>' . "\n";
     echo '<tr></tr>' . "\n";
 
     if ($tipo === 'vida') {
@@ -673,7 +746,7 @@ class EquidadReportesController extends ControllerBase {
       }
     }
     else {
-      // Tipo adicionales & rifa
+      // Tipo adicionales (datos complementarios)
       echo '<tr>' . "\n";
       echo '  <th>SID</th>' . "\n";
       echo '  <th>FECHA</th>' . "\n";
@@ -681,12 +754,22 @@ class EquidadReportesController extends ControllerBase {
       echo '  <th>TIPO DOC</th>' . "\n";
       echo '  <th>N° DOCUMENTO</th>' . "\n";
       echo '  <th>TELÉFONO</th>' . "\n";
-      echo '  <th>CORREO</th>' . "\n";
-      echo '  <th>SEGUROS ADICIONALES DE INTERÉS</th>' . "\n";
-      echo '  <th>PARTICIPA EN RIFA / BOLETA</th>' . "\n";
+      echo '  <th>ESTÁ INTERESADO EN AMPLIAR EL AMPARO DE VIDA / POR QUÉ</th>' . "\n";
+      echo '  <th>INTERESADO SOAT</th>' . "\n";
+      echo '  <th>INTERESADO TODO RIESGO</th>' . "\n";
+      echo '  <th>INTERESADO HOGAR</th>' . "\n";
+      echo '  <th>SEGUROS ADICIONALES</th>' . "\n";
+      echo '  <th>PLACA</th>' . "\n";
+      echo '  <th>NÚMERO DE RIFA 1</th>' . "\n";
+      echo '  <th>NÚMERO DE RIFA 2</th>' . "\n";
       echo '</tr>' . "\n";
 
       foreach ($items as $it) {
+        $ampliar_texto = $it['esta_interesado_en_ampliar_el_amparo_de_vida'] ?: '-';
+        if (!empty($it['por_que'])) {
+          $ampliar_texto = ($it['esta_interesado_en_ampliar_el_amparo_de_vida'] ? $it['esta_interesado_en_ampliar_el_amparo_de_vida'] . ' - ' : '') . 'Razón: ' . $it['por_que'];
+        }
+
         echo '<tr>' . "\n";
         echo '  <td class="text-center">' . htmlspecialchars((string) $it['sid']) . '</td>' . "\n";
         echo '  <td class="text-center">' . htmlspecialchars((string) $it['fecha']) . '</td>' . "\n";
@@ -694,13 +777,17 @@ class EquidadReportesController extends ControllerBase {
         echo '  <td class="text-center">' . htmlspecialchars((string) $it['tipo_documento']) . '</td>' . "\n";
         echo '  <td class="text-center">' . htmlspecialchars((string) $it['documento']) . '</td>' . "\n";
         echo '  <td class="text-center">' . htmlspecialchars((string) $it['telefono']) . '</td>' . "\n";
-        echo '  <td>' . htmlspecialchars((string) $it['email']) . '</td>' . "\n";
-        echo '  <td>' . htmlspecialchars((string) ($it['seguros_adicionales_texto'] ?: 'Ninguno declarado')) . '</td>' . "\n";
-        echo '  <td class="text-center">' . htmlspecialchars((string) $it['rifa_texto']) . '</td>' . "\n";
+        echo '  <td>' . htmlspecialchars((string) $ampliar_texto) . '</td>' . "\n";
+        echo '  <td class="text-center">' . htmlspecialchars((string) ($it['interesado_soat'] ?: '-')) . '</td>' . "\n";
+        echo '  <td class="text-center">' . htmlspecialchars((string) ($it['interesado_todo_riesgo'] ?: '-')) . '</td>' . "\n";
+        echo '  <td class="text-center">' . htmlspecialchars((string) ($it['interesado_hogar'] ?: '-')) . '</td>' . "\n";
+        echo '  <td>' . htmlspecialchars((string) ($it['seguros_adicionales'] ?: '-')) . '</td>' . "\n";
+        echo '  <td class="text-center">' . htmlspecialchars((string) ($it['placa'] ?: '-')) . '</td>' . "\n";
+        echo '  <td class="text-center">' . htmlspecialchars((string) ($it['numero_de_rifa_1'] ?: '-')) . '</td>' . "\n";
+        echo '  <td class="text-center">' . htmlspecialchars((string) ($it['numero_de_rifa_2'] ?: '-')) . '</td>' . "\n";
         echo '</tr>' . "\n";
       }
     }
-
     echo '</table>' . "\n";
     echo '</body>' . "\n";
     echo '</html>' . "\n";

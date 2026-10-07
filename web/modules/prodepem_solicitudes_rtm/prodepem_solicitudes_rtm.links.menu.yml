@@ -105,15 +105,15 @@ prodepem_solicitudes_rtm.menu_reporte_foneducor:
   weight: 20
 
 prodepem_solicitudes_rtm.menu_reporte_aspu_adicionales:
-  title: 'Reporte ASPU (Seguros Adicionales y Rifa)'
-  description: 'Datos adicionales comerciales y rifa de ASPU.'
+  title: 'Reporte ASPU (Datos Complementarios)'
+  description: 'Datos complementarios: ampliación de amparo de vida, seguros, placa y rifa (ASPU).'
   parent: prodepem_solicitudes_rtm.reportes_equidad_section
   route_name: prodepem_solicitudes_rtm.reporte_aspu_adicionales
   weight: 30
 
 prodepem_solicitudes_rtm.menu_reporte_foneducor_adicionales:
-  title: 'Reporte FONEDUCOR (Seguros Adicionales y Rifa)'
-  description: 'Datos adicionales comerciales y rifa de FONEDUCOR.'
+  title: 'Reporte FONEDUCOR (Datos Complementarios)'
+  description: 'Datos complementarios: ampliación de amparo de vida, seguros, placa y rifa (FONEDUCOR).'
   parent: prodepem_solicitudes_rtm.reportes_equidad_section
   route_name: prodepem_solicitudes_rtm.reporte_foneducor_adicionales
   weight: 40
