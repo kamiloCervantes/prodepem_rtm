@@ -187,12 +187,38 @@ class AdminController extends ControllerBase {
       // 2. Filtrar y estructurar ÚNICAMENTE los datos necesarios para el reporte del seguro de vida.
       $data = [];
 
-      // A. Datos del Tomador (con valores por defecto institucionales de Prodepem).
+      // A. Datos del Tomador (mapeo según 'selector_tomador' o valores por defecto institucionales).
+      if (isset($raw_data['selector_tomador'])) {
+        $selector = (string) $raw_data['selector_tomador'];
+        if ($selector === '1') {
+          $raw_data['tomador'] = 'Fondo de empleado de docente de la Universidad de Córdoba';
+          $raw_data['direccion'] = 'Cra 6 # 76-103';
+          $raw_data['direccion_tomador'] = 'Cra 6 # 76-103';
+          $raw_data['telefono'] = '3014619585';
+          $raw_data['telefono_tomador'] = '3014619585';
+          $raw_data['ciudad'] = 'Montería';
+          $raw_data['ciudad_tomador'] = 'Montería';
+          $raw_data['c_c_nit'] = '900834726';
+          $raw_data['nit_tomador'] = '900834726';
+        }
+        elseif ($selector === '2') {
+          $raw_data['tomador'] = 'Asociación Sindical de Profesores Universitarios - ASPU';
+          $raw_data['c_c_nit'] = '830001998';
+          $raw_data['nit_tomador'] = '830001998';
+          $raw_data['direccion'] = 'Cra 6 # 77-305';
+          $raw_data['direccion_tomador'] = 'Cra 6 # 77-305';
+          $raw_data['ciudad'] = 'Montería';
+          $raw_data['ciudad_tomador'] = 'Montería';
+          $raw_data['telefono'] = '3242560489';
+          $raw_data['telefono_tomador'] = '3242560489';
+        }
+      }
+
       $data['tomador'] = !empty($raw_data['tomador']) ? $raw_data['tomador'] : 'PRODEPEM S.A.S';
-      $data['nit_tomador'] = !empty($raw_data['nit_tomador']) ? $raw_data['nit_tomador'] : '900.582.164-1';
-      $data['direccion_tomador'] = !empty($raw_data['direccion_tomador']) ? $raw_data['direccion_tomador'] : 'CALLE 64 N 1-43';
-      $data['ciudad_tomador'] = !empty($raw_data['ciudad_tomador']) ? $resolve_term($raw_data['ciudad_tomador']) : 'BOGOTÁ';
-      $data['telefono_tomador'] = !empty($raw_data['telefono_tomador']) ? $raw_data['telefono_tomador'] : '3118228328';
+      $data['nit_tomador'] = !empty($raw_data['nit_tomador']) ? $raw_data['nit_tomador'] : (!empty($raw_data['c_c_nit']) ? $raw_data['c_c_nit'] : '900.582.164-1');
+      $data['direccion_tomador'] = !empty($raw_data['direccion_tomador']) ? $raw_data['direccion_tomador'] : (!empty($raw_data['direccion']) ? $raw_data['direccion'] : 'CALLE 64 N 1-43');
+      $data['ciudad_tomador'] = !empty($raw_data['ciudad_tomador']) ? $resolve_term($raw_data['ciudad_tomador']) : (!empty($raw_data['ciudad']) ? $resolve_term($raw_data['ciudad']) : 'BOGOTÁ');
+      $data['telefono_tomador'] = !empty($raw_data['telefono_tomador']) ? $raw_data['telefono_tomador'] : (!empty($raw_data['telefono']) ? $raw_data['telefono'] : '3118228328');
 
       // B. Datos del Asegurado.
       $nombre_completo = $raw_data['nombre_completo'] ?? '';

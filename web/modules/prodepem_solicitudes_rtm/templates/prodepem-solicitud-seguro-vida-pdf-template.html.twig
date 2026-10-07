@@ -440,21 +440,21 @@
             </td>
             <td style="width: 25%;">
                 <span class="cell-label">C.C./NIT</span>
-                <span class="cell-val">{{ data.nit_tomador|default('900.582.164-1') }}</span>
+                <span class="cell-val">{{ data.nit_tomador|default(data.c_c_nit|default('900.582.164-1')) }}</span>
             </td>
         </tr>
         <tr>
             <td style="width: 50%;">
                 <span class="cell-label">DIRECCIÓN</span>
-                <span class="cell-val">{{ data.direccion_tomador|default('CALLE 64 N 1-43') }}</span>
+                <span class="cell-val">{{ data.direccion_tomador|default(data.direccion|default('CALLE 64 N 1-43')) }}</span>
             </td>
             <td style="width: 25%;">
                 <span class="cell-label">CIUDAD</span>
-                <span class="cell-val">{{ data.ciudad_tomador|default('BOGOTÁ') }}</span>
+                <span class="cell-val">{{ data.ciudad_tomador|default(data.ciudad|default('BOGOTÁ')) }}</span>
             </td>
             <td style="width: 25%;">
                 <span class="cell-label">TELÉFONO</span>
-                <span class="cell-val">{{ data.telefono_tomador|default('3118228328') }}</span>
+                <span class="cell-val">{{ data.telefono_tomador|default(data.telefono|default('3118228328')) }}</span>
             </td>
         </tr>
     </table>

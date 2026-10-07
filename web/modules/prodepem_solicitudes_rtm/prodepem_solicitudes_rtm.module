@@ -292,6 +292,37 @@ function prodepem_solicitudes_rtm_ubicacion_cda_callback(array &$form, FormState
  * Implements hook_webform_submission_presave().
  */
 function prodepem_solicitudes_rtm_webform_submission_presave(WebformSubmissionInterface $webform_submission) {
+  $data = $webform_submission->getData();
+
+  // Asignar automáticamente los datos del tomador según el campo 'selector_tomador'.
+  if (isset($data['selector_tomador'])) {
+    $selector = (string) $data['selector_tomador'];
+    if ($selector === '1') {
+      $data['tomador'] = 'Fondo de empleado de docente de la Universidad de Córdoba';
+      $data['direccion'] = 'Cra 6 # 76-103';
+      $data['direccion_tomador'] = 'Cra 6 # 76-103';
+      $data['telefono'] = '3014619585';
+      $data['telefono_tomador'] = '3014619585';
+      $data['ciudad'] = 'Montería';
+      $data['ciudad_tomador'] = 'Montería';
+      $data['c_c_nit'] = '900834726';
+      $data['nit_tomador'] = '900834726';
+      $webform_submission->setData($data);
+    }
+    elseif ($selector === '2') {
+      $data['tomador'] = 'Asociación Sindical de Profesores Universitarios - ASPU';
+      $data['c_c_nit'] = '830001998';
+      $data['nit_tomador'] = '830001998';
+      $data['direccion'] = 'Cra 6 # 77-305';
+      $data['direccion_tomador'] = 'Cra 6 # 77-305';
+      $data['ciudad'] = 'Montería';
+      $data['ciudad_tomador'] = 'Montería';
+      $data['telefono'] = '3242560489';
+      $data['telefono_tomador'] = '3242560489';
+      $webform_submission->setData($data);
+    }
+  }
+
   // Check if the webform is 'solicitud_de_revision_tecnico_me'.
   if ($webform_submission->getWebform()->id() === 'solicitud_de_revision_tecnico_me') {
     $data = $webform_submission->getData();
