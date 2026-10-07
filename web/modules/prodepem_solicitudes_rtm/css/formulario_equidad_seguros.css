@@ -144,7 +144,7 @@
 }
 
 /* ==========================================================================
-   Radios y Casillas de Verificaci?n (Checkboxes) con Ancho R?gido Uniforme
+   Radios y Casillas de Verificaci?n (Checkboxes) con Alineaci?n ?ptima y Ancho Uniforme
    ========================================================================== */
 .webform-submission-formulario-equidad-seguros-add-form .form-type-checkbox,
 .webform-submission-formulario-equidad-seguros-add-form .form-type--checkbox,
@@ -152,63 +152,94 @@
 .webform-submission-formulario-equidad-seguros-add-form .form-type-radio,
 .webform-submission-formulario-equidad-seguros-add-form .form-type--radio,
 .webform-submission-formulario-equidad-seguros-add-form .js-form-type-radio,
+.webform-submission-formulario-equidad-seguros-add-form .form-type-boolean,
+.webform-submission-formulario-equidad-seguros-add-form .form-type--boolean,
+.webform-submission-formulario-equidad-seguros-add-form .webform-terms,
+.webform-submission-formulario-equidad-seguros-add-form .checkbox-aligned-row,
 .formulario-equidad-seguros .form-type-checkbox,
 .formulario-equidad-seguros .form-type--checkbox,
 .formulario-equidad-seguros .js-form-type-checkbox,
 .formulario-equidad-seguros .form-type-radio,
 .formulario-equidad-seguros .form-type--radio,
-.formulario-equidad-seguros .js-form-type-radio {
+.formulario-equidad-seguros .js-form-type-radio,
+.formulario-equidad-seguros .form-type-boolean,
+.formulario-equidad-seguros .form-type--boolean,
+.formulario-equidad-seguros .webform-terms,
+.formulario-equidad-seguros .checkbox-aligned-row {
   display: flex !important;
   flex-direction: row !important;
-  align-items: flex-start !important; /* Alineaci?n superior para textos extensos multil?nea */
-  gap: 0.75rem !important;
-  min-height: 40px;
+  align-items: flex-start !important;
+  gap: 0.65rem !important;
+  min-height: auto !important;
+  margin-top: 0.5rem !important;
   margin-bottom: 0.75rem !important;
+  padding: 0 !important;
 }
 
-/* Forzar dimensiones estrictamente uniformes (impide compresi?n por flex-shrink) */
+/* Casilla de verificaci?n: fija a 20px x 20px, sin encogimiento, perfectamente centrada con la 1ra l?nea */
 .webform-submission-formulario-equidad-seguros-add-form input[type="checkbox"],
 .webform-submission-formulario-equidad-seguros-add-form input[type="radio"],
 .formulario-equidad-seguros input[type="checkbox"],
 .formulario-equidad-seguros input[type="radio"] {
-  width: 22px !important;
-  height: 22px !important;
-  min-width: 22px !important;
-  max-width: 22px !important;
-  min-height: 22px !important;
-  max-height: 22px !important;
-  flex: 0 0 22px !important; /* No crece, no se encoge (flex-shrink: 0), base fija de 22px */
+  width: 20px !important;
+  height: 20px !important;
+  min-width: 20px !important;
+  max-width: 20px !important;
+  min-height: 20px !important;
+  max-height: 20px !important;
+  flex: 0 0 20px !important;
   flex-shrink: 0 !important;
-  margin: 2px 0 0 0 !important; /* Alineado ?pticamente con la primera l?nea de texto */
+  margin: 1px 0 0 0 !important; /* Calibraci?n exacta de 1px para centrar con el line-height de 22px de la 1ra l?nea */
   padding: 0 !important;
   accent-color: #0056b3;
   cursor: pointer;
   box-sizing: border-box !important;
+  vertical-align: top !important;
+  align-self: flex-start !important;
 }
 
-/* Etiqueta del checkbox/radio: ocupa el espacio restante con salto de l?nea natural */
+/* Etiqueta del checkbox: resetea m?rgenes del tema superior/inferior para alinear exactamente la 1ra l?nea */
 .webform-submission-formulario-equidad-seguros-add-form .form-type-checkbox label,
 .webform-submission-formulario-equidad-seguros-add-form .form-type--checkbox label,
 .webform-submission-formulario-equidad-seguros-add-form .js-form-type-checkbox label,
 .webform-submission-formulario-equidad-seguros-add-form .form-type-radio label,
 .webform-submission-formulario-equidad-seguros-add-form .form-type--radio label,
 .webform-submission-formulario-equidad-seguros-add-form .js-form-type-radio label,
+.webform-submission-formulario-equidad-seguros-add-form .form-type-boolean label,
+.webform-submission-formulario-equidad-seguros-add-form .form-type--boolean label,
+.webform-submission-formulario-equidad-seguros-add-form .webform-terms label,
+.webform-submission-formulario-equidad-seguros-add-form input[type="checkbox"] + label,
+.webform-submission-formulario-equidad-seguros-add-form input[type="radio"] + label,
+.webform-submission-formulario-equidad-seguros-add-form .checkbox-aligned-label,
 .formulario-equidad-seguros .form-type-checkbox label,
 .formulario-equidad-seguros .form-type--checkbox label,
 .formulario-equidad-seguros .js-form-type-checkbox label,
 .formulario-equidad-seguros .form-type-radio label,
 .formulario-equidad-seguros .form-type--radio label,
-.formulario-equidad-seguros .js-form-type-radio label {
+.formulario-equidad-seguros .js-form-type-radio label,
+.formulario-equidad-seguros .form-type-boolean label,
+.formulario-equidad-seguros .form-type--boolean label,
+.formulario-equidad-seguros .webform-terms label,
+.formulario-equidad-seguros input[type="checkbox"] + label,
+.formulario-equidad-seguros input[type="radio"] + label,
+.formulario-equidad-seguros .checkbox-aligned-label {
   flex: 1 1 auto !important;
   min-width: 0 !important;
   margin: 0 !important;
+  margin-top: 0 !important;
+  margin-block-start: 0 !important;
+  margin-bottom: 0 !important;
+  margin-block-end: 0 !important;
   padding: 0 !important;
+  padding-top: 0 !important;
+  padding-block-start: 0 !important;
   font-size: 0.95rem !important;
   font-weight: 500 !important;
   color: #374151 !important;
-  line-height: 1.4 !important;
+  line-height: 22px !important; /* Altura de l?nea id?ntica: 22px asegura centro exacto a 11px con el checkbox */
   cursor: pointer;
   word-break: break-word;
+  align-self: flex-start !important;
 }
 
 /* ==========================================================================

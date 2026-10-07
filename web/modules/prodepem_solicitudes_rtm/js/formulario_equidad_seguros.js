@@ -28,6 +28,19 @@
           }
         });
 
+        // Asegurar alineaci?n perfecta de la primera l?nea de texto con la casilla de verificaci?n
+        const checkboxes = form.querySelectorAll('input[type="checkbox"], input[type="radio"]');
+        checkboxes.forEach(function (cb) {
+          const parent = cb.closest('.form-type-checkbox, .form-type-radio, .form-type-boolean, .form-item');
+          if (parent) {
+            parent.classList.add('checkbox-aligned-row');
+          }
+          const label = parent ? parent.querySelector('label') : cb.nextElementSibling;
+          if (label && label.tagName === 'LABEL') {
+            label.classList.add('checkbox-aligned-label');
+          }
+        });
+
         // Swipe Navigation
         let touchStartX = 0;
         let touchStartY = 0;
