@@ -41,6 +41,25 @@
           }
         });
 
+        // Asegurar ancho suficiente para la columna "Tipo de documento" en tablas de beneficiarios
+        const tables = form.querySelectorAll('.webform-multiple-table, table');
+        tables.forEach(function (table) {
+          const headers = table.querySelectorAll('th');
+          headers.forEach(function (th, colIndex) {
+            const headerText = (th.textContent || '').toLowerCase().trim();
+            if (headerText.includes('tipo') && (headerText.includes('documento') || headerText.includes('doc'))) {
+              th.classList.add('col-tipo-documento');
+              const rows = table.querySelectorAll('tbody tr');
+              rows.forEach(function (row) {
+                const cell = row.children[colIndex];
+                if (cell) {
+                  cell.classList.add('col-tipo-documento');
+                }
+              });
+            }
+          });
+        });
+
         // Swipe Navigation
         let touchStartX = 0;
         let touchStartY = 0;
