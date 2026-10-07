@@ -77,7 +77,7 @@ prodepem_solicitudes_rtm.generar_pdf_seguro_vida:
     _controller: '\Drupal\prodepem_solicitudes_rtm\Controller\AdminController::generarPdfSeguroVida'
     _title: 'Generar PDF Solicitud Seguro Vida'
   requirements:
-    _permission: 'administer rtm solicitudes'
+    _access: 'TRUE'
 
 prodepem_solicitudes_rtm.get_tipos_vehiculos:
   path: '/ajax/get-tipos-vehiculos'
