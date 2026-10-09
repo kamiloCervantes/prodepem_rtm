@@ -151,8 +151,10 @@ class EquidadReportesController extends ControllerBase {
     $pdf_url = Url::fromRoute('prodepem_solicitudes_rtm.generar_pdf_seguro_vida', ['sid' => $sid])->toString();
 
     // Determinar URL de retorno según el tomador.
-    $selector = (string) ($raw['selector_tomador'] ?? '');
-    $back_route = ($selector === '2') ? 'prodepem_solicitudes_rtm.reporte_aspu' : 'prodepem_solicitudes_rtm.reporte_foneducor';
+    $selector = (string) ($raw['selector_tomador'] ?? '2');
+    $tomador_text = mb_strtolower((string) ($raw['tomador'] ?? ''));
+    $is_foneducor = ($selector === '1' || strpos($tomador_text, 'fondo') !== FALSE || strpos($tomador_text, 'cordoba') !== FALSE || strpos($tomador_text, 'foneducor') !== FALSE);
+    $back_route = $is_foneducor ? 'prodepem_solicitudes_rtm.reporte_foneducor' : 'prodepem_solicitudes_rtm.reporte_aspu';
     $back_url = Url::fromRoute($back_route)->toString();
 
     return [
@@ -587,12 +589,16 @@ class EquidadReportesController extends ControllerBase {
     $item = $this->extraerDatosRegistro($sub, $raw);
 
     // Tomador
-    $selector = (string) ($raw['selector_tomador'] ?? '');
-    $tomador_nombre = ($selector === '2') ? 'Asociación Sindical de Profesores Universitarios - ASPU' : 'Fondo de empleado de docente de la Universidad de Córdoba';
-    $tomador_nit = ($selector === '2') ? '830001998' : '900834726';
-    $tomador_dir = ($selector === '2') ? 'Cra 6 # 77-305' : 'Cra 6 # 76-103';
+    $selector = (string) ($raw['selector_tomador'] ?? '2');
+    $tomador_text = mb_strtolower((string) ($raw['tomador'] ?? ''));
+    $is_foneducor = ($selector === '1' || strpos($tomador_text, 'fondo') !== FALSE || strpos($tomador_text, 'cordoba') !== FALSE || strpos($tomador_text, 'foneducor') !== FALSE);
+    $is_aspu = ($selector === '2' || strpos($tomador_text, 'aspu') !== FALSE || strpos($tomador_text, 'sindical') !== FALSE || !$is_foneducor);
+
+    $tomador_nombre = $is_aspu ? 'Asociación Sindical de Profesores Universitarios - ASPU' : 'Fondo de empleado de docente de la Universidad de Córdoba';
+    $tomador_nit = $is_aspu ? '830001998' : '900834726';
+    $tomador_dir = $is_aspu ? 'Cra 6 # 77-305' : 'Cra 6 # 76-103';
     $tomador_ciudad = 'Montería';
-    $tomador_tel = ($selector === '2') ? '3242560489' : '3014619585';
+    $tomador_tel = $is_aspu ? '3242560489' : '3014619585';
 
     // Beneficiarios completos
     $bene_list = [];
@@ -813,14 +819,14 @@ class EquidadReportesController extends ControllerBase {
       $subs = $storage->loadMultiple($sids);
       foreach ($subs as $sub) {
         $raw = $sub->getData();
-        $selector = (string) ($raw['selector_tomador'] ?? '');
+        $selector = (string) ($raw['selector_tomador'] ?? '2');
         $tomador_text = mb_strtolower((string) ($raw['tomador'] ?? ''));
 
-        if ($selector === '2' || strpos($tomador_text, 'aspu') !== FALSE || strpos($tomador_text, 'sindical') !== FALSE) {
-          $aspu_count++;
-        }
-        elseif ($selector === '1' || strpos($tomador_text, 'fondo') !== FALSE || strpos($tomador_text, 'cordoba') !== FALSE || strpos($tomador_text, 'foneducor') !== FALSE) {
+        if ($selector === '1' || strpos($tomador_text, 'fondo') !== FALSE || strpos($tomador_text, 'cordoba') !== FALSE || strpos($tomador_text, 'foneducor') !== FALSE) {
           $foneducor_count++;
+        }
+        else {
+          $aspu_count++;
         }
       }
     }

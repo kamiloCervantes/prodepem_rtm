@@ -188,14 +188,25 @@ class AdminController extends ControllerBase {
       $data = [];
 
       // A. Datos del Tomador (corresponden directamente a los campos: tomador, c_c_nit, direccion, ciudad, telefono).
-      $data['tomador'] = !empty($raw_data['tomador']) ? $raw_data['tomador'] : 'PRODEPEM S.A.S';
-      $data['nit_tomador'] = !empty($raw_data['c_c_nit']) ? $raw_data['c_c_nit'] : (!empty($raw_data['nit_tomador']) ? $raw_data['nit_tomador'] : '900.582.164-1');
+      $selector = (string) ($raw_data['selector_tomador'] ?? '2');
+      $tomador_text = mb_strtolower((string) ($raw_data['tomador'] ?? ''));
+      $is_foneducor = ($selector === '1' || strpos($tomador_text, 'fondo') !== FALSE || strpos($tomador_text, 'cordoba') !== FALSE || strpos($tomador_text, 'foneducor') !== FALSE);
+      $is_aspu = ($selector === '2' || strpos($tomador_text, 'aspu') !== FALSE || strpos($tomador_text, 'sindical') !== FALSE || !$is_foneducor);
+
+      $default_tomador = $is_foneducor ? 'Fondo de empleado de docente de la Universidad de Córdoba' : 'Asociación Sindical de Profesores Universitarios - ASPU';
+      $default_nit = $is_foneducor ? '900834726' : '830001998';
+      $default_dir = $is_foneducor ? 'Cra 6 # 76-103' : 'Cra 6 # 77-305';
+      $default_ciudad = 'Montería';
+      $default_tel = $is_foneducor ? '3014619585' : '3242560489';
+
+      $data['tomador'] = !empty($raw_data['tomador']) ? $raw_data['tomador'] : $default_tomador;
+      $data['nit_tomador'] = !empty($raw_data['c_c_nit']) ? $raw_data['c_c_nit'] : (!empty($raw_data['nit_tomador']) ? $raw_data['nit_tomador'] : $default_nit);
       $data['c_c_nit'] = $data['nit_tomador'];
-      $data['direccion_tomador'] = !empty($raw_data['direccion']) ? $raw_data['direccion'] : (!empty($raw_data['direccion_tomador']) ? $raw_data['direccion_tomador'] : 'CALLE 64 N 1-43');
+      $data['direccion_tomador'] = !empty($raw_data['direccion']) ? $raw_data['direccion'] : (!empty($raw_data['direccion_tomador']) ? $raw_data['direccion_tomador'] : $default_dir);
       $data['direccion'] = $data['direccion_tomador'];
-      $data['ciudad_tomador'] = !empty($raw_data['ciudad']) ? $resolve_term($raw_data['ciudad']) : (!empty($raw_data['ciudad_tomador']) ? $resolve_term($raw_data['ciudad_tomador']) : 'BOGOTÁ');
+      $data['ciudad_tomador'] = !empty($raw_data['ciudad']) ? $resolve_term($raw_data['ciudad']) : (!empty($raw_data['ciudad_tomador']) ? $resolve_term($raw_data['ciudad_tomador']) : $default_ciudad);
       $data['ciudad'] = $data['ciudad_tomador'];
-      $data['telefono_tomador'] = !empty($raw_data['telefono']) ? $raw_data['telefono'] : (!empty($raw_data['telefono_tomador']) ? $raw_data['telefono_tomador'] : '3118228328');
+      $data['telefono_tomador'] = !empty($raw_data['telefono']) ? $raw_data['telefono'] : (!empty($raw_data['telefono_tomador']) ? $raw_data['telefono_tomador'] : $default_tel);
       $data['telefono'] = $data['telefono_tomador'];
 
       // B. Datos del Asegurado.

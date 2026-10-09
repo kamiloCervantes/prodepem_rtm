@@ -271,6 +271,41 @@ function prodepem_solicitudes_rtm_form_alter(&$form, FormStateInterface $form_st
     if (isset($form['elements'])) {
       $apply_style_interesado($form['elements']);
     }
+
+    // Pre-llenar datos de ASPU en los campos del tomador si selector_tomador es 2 (por defecto).
+    $aspu_tomador_data = [
+      'tomador' => 'Asociación Sindical de Profesores Universitarios - ASPU',
+      'c_c_nit' => '830001998',
+      'nit_tomador' => '830001998',
+      'direccion' => 'Cra 6 # 77-305',
+      'direccion_tomador' => 'Cra 6 # 77-305',
+      'ciudad' => 'Montería',
+      'ciudad_tomador' => 'Montería',
+      'telefono' => '3242560489',
+      'telefono_tomador' => '3242560489',
+    ];
+
+    $set_tomador_defaults = function (&$elements) use (&$set_tomador_defaults, $aspu_tomador_data) {
+      foreach ($elements as $key => &$child) {
+        if (is_array($child) && strpos((string) $key, '#') !== 0) {
+          if ($key === 'selector_tomador' && empty($child['#default_value'])) {
+            $child['#default_value'] = '2';
+          }
+          if (isset($aspu_tomador_data[$key])) {
+            if (!isset($child['#default_value']) || $child['#default_value'] === '') {
+              $child['#default_value'] = $aspu_tomador_data[$key];
+            }
+          }
+          $set_tomador_defaults($child);
+        }
+      }
+    };
+    if (isset($form['elements'])) {
+      $set_tomador_defaults($form['elements']);
+    }
+
+    // Validador personalizado para el porcentaje total de beneficiarios.
+    $form['#validate'][] = 'prodepem_solicitudes_rtm_formulario_equidad_seguros_validate';
   }
 }
 
@@ -326,8 +361,40 @@ function prodepem_solicitudes_rtm_ubicacion_cda_callback(array &$form, FormState
  */
 function prodepem_solicitudes_rtm_webform_submission_presave(WebformSubmissionInterface $webform_submission) {
   $data = $webform_submission->getData();
+  $webform = $webform_submission->getWebform();
+  $webform_id = $webform ? $webform->id() : '';
 
-  // Los datos del tomador se conservan directamente de los campos del formulario: tomador, c_c_nit, direccion, ciudad, telefono.
+  // Formulario Equidad Seguros: Asignar automáticamente los datos del tomador según 'selector_tomador'.
+  // Si selector_tomador es 2 (o por defecto en este formulario), corresponde a ASPU y se colocan sus datos en tomador, c_c_nit, direccion, ciudad, telefono.
+  if ($webform_id === 'formulario_equidad_seguros' || isset($data['selector_tomador'])) {
+    $selector = (string) ($data['selector_tomador'] ?? '2');
+    if ($selector === '2' || $selector === 'aspu') {
+      $data['selector_tomador'] = '2';
+      $data['tomador'] = 'Asociación Sindical de Profesores Universitarios - ASPU';
+      $data['c_c_nit'] = '830001998';
+      $data['nit_tomador'] = '830001998';
+      $data['direccion'] = 'Cra 6 # 77-305';
+      $data['direccion_tomador'] = 'Cra 6 # 77-305';
+      $data['ciudad'] = 'Montería';
+      $data['ciudad_tomador'] = 'Montería';
+      $data['telefono'] = '3242560489';
+      $data['telefono_tomador'] = '3242560489';
+      $webform_submission->setData($data);
+    }
+    elseif ($selector === '1' || $selector === 'foneducor') {
+      $data['selector_tomador'] = '1';
+      $data['tomador'] = 'Fondo de empleado de docente de la Universidad de Córdoba';
+      $data['c_c_nit'] = '900834726';
+      $data['nit_tomador'] = '900834726';
+      $data['direccion'] = 'Cra 6 # 76-103';
+      $data['direccion_tomador'] = 'Cra 6 # 76-103';
+      $data['ciudad'] = 'Montería';
+      $data['ciudad_tomador'] = 'Montería';
+      $data['telefono'] = '3014619585';
+      $data['telefono_tomador'] = '3014619585';
+      $webform_submission->setData($data);
+    }
+  }
 
   // Check if the webform is 'solicitud_de_revision_tecnico_me'.
   if ($webform_submission->getWebform()->id() === 'solicitud_de_revision_tecnico_me') {
@@ -400,5 +467,81 @@ function prodepem_solicitudes_rtm_formulario_touch_validate(&$form, FormStateInt
 
   if ($otp_result != 1) {
     $form_state->setErrorByName('codigo_de_verificacion', t('No se pudo validar el numero de telefono del cliente'));
+  }
+}
+
+
+/**
+ * Validación para formulario_equidad_seguros:
+ * Verifica que el porcentaje total de los beneficiarios sea igual a 100%.
+ */
+function prodepem_solicitudes_rtm_formulario_equidad_seguros_validate(array &$form, FormStateInterface $form_state) {
+  $trigger = $form_state->getTriggeringElement();
+  if (!empty($trigger['#name']) && strpos((string) $trigger['#name'], 'prev') !== FALSE) {
+    // Si se presiona "Anterior", no bloquear la navegación.
+    return;
+  }
+
+  $values = $form_state->getValues();
+  $candidates = [
+    'beneficiarios',
+    'tabla_beneficiarios',
+    'escriba_el_nombre_de_los_beneficiarios_de_este_seguro_y_su_respectivo_porcentaje',
+    'datos_beneficiarios',
+  ];
+
+  $bene_data = NULL;
+  $field_key = NULL;
+  foreach ($candidates as $cand) {
+    if (isset($values[$cand]) && is_array($values[$cand])) {
+      $bene_data = $values[$cand];
+      $field_key = $cand;
+      break;
+    }
+  }
+
+  if (!$bene_data) {
+    foreach ($values as $k => $v) {
+      if (is_array($v) && stripos((string) $k, 'beneficiar') !== FALSE) {
+        $bene_data = $v;
+        $field_key = $k;
+        break;
+      }
+    }
+  }
+
+  if ($bene_data && is_array($bene_data)) {
+    $items = isset($bene_data['items']) && is_array($bene_data['items']) ? $bene_data['items'] : $bene_data;
+    $total_porcentaje = 0;
+    $has_filled_rows = FALSE;
+
+    foreach ($items as $item) {
+      if (!is_array($item)) {
+        continue;
+      }
+      $row_filled = FALSE;
+      foreach ($item as $k => $v) {
+        if (!empty(trim((string) $v))) {
+          $row_filled = TRUE;
+          break;
+        }
+      }
+      if ($row_filled) {
+        $has_filled_rows = TRUE;
+        foreach ($item as $k => $v) {
+          if (stripos((string) $k, 'porcent') !== FALSE || $k === '%') {
+            $num = floatval(str_replace(',', '.', (string) $v));
+            $total_porcentaje += $num;
+            break;
+          }
+        }
+      }
+    }
+
+    if ($has_filled_rows && round($total_porcentaje, 2) !== 100.0) {
+      $form_state->setErrorByName($field_key ?: 'beneficiarios', t('El total de los porcentajes de los beneficiarios debe ser igual al 100% (la suma actual es @total%).', [
+        '@total' => round($total_porcentaje, 2),
+      ]));
+    }
   }
 }

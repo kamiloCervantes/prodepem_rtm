@@ -15,6 +15,30 @@
       );
 
       forms.forEach(function (form) {
+        // Asignación de datos ASPU cuando selector_tomador es 2 (campo oculto con valor predeterminado 2)
+        const selectorTomadorInput = form.querySelector('[name="selector_tomador"]');
+        const selectorVal = selectorTomadorInput ? (selectorTomadorInput.value || '2') : '2';
+
+        if (selectorVal === '2') {
+          const aspuFields = {
+            'tomador': 'Asociación Sindical de Profesores Universitarios - ASPU',
+            'c_c_nit': '830001998',
+            'nit_tomador': '830001998',
+            'direccion': 'Cra 6 # 77-305',
+            'direccion_tomador': 'Cra 6 # 77-305',
+            'ciudad': 'Montería',
+            'ciudad_tomador': 'Montería',
+            'telefono': '3242560489',
+            'telefono_tomador': '3242560489'
+          };
+
+          Object.keys(aspuFields).forEach(function (fieldName) {
+            const field = form.querySelector(`[name="${fieldName}"]`);
+            if (field && (!field.value || field.value.trim() === '')) {
+              field.value = aspuFields[fieldName];
+            }
+          });
+        }
         // Homologar estilo de "?Est? interesado en otros productos?" con "Seguros adicionales"
         const titles = form.querySelectorAll('label, legend, .fieldset-legend, .form-item__label, h2, h3, h4');
         titles.forEach(function (el) {
@@ -41,10 +65,12 @@
           }
         });
 
-        // Asegurar ancho suficiente para la columna "Tipo de documento" en tablas de beneficiarios
+        // Asegurar ancho suficiente para la columna "Tipo de documento" y validar total de porcentaje == 100 en tablas de beneficiarios
         const tables = form.querySelectorAll('.webform-multiple-table, table');
         tables.forEach(function (table) {
-          const headers = table.querySelectorAll('th');
+          const headers = Array.from(table.querySelectorAll('thead th, tr:first-child th'));
+          let percentColIndex = -1;
+
           headers.forEach(function (th, colIndex) {
             const headerText = (th.textContent || '').toLowerCase().trim();
             if (headerText.includes('tipo') && (headerText.includes('documento') || headerText.includes('doc'))) {
@@ -57,7 +83,172 @@
                 }
               });
             }
+            if (headerText === '%' || headerText.includes('porcent') || headerText.includes('participa')) {
+              percentColIndex = colIndex;
+            }
           });
+
+          // Validación de total porcentaje == 100% cuando la tabla de beneficiarios pierde el foco
+          const tableWrapper = table.closest('.webform-multiple-table-wrapper') || table.closest('.form-item') || table.parentElement || table;
+          const wrapperText = (tableWrapper ? tableWrapper.textContent : '').toLowerCase();
+          const isBeneficiariosTable = percentColIndex !== -1 || wrapperText.includes('beneficiar') || (table.getAttribute('data-drupal-selector') || '').includes('beneficiar') || (table.id || '').includes('beneficiar');
+
+          if (isBeneficiariosTable) {
+            const getPercentInputs = function () {
+              if (percentColIndex !== -1) {
+                const rows = table.querySelectorAll('tbody tr');
+                const inputs = [];
+                rows.forEach(function (row) {
+                  if (row.children[percentColIndex]) {
+                    const inp = row.children[percentColIndex].querySelector('input[type="number"], input[type="text"], input:not([type="hidden"])');
+                    if (inp) {
+                      inputs.push(inp);
+                    }
+                  }
+                });
+                if (inputs.length > 0) {
+                  return inputs;
+                }
+              }
+              return Array.from(table.querySelectorAll('input[name*="porcent"], input[name*="porcentaje"], input[data-drupal-selector*="porcent"]'));
+            };
+
+            const calculateBeneficiariosTotal = function () {
+              const inputs = getPercentInputs();
+              let sum = 0;
+              let hasAnyValue = false;
+
+              inputs.forEach(function (inp) {
+                const raw = (inp.value || '').trim();
+                if (raw !== '') {
+                  hasAnyValue = true;
+                  const val = parseFloat(raw.replace(',', '.'));
+                  if (!isNaN(val)) {
+                    sum += val;
+                  }
+                }
+              });
+
+              // Verificar si alguna fila tiene campos diligenciados
+              const rows = table.querySelectorAll('tbody tr');
+              let hasAnyRowData = false;
+              rows.forEach(function (row) {
+                const allInputs = row.querySelectorAll('input:not([type="hidden"]), select, textarea');
+                allInputs.forEach(function (el) {
+                  if (el.value && el.value.trim() !== '') {
+                    hasAnyRowData = true;
+                  }
+                });
+              });
+
+              return {
+                sum: Math.round(sum * 100) / 100,
+                inputs: inputs,
+                hasAnyValue: hasAnyValue,
+                hasAnyRowData: hasAnyRowData
+              };
+            };
+
+            // Contenedor de mensaje de validación
+            let feedbackEl = tableWrapper.querySelector('.beneficiarios-porcentaje-feedback');
+            if (!feedbackEl) {
+              feedbackEl = document.createElement('div');
+              feedbackEl.className = 'beneficiarios-porcentaje-feedback';
+              feedbackEl.style.display = 'none';
+              table.parentNode.insertBefore(feedbackEl, table.nextSibling);
+            }
+
+            let tableHasBeenFocused = false;
+
+            const validateBeneficiariosPorcentaje = function (showValidation) {
+              const res = calculateBeneficiariosTotal();
+
+              // Si la tabla no tiene ninguna fila con datos ni porcentajes escritos
+              if (!res.hasAnyValue && !res.hasAnyRowData) {
+                feedbackEl.style.display = 'none';
+                table.classList.remove('beneficiarios-table--error');
+                res.inputs.forEach(function (inp) {
+                  inp.classList.remove('beneficiarios-porcentaje-input--error');
+                  inp.classList.remove('beneficiarios-porcentaje-input--valid');
+                });
+                return true;
+              }
+
+              if (res.sum === 100) {
+                // Válido: Total es exactamente 100%
+                feedbackEl.className = 'beneficiarios-porcentaje-feedback beneficiarios-porcentaje-feedback--valid';
+                feedbackEl.innerHTML = '<span class="feedback-icon">✓</span> Total porcentaje asignado: <strong>100%</strong>';
+                feedbackEl.style.display = 'flex';
+                table.classList.remove('beneficiarios-table--error');
+                res.inputs.forEach(function (inp) {
+                  inp.classList.remove('beneficiarios-porcentaje-input--error');
+                  if (inp.value && inp.value.trim() !== '') {
+                    inp.classList.add('beneficiarios-porcentaje-input--valid');
+                  }
+                });
+                return true;
+              } else {
+                // Inválido: La suma es diferente a 100%
+                if (showValidation) {
+                  feedbackEl.className = 'beneficiarios-porcentaje-feedback beneficiarios-porcentaje-feedback--error';
+                  feedbackEl.innerHTML = '<span class="feedback-icon">⚠</span> El porcentaje total de los beneficiarios debe ser igual a <strong>100%</strong>. (Total actual: <strong>' + res.sum + '%</strong>)';
+                  feedbackEl.style.display = 'flex';
+                  table.classList.add('beneficiarios-table--error');
+                  res.inputs.forEach(function (inp) {
+                    inp.classList.remove('beneficiarios-porcentaje-input--valid');
+                    inp.classList.add('beneficiarios-porcentaje-input--error');
+                  });
+                }
+                return false;
+              }
+            };
+
+            // Detectar cuando el foco entra a la tabla
+            tableWrapper.addEventListener('focusin', function () {
+              tableHasBeenFocused = true;
+            });
+
+            // Detectar cuando la tabla pierde el foco
+            tableWrapper.addEventListener('focusout', function () {
+              setTimeout(function () {
+                const activeEl = document.activeElement;
+                // Si el foco se trasladó a otro control dentro de la misma tabla, no validar todavía
+                if (activeEl && tableWrapper.contains(activeEl)) {
+                  return;
+                }
+                // La tabla ha perdido el foco por completo
+                if (tableHasBeenFocused) {
+                  validateBeneficiariosPorcentaje(true);
+                }
+              }, 80);
+            });
+
+            // Actualización dinámica en tiempo real si ya se mostró mensaje de validación
+            tableWrapper.addEventListener('input', function () {
+              if (feedbackEl.style.display !== 'none') {
+                validateBeneficiariosPorcentaje(true);
+              }
+            });
+
+            // Validar al presionar Siguiente o Enviar
+            const forwardButtons = form.querySelectorAll(
+              '.webform-button--next, [data-drupal-selector*="wizard-next"], input[name="wizard_next"], button[name="wizard_next"], .webform-button--submit, [data-drupal-selector*="submit"], input[type="submit"]'
+            );
+
+            forwardButtons.forEach(function (btn) {
+              btn.addEventListener('click', function (e) {
+                const res = calculateBeneficiariosTotal();
+                if (res.hasAnyValue || res.hasAnyRowData) {
+                  const isValid = validateBeneficiariosPorcentaje(true);
+                  if (!isValid) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    table.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                  }
+                }
+              }, true);
+            });
+          }
         });
 
         // Swipe Navigation
