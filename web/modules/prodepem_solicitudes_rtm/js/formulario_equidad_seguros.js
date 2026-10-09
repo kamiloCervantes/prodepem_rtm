@@ -252,7 +252,7 @@
               }
             });
 
-            // Validar al presionar Siguiente en el Paso 2 o al presionar Enviar al final si el error persiste
+            // Botones de navegación y envío: permitir navegar libremente por el wizard
             const forwardButtons = form.querySelectorAll(
               '.webform-button--next, [data-drupal-selector*="wizard-next"], input[name="wizard_next"], button[name="wizard_next"], .webform-button--submit, [data-drupal-selector*="submit"], input[type="submit"]'
             );
@@ -261,23 +261,26 @@
               btn.addEventListener('click', function (e) {
                 const isCurrent = isTableInCurrentStep();
                 const isFinal = isFinalSubmitButton(btn);
+                const res = calculateBeneficiariosTotal();
 
-                // La validación solo debe actuar en el paso 2 de beneficiarios o al final si el error persiste
-                if (!isCurrent && !isFinal) {
-                  return; // En el paso 1 u otros pasos donde la tabla no está visible, permitir avance sin bloquear
+                // Si está en el paso 2 y presiona Siguiente, mostrar la advertencia visual si hay error pero PERMITIR la navegación
+                if (isCurrent && !isFinal) {
+                  if (res.hasAnyValue || res.hasAnyRowData) {
+                    if (res.sum !== 100) {
+                      validateBeneficiariosPorcentaje(true);
+                      // NO se bloquea con preventDefault para permitir navegar libremente por el wizard
+                    }
+                  }
+                  return;
                 }
 
-                const res = calculateBeneficiariosTotal();
-                if (res.hasAnyValue || res.hasAnyRowData) {
-                  if (res.sum !== 100) {
-                    e.preventDefault();
-                    e.stopPropagation();
-
-                    if (isCurrent) {
-                      validateBeneficiariosPorcentaje(true);
-                      table.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                    } else if (isFinal) {
-                      alert('El porcentaje total de los beneficiarios en el Paso 2 debe ser igual a 100% (suma actual: ' + res.sum + '%). Por favor revise el paso de beneficiarios.');
+                // Al final del formulario (envío final): si el error persiste, bloquear el envío
+                if (isFinal) {
+                  if (res.hasAnyValue || res.hasAnyRowData) {
+                    if (res.sum !== 100) {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      alert('Atención: El porcentaje total de los beneficiarios debe ser igual a 100% (la suma actual es ' + res.sum + '%). Por favor revise el Paso 2 de beneficiarios antes de enviar la solicitud.');
                     }
                   }
                 }
