@@ -85,7 +85,7 @@ prodepem_solicitudes_rtm.shortcuts:
 # Seccion: Reportes de Equidad Seguros
 prodepem_solicitudes_rtm.reportes_equidad_section:
   title: 'Reportes de Equidad Seguros'
-  description: 'Reportes y exportaciones de solicitudes de seguro para ASPU y FONEDUCOR.'
+  description: 'Reportes y exportaciones de solicitudes de seguro.'
   parent: prodepem_solicitudes_rtm.settings
   route_name: prodepem_solicitudes_rtm.reportes_equidad_index
   weight: 25
@@ -97,23 +97,16 @@ prodepem_solicitudes_rtm.menu_reporte_aspu:
   route_name: prodepem_solicitudes_rtm.reporte_aspu
   weight: 10
 
-prodepem_solicitudes_rtm.menu_reporte_foneducor:
-  title: 'Reporte FONEDUCOR (Seguro de Vida)'
-  description: 'Solicitudes con tomador FONEDUCOR.'
-  parent: prodepem_solicitudes_rtm.reportes_equidad_section
-  route_name: prodepem_solicitudes_rtm.reporte_foneducor
-  weight: 20
-
 prodepem_solicitudes_rtm.menu_reporte_aspu_adicionales:
   title: 'Reporte ASPU (Datos Complementarios)'
   description: 'Datos complementarios: ampliación de amparo de vida, seguros, placa y rifa (ASPU).'
   parent: prodepem_solicitudes_rtm.reportes_equidad_section
   route_name: prodepem_solicitudes_rtm.reporte_aspu_adicionales
-  weight: 30
+  weight: 20
 
-prodepem_solicitudes_rtm.menu_reporte_foneducor_adicionales:
-  title: 'Reporte FONEDUCOR (Datos Complementarios)'
-  description: 'Datos complementarios: ampliación de amparo de vida, seguros, placa y rifa (FONEDUCOR).'
+prodepem_solicitudes_rtm.menu_reporte_rifas:
+  title: 'Reporte de Boletas de Rifa'
+  description: 'Reporte con campos c_c, numero_de_rifa_1 y numero_de_rifa_2.'
   parent: prodepem_solicitudes_rtm.reportes_equidad_section
-  route_name: prodepem_solicitudes_rtm.reporte_foneducor_adicionales
-  weight: 40
+  route_name: prodepem_solicitudes_rtm.reporte_rifas
+  weight: 30

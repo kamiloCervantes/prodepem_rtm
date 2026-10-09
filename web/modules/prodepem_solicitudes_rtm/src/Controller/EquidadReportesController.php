@@ -41,6 +41,13 @@ class EquidadReportesController extends ControllerBase {
   }
 
   /**
+   * Reporte de Boletas de Rifa (campos: c_c, numero_de_rifa_1, numero_de_rifa_2).
+   */
+  public function reporteRifas(Request $request) {
+    return $this->generarVistaReporte('aspu', 'rifas', $request);
+  }
+
+  /**
    * Reporte 2: FONEDUCOR - Solicitudes de Seguro de Vida.
    */
   public function reporteFoneducor(Request $request) {
@@ -87,6 +94,11 @@ class EquidadReportesController extends ControllerBase {
         'desc' => 'Datos complementarios comerciales: ampliación de amparo de vida, interés en seguros (SOAT, todo riesgo, hogar, adicionales), placa y rifa (ASPU).',
         'badge' => 'ASPU (Datos Complementarios)',
       ],
+      'aspu_rifas' => [
+        'title' => 'Reporte de Boletas de Rifa',
+        'desc' => 'Reporte con campos: c_c, numero_de_rifa_1 y numero_de_rifa_2.',
+        'badge' => 'RIFAS (c_c, rifa_1, rifa_2)',
+      ],
       'foneducor_adicionales' => [
         'title' => 'Reporte FONEDUCOR - Datos Complementarios',
         'desc' => 'Datos complementarios comerciales: ampliación de amparo de vida, interés en seguros (SOAT, todo riesgo, hogar, adicionales), placa y rifa (FONEDUCOR).',
@@ -102,7 +114,13 @@ class EquidadReportesController extends ControllerBase {
     ];
 
     // URL para descarga XLS conservando los filtros activos.
-    $export_key = ($tipo === 'adicionales') ? ($tomador . '-adicionales') : $tomador;
+    if ($tipo === 'rifas') {
+      $export_key = 'rifas';
+    } elseif ($tipo === 'adicionales') {
+      $export_key = $tomador . '-adicionales';
+    } else {
+      $export_key = $tomador;
+    }
     $export_params = array_filter([
       'search' => $search,
       'fecha_desde' => $fecha_desde,
@@ -550,6 +568,7 @@ class EquidadReportesController extends ControllerBase {
       'nombre' => $nombre,
       'tipo_documento' => $tipo_doc,
       'documento' => $num_doc,
+      'c_c' => !empty($raw['c_c']) ? $raw['c_c'] : $num_doc,
       'email' => $email,
       'telefono' => $telefono,
       'ciudad' => $ciudad,
@@ -722,7 +741,29 @@ class EquidadReportesController extends ControllerBase {
     echo '<tr><td colspan="' . ($tipo === 'adicionales' ? '14' : '10') . '" class="header-meta">Generado el: ' . date('d/m/Y H:i:s') . ' | Total Registros: ' . count($items) . '</td></tr>' . "\n";
     echo '<tr></tr>' . "\n";
 
-    if ($tipo === 'vida') {
+    if ($tipo === 'rifas') {
+      echo '<table border="1">' . "\n";
+      echo '<tr><td colspan="3" class="header-title">REPORTE DE BOLETAS DE RIFA</td></tr>' . "\n";
+      echo '<tr><td colspan="3" class="header-meta">Generado el: ' . date('d/m/Y H:i:s') . ' | Total Registros: ' . count($items) . '</td></tr>' . "\n";
+      echo '<tr></tr>' . "\n";
+      echo '<tr>' . "\n";
+      echo '  <th>c_c</th>' . "\n";
+      echo '  <th>numero_de_rifa_1</th>' . "\n";
+      echo '  <th>numero_de_rifa_2</th>' . "\n";
+      echo '</tr>' . "\n";
+
+      foreach ($items as $it) {
+        $cc_val = !empty($it['c_c']) ? $it['c_c'] : (!empty($it['documento']) ? $it['documento'] : '');
+        echo '<tr>' . "\n";
+        echo '  <td class="text-center">' . htmlspecialchars((string) $cc_val) . '</td>' . "\n";
+        echo '  <td class="text-center">' . htmlspecialchars((string) ($it['numero_de_rifa_1'] ?? '')) . '</td>' . "\n";
+        echo '  <td class="text-center">' . htmlspecialchars((string) ($it['numero_de_rifa_2'] ?? '')) . '</td>' . "\n";
+        echo '</tr>' . "\n";
+      }
+      echo '</table></body></html>' . "\n";
+      return ob_get_clean();
+    }
+    elseif ($tipo === 'vida') {
       echo '<tr>' . "\n";
       echo '  <th>SID</th>' . "\n";
       echo '  <th>FECHA</th>' . "\n";

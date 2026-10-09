@@ -90,7 +90,13 @@
     {% else %}
       <table class="reportes-table">
         <thead>
-          {% if tipo_reporte == 'vida' %}
+          {% if tipo_reporte == 'rifas' %}
+            <tr>
+              <th style="text-align: center; width: 34%;">{{ 'c_c'|t }}</th>
+              <th style="text-align: center; width: 33%;">{{ 'numero_de_rifa_1'|t }}</th>
+              <th style="text-align: center; width: 33%;">{{ 'numero_de_rifa_2'|t }}</th>
+            </tr>
+          {% elseif tipo_reporte == 'vida' %}
             <tr>
               <th>{{ 'SID'|t }}</th>
               <th>{{ 'Fecha'|t }}</th>
@@ -125,12 +131,31 @@
         <tbody>
           {% for item in items %}
             <tr>
-              <td class="reportes-table__sid">#{{ item.sid }}</td>
-              <td style="white-space: nowrap;">{{ item.fecha }}</td>
-              <td style="font-weight: 600; color: #111827;">{{ item.nombre|default('N/A') }}</td>
-              <td style="white-space: nowrap;">{{ item.tipo_documento }} {{ item.documento }}</td>
+              {% if tipo_reporte == 'rifas' %}
+                <td style="text-align: center; font-weight: 600; color: #111827; font-size: 0.95rem;">
+                  {{ item.c_c|default(item.documento|default('-')) }}
+                </td>
+                <td style="text-align: center;">
+                  {% if item.numero_de_rifa_1 %}
+                    <span class="reportes-rifa-badge" style="font-size: 1rem; padding: 4px 14px;">{{ item.numero_de_rifa_1 }}</span>
+                  {% else %}
+                    <span style="color: #9ca3af; font-size: 0.85rem;">-</span>
+                  {% endif %}
+                </td>
+                <td style="text-align: center;">
+                  {% if item.numero_de_rifa_2 %}
+                    <span class="reportes-rifa-badge" style="font-size: 1rem; padding: 4px 14px;">{{ item.numero_de_rifa_2 }}</span>
+                  {% else %}
+                    <span style="color: #9ca3af; font-size: 0.85rem;">-</span>
+                  {% endif %}
+                </td>
+              {% else %}
+                <td class="reportes-table__sid">#{{ item.sid }}</td>
+                <td style="white-space: nowrap;">{{ item.fecha }}</td>
+                <td style="font-weight: 600; color: #111827;">{{ item.nombre|default('N/A') }}</td>
+                <td style="white-space: nowrap;">{{ item.tipo_documento }} {{ item.documento }}</td>
 
-              {% if tipo_reporte == 'vida' %}
+                {% if tipo_reporte == 'vida' %}
                 <td>{{ item.email|default('N/A') }}</td>
                 <td style="white-space: nowrap;">{{ item.telefono|default('N/A') }}</td>
                 <td>{{ item.ocupacion }} {% if item.cargo %}<small style="color: #6b7280;">({{ item.cargo }})</small>{% endif %}</td>
@@ -252,6 +277,7 @@
                   </a>
                 </div>
               </td>
+              {% endif %}
             </tr>
           {% endfor %}
         </tbody>

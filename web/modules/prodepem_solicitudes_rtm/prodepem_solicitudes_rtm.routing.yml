@@ -166,3 +166,11 @@ prodepem_solicitudes_rtm.reportes_equidad_exportar:
     _title: 'Exportar Reporte XLS'
   requirements:
     _permission: 'administer rtm solicitudes'
+
+prodepem_solicitudes_rtm.reporte_rifas:
+  path: '/admin/config/prodepem/rtm-admin/reportes-equidad/rifas'
+  defaults:
+    _controller: '\Drupal\prodepem_solicitudes_rtm\Controller\EquidadReportesController::reporteRifas'
+    _title: 'Reporte de Boletas de Rifa'
+  requirements:
+    _permission: 'administer rtm solicitudes'

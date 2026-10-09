@@ -4,7 +4,7 @@
  * Template for Reportes de Equidad Seguros - Panel Central.
  *
  * Variables:
- * - stats: Array con total, aspu y foneducor.
+ * - stats: Array con total, aspu y rifas.
  */
 #}
 <div class="reportes-equidad-container">
@@ -15,7 +15,7 @@
         {{ 'Reportes de Equidad Seguros'|t }}
       </h2>
       <p class="reportes-header__desc">
-        {{ 'Gestión consolidada de respuestas del formulario de asegurabilidad para ASPU y FONEDUCOR con filtros, visualización de sumisiones y exportación a Excel.'|t }}
+        {{ 'Gestión consolidada de respuestas del formulario de asegurabilidad con filtros, visualización de sumisiones y exportación a Excel.'|t }}
       </p>
     </div>
     <div style="display: flex; gap: 0.5rem;">
@@ -36,12 +36,12 @@
       <div style="font-size: 1.85rem; font-weight: 800; color: #5b21b6; margin-top: 0.2rem;">{{ stats.aspu|default(0) }}</div>
     </div>
     <div style="flex: 1; min-width: 200px; background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 10px; padding: 1.15rem 1.25rem;">
-      <div style="font-size: 0.8rem; font-weight: 600; color: #16a34a; text-transform: uppercase;">{{ 'Tomador FONEDUCOR'|t }}</div>
-      <div style="font-size: 1.85rem; font-weight: 800; color: #065f46; margin-top: 0.2rem;">{{ stats.foneducor|default(0) }}</div>
+      <div style="font-size: 0.8rem; font-weight: 600; color: #16a34a; text-transform: uppercase;">{{ 'Con Boletas de Rifa'|t }}</div>
+      <div style="font-size: 1.85rem; font-weight: 800; color: #065f46; margin-top: 0.2rem;">{{ stats.rifas|default(0) }}</div>
     </div>
   </div>
 
-  <!-- Grid de 4 Reportes -->
+  <!-- Grid de Reportes -->
   <div class="reportes-grid">
     <!-- Reporte 1: ASPU Seguro de Vida -->
     <div class="reportes-card">
@@ -52,7 +52,7 @@
         <span class="reportes-badge reportes-badge--aspu">ASPU</span>
         <h3 class="reportes-card__title" style="margin-top: 0.5rem;">{{ 'Reporte ASPU (Seguro de Vida)'|t }}</h3>
         <p class="reportes-card__desc">
-          {{ 'Respuestas de declaración de asegurabilidad exclusivas para el tomador ASPU. Incluye datos personales, laborales, valor asegurado, beneficiarios y salud.'|t }}
+          {{ 'Respuestas de declaración de asegurabilidad del tomador ASPU. Incluye datos personales, laborales, valor asegurado, beneficiarios y salud.'|t }}
         </p>
       </div>
       <div class="reportes-card__actions">
@@ -65,29 +65,7 @@
       </div>
     </div>
 
-    <!-- Reporte 2: FONEDUCOR Seguro de Vida -->
-    <div class="reportes-card">
-      <div>
-        <div class="reportes-card__icon" style="color: #059669;">
-          <i class="fa-solid fa-file-signature"></i>
-        </div>
-        <span class="reportes-badge reportes-badge--foneducor">FONEDUCOR</span>
-        <h3 class="reportes-card__title" style="margin-top: 0.5rem;">{{ 'Reporte FONEDUCOR (Seguro de Vida)'|t }}</h3>
-        <p class="reportes-card__desc">
-          {{ 'Respuestas de declaración de asegurabilidad exclusivas para FONEDUCOR (Fondo de Empleados Docentes Universidad de Córdoba).'|t }}
-        </p>
-      </div>
-      <div class="reportes-card__actions">
-        <a href="{{ path('prodepem_solicitudes_rtm.reporte_foneducor') }}" class="btn-reporte btn-reporte--primary btn-reporte--sm">
-          <i class="fa-solid fa-table-list"></i> {{ 'Ver Reporte'|t }}
-        </a>
-        <a href="{{ path('prodepem_solicitudes_rtm.reportes_equidad_exportar', {'reporte': 'foneducor'}) }}" class="btn-reporte btn-reporte--excel btn-reporte--sm">
-          <i class="fa-solid fa-file-excel"></i> {{ 'Descargar XLS'|t }}
-        </a>
-      </div>
-    </div>
-
-    <!-- Reporte 3: ASPU Adicionales & Rifa -->
+    <!-- Reporte 2: ASPU Adicionales & Rifa -->
     <div class="reportes-card">
       <div>
         <div class="reportes-card__icon" style="color: #8b5cf6;">
@@ -109,23 +87,23 @@
       </div>
     </div>
 
-    <!-- Reporte 4: FONEDUCOR Adicionales & Rifa -->
+    <!-- Reporte 3: Boletas de Rifa (c_c, numero_de_rifa_1, numero_de_rifa_2) -->
     <div class="reportes-card">
       <div>
         <div class="reportes-card__icon" style="color: #10b981;">
           <i class="fa-solid fa-gift"></i>
         </div>
-        <span class="reportes-badge reportes-badge--foneducor">FONEDUCOR • Datos Complementarios</span>
-        <h3 class="reportes-card__title" style="margin-top: 0.5rem;">{{ 'Reporte FONEDUCOR (Datos Complementarios)'|t }}</h3>
+        <span class="reportes-badge" style="background-color: #ecfdf5; color: #047857;">RIFAS • c_c, rifa_1, rifa_2</span>
+        <h3 class="reportes-card__title" style="margin-top: 0.5rem;">{{ 'Reporte de Boletas de Rifa'|t }}</h3>
         <p class="reportes-card__desc">
-          {{ 'Datos comerciales complementarios: ampliar amparo de vida y motivo, seguros de interés (SOAT, todo riesgo, hogar, adicionales), placa y números de rifa (FONEDUCOR).'|t }}
+          {{ 'Reporte enfocado exclusivamente en las boletas asignadas: cédula de ciudadanía (c_c), número de rifa 1 y número de rifa 2.'|t }}
         </p>
       </div>
       <div class="reportes-card__actions">
-        <a href="{{ path('prodepem_solicitudes_rtm.reporte_foneducor_adicionales') }}" class="btn-reporte btn-reporte--primary btn-reporte--sm">
+        <a href="{{ path('prodepem_solicitudes_rtm.reporte_rifas') }}" class="btn-reporte btn-reporte--primary btn-reporte--sm">
           <i class="fa-solid fa-table-list"></i> {{ 'Ver Reporte'|t }}
         </a>
-        <a href="{{ path('prodepem_solicitudes_rtm.reportes_equidad_exportar', {'reporte': 'foneducor-adicionales'}) }}" class="btn-reporte btn-reporte--excel btn-reporte--sm">
+        <a href="{{ path('prodepem_solicitudes_rtm.reportes_equidad_exportar', {'reporte': 'rifas'}) }}" class="btn-reporte btn-reporte--excel btn-reporte--sm">
           <i class="fa-solid fa-file-excel"></i> {{ 'Descargar XLS'|t }}
         </a>
       </div>
