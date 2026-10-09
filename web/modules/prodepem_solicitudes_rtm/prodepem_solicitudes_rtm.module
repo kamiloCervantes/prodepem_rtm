@@ -232,7 +232,12 @@ function prodepem_solicitudes_rtm_form_alter(&$form, FormStateInterface $form_st
   }
 
   // Check if the form is for 'formulario_equidad_seguros'.
-  if ($form_id === 'webform_submission_formulario_equidad_seguros_add_form' || strpos($form_id, 'webform_submission_formulario_equidad_seguros') === 0) {
+  $is_equidad_form = (
+    $form_id === 'webform_submission_formulario_equidad_seguros_add_form' ||
+    strpos($form_id, 'webform_submission_formulario_equidad_seguros') === 0 ||
+    (isset($form['#webform_id']) && $form['#webform_id'] === 'formulario_equidad_seguros')
+  );
+  if ($is_equidad_form) {
     // Attach custom library for styles and gestures.
     $form['#attached']['library'][] = 'prodepem_solicitudes_rtm/formulario_equidad_seguros';
 
