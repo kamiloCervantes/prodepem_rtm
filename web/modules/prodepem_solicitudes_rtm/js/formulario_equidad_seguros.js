@@ -94,6 +94,28 @@
           const isBeneficiariosTable = percentColIndex !== -1 || wrapperText.includes('beneficiar') || (table.getAttribute('data-drupal-selector') || '').includes('beneficiar') || (table.id || '').includes('beneficiar');
 
           if (isBeneficiariosTable) {
+            const isTableInCurrentStep = function () {
+              if (!table) return false;
+              if (table.offsetParent === null) {
+                return false;
+              }
+              const rect = table.getBoundingClientRect();
+              return rect.width > 0 && rect.height > 0;
+            };
+
+            const isFinalSubmitButton = function (btn) {
+              if (!btn) return false;
+              const name = (btn.name || '').toLowerCase();
+              const drupalSelector = (btn.getAttribute('data-drupal-selector') || '').toLowerCase();
+              const cls = btn.className || '';
+              if (cls.includes('webform-button--next') || cls.includes('webform-button--previous') ||
+                  name.includes('wizard_next') || name.includes('wizard_prev') ||
+                  drupalSelector.includes('wizard-next') || drupalSelector.includes('wizard-prev')) {
+                return false;
+              }
+              return cls.includes('webform-button--submit') || name === 'op' || drupalSelector.includes('submit') || btn.type === 'submit';
+            };
+
             const getPercentInputs = function () {
               if (percentColIndex !== -1) {
                 const rows = table.querySelectorAll('tbody tr');
@@ -208,7 +230,7 @@
               tableHasBeenFocused = true;
             });
 
-            // Detectar cuando la tabla pierde el foco
+            // Detectar cuando la tabla pierde el foco (solo validar si la tabla está en el paso actual)
             tableWrapper.addEventListener('focusout', function () {
               setTimeout(function () {
                 const activeEl = document.activeElement;
@@ -216,8 +238,8 @@
                 if (activeEl && tableWrapper.contains(activeEl)) {
                   return;
                 }
-                // La tabla ha perdido el foco por completo
-                if (tableHasBeenFocused) {
+                // La tabla ha perdido el foco por completo; validar solo en el paso 2 (cuando la tabla está visible)
+                if (tableHasBeenFocused && isTableInCurrentStep()) {
                   validateBeneficiariosPorcentaje(true);
                 }
               }, 80);
@@ -225,25 +247,38 @@
 
             // Actualización dinámica en tiempo real si ya se mostró mensaje de validación
             tableWrapper.addEventListener('input', function () {
-              if (feedbackEl.style.display !== 'none') {
+              if (feedbackEl.style.display !== 'none' && isTableInCurrentStep()) {
                 validateBeneficiariosPorcentaje(true);
               }
             });
 
-            // Validar al presionar Siguiente o Enviar
+            // Validar al presionar Siguiente en el Paso 2 o al presionar Enviar al final si el error persiste
             const forwardButtons = form.querySelectorAll(
               '.webform-button--next, [data-drupal-selector*="wizard-next"], input[name="wizard_next"], button[name="wizard_next"], .webform-button--submit, [data-drupal-selector*="submit"], input[type="submit"]'
             );
 
             forwardButtons.forEach(function (btn) {
               btn.addEventListener('click', function (e) {
+                const isCurrent = isTableInCurrentStep();
+                const isFinal = isFinalSubmitButton(btn);
+
+                // La validación solo debe actuar en el paso 2 de beneficiarios o al final si el error persiste
+                if (!isCurrent && !isFinal) {
+                  return; // En el paso 1 u otros pasos donde la tabla no está visible, permitir avance sin bloquear
+                }
+
                 const res = calculateBeneficiariosTotal();
                 if (res.hasAnyValue || res.hasAnyRowData) {
-                  const isValid = validateBeneficiariosPorcentaje(true);
-                  if (!isValid) {
+                  if (res.sum !== 100) {
                     e.preventDefault();
                     e.stopPropagation();
-                    table.scrollIntoView({ behavior: 'smooth', block: 'center' });
+
+                    if (isCurrent) {
+                      validateBeneficiariosPorcentaje(true);
+                      table.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    } else if (isFinal) {
+                      alert('El porcentaje total de los beneficiarios en el Paso 2 debe ser igual a 100% (suma actual: ' + res.sum + '%). Por favor revise el paso de beneficiarios.');
+                    }
                   }
                 }
               }, true);

@@ -477,8 +477,37 @@ function prodepem_solicitudes_rtm_formulario_touch_validate(&$form, FormStateInt
  */
 function prodepem_solicitudes_rtm_formulario_equidad_seguros_validate(array &$form, FormStateInterface $form_state) {
   $trigger = $form_state->getTriggeringElement();
-  if (!empty($trigger['#name']) && strpos((string) $trigger['#name'], 'prev') !== FALSE) {
-    // Si se presiona "Anterior", no bloquear la navegación.
+  $trigger_name = !empty($trigger['#name']) ? (string) $trigger['#name'] : '';
+
+  // Si se presiona "Anterior", no bloquear la navegación.
+  if (strpos($trigger_name, 'prev') !== FALSE) {
+    return;
+  }
+
+  // Verificar si estamos en el paso visible de beneficiarios (Paso 2) o al final.
+  $is_element_visible = function (array $elements) use (&$is_element_visible) {
+    foreach ($elements as $k => $el) {
+      if (strpos((string) $k, '#') === 0) {
+        continue;
+      }
+      if (isset($el['#access']) && $el['#access'] === FALSE) {
+        continue;
+      }
+      if (stripos((string) $k, 'beneficiar') !== FALSE) {
+        return TRUE;
+      }
+      if (is_array($el) && $is_element_visible($el)) {
+        return TRUE;
+      }
+    }
+    return FALSE;
+  };
+
+  $is_beneficiarios_step = $is_element_visible($form['elements'] ?? []);
+  $is_final_submit = ($trigger_name !== 'wizard_next' && $trigger_name !== 'wizard_prev');
+
+  // La validación solo debe aparecer en el paso 2 del wizard de beneficiarios o al final si el error persiste.
+  if (!$is_beneficiarios_step && !$is_final_submit) {
     return;
   }
 
