@@ -309,8 +309,7 @@ function prodepem_solicitudes_rtm_form_alter(&$form, FormStateInterface $form_st
       $set_tomador_defaults($form['elements']);
     }
 
-    // Validador personalizado para el porcentaje total de beneficiarios.
-    $form['#validate'][] = 'prodepem_solicitudes_rtm_formulario_equidad_seguros_validate';
+
   }
 }
 
@@ -472,89 +471,5 @@ function prodepem_solicitudes_rtm_formulario_touch_validate(&$form, FormStateInt
 
   if ($otp_result != 1) {
     $form_state->setErrorByName('codigo_de_verificacion', t('No se pudo validar el numero de telefono del cliente'));
-  }
-}
-
-
-/**
- * Validación para formulario_equidad_seguros:
- * Verifica que el porcentaje total de los beneficiarios sea igual a 100%.
- */
-function prodepem_solicitudes_rtm_formulario_equidad_seguros_validate(array &$form, FormStateInterface $form_state) {
-  $trigger = $form_state->getTriggeringElement();
-  $trigger_name = !empty($trigger['#name']) ? (string) $trigger['#name'] : '';
-
-  // Permitir la navegación libre en el wizard: no bloquear en "wizard_next" ni en "wizard_prev".
-  if ($trigger_name === 'wizard_next' || strpos($trigger_name, 'prev') !== FALSE) {
-    return;
-  }
-
-  // La validación que bloquea en el servidor se ejecuta al final en el envío del formulario si el error persiste.
-  $is_final_submit = ($trigger_name !== 'wizard_next' && $trigger_name !== 'wizard_prev');
-  if (!$is_final_submit) {
-    return;
-  }
-
-  $values = $form_state->getValues();
-  $candidates = [
-    'beneficiarios',
-    'tabla_beneficiarios',
-    'escriba_el_nombre_de_los_beneficiarios_de_este_seguro_y_su_respectivo_porcentaje',
-    'datos_beneficiarios',
-  ];
-
-  $bene_data = NULL;
-  $field_key = NULL;
-  foreach ($candidates as $cand) {
-    if (isset($values[$cand]) && is_array($values[$cand])) {
-      $bene_data = $values[$cand];
-      $field_key = $cand;
-      break;
-    }
-  }
-
-  if (!$bene_data) {
-    foreach ($values as $k => $v) {
-      if (is_array($v) && stripos((string) $k, 'beneficiar') !== FALSE) {
-        $bene_data = $v;
-        $field_key = $k;
-        break;
-      }
-    }
-  }
-
-  if ($bene_data && is_array($bene_data)) {
-    $items = isset($bene_data['items']) && is_array($bene_data['items']) ? $bene_data['items'] : $bene_data;
-    $total_porcentaje = 0;
-    $has_filled_rows = FALSE;
-
-    foreach ($items as $item) {
-      if (!is_array($item)) {
-        continue;
-      }
-      $row_filled = FALSE;
-      foreach ($item as $k => $v) {
-        if (!empty(trim((string) $v))) {
-          $row_filled = TRUE;
-          break;
-        }
-      }
-      if ($row_filled) {
-        $has_filled_rows = TRUE;
-        foreach ($item as $k => $v) {
-          if (stripos((string) $k, 'porcent') !== FALSE || $k === '%') {
-            $num = floatval(str_replace(',', '.', (string) $v));
-            $total_porcentaje += $num;
-            break;
-          }
-        }
-      }
-    }
-
-    if ($has_filled_rows && round($total_porcentaje, 2) !== 100.0) {
-      $form_state->setErrorByName($field_key ?: 'beneficiarios', t('El total de los porcentajes de los beneficiarios debe ser igual al 100% (la suma actual es @total%).', [
-        '@total' => round($total_porcentaje, 2),
-      ]));
-    }
   }
 }

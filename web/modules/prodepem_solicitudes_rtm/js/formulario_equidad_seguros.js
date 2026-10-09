@@ -1,6 +1,6 @@
 /**
  * @file
- * Mobile swipe navigation, table validation, and styling enhancements
+ * Mobile swipe navigation, dynamic table percentage calculator, and styling enhancements
  * for formulario_equidad_seguros using pure Vanilla JavaScript.
  */
 
@@ -38,7 +38,6 @@
    * Obtiene los inputs de porcentaje de una tabla de beneficiarios.
    */
   function getPercentageInputs(table) {
-    // 1. Buscar por índice de columna de encabezado '%'
     let percentColIndex = -1;
     const headers = table.querySelectorAll('thead th, tr:first-child th');
     for (let i = 0; i < headers.length; i++) {
@@ -65,7 +64,6 @@
       }
     }
 
-    // 2. Buscar por nombre de campo
     const byName = table.querySelectorAll('input[name*="porcent"], input[name*="porcentaje"], input[data-drupal-selector*="porcent"]');
     if (byName.length > 0) {
       return Array.from(byName);
@@ -75,7 +73,7 @@
   }
 
   /**
-   * Calcula el total de los porcentajes y detecta si hay filas diligenciadas.
+   * Calcula el total del porcentaje asignado en la tabla.
    */
   function calculateBeneficiariosTotal(table) {
     const inputs = getPercentageInputs(table);
@@ -93,7 +91,6 @@
       }
     });
 
-    // Detectar si alguna fila tiene campos diligenciados
     const rows = table.querySelectorAll('tbody tr');
     let hasAnyRowData = false;
     rows.forEach(function (row) {
@@ -108,47 +105,48 @@
     return {
       sum: Math.round(sum * 100) / 100,
       inputs: inputs,
+      rowsCount: rows.length,
       hasAnyValue: hasAnyValue,
       hasAnyRowData: hasAnyRowData
     };
   }
 
   /**
-   * Obtiene o crea el elemento de feedback visual debajo de la tabla.
+   * Obtiene o crea el elemento de feedback debajo de la tabla.
    */
   function getOrCreateFeedbackEl(table) {
     let feedbackEl = table.parentNode.querySelector('.beneficiarios-porcentaje-feedback');
     if (!feedbackEl) {
       feedbackEl = document.createElement('div');
       feedbackEl.className = 'beneficiarios-porcentaje-feedback';
-      feedbackEl.style.display = 'none';
       table.parentNode.insertBefore(feedbackEl, table.nextSibling);
     }
     return feedbackEl;
   }
 
   /**
-   * Valida la tabla de beneficiarios y actualiza el mensaje de feedback.
+   * Actualiza el mensaje visual con el total del porcentaje debajo de la tabla.
+   * Se muestra advertencia cuando el total es diferente a 100.
    */
-  function validateBeneficiariosTable(table, showValidation) {
-    if (!isBeneficiariosTable(table)) return true;
+  function updateBeneficiariosTotalMessage(table) {
+    if (!isBeneficiariosTable(table)) return;
 
     const res = calculateBeneficiariosTotal(table);
     const feedbackEl = getOrCreateFeedbackEl(table);
 
-    // Si la tabla no tiene ninguna fila diligenciada ni porcentaje escrito
-    if (!res.hasAnyValue && !res.hasAnyRowData) {
+    // Si la tabla no tiene filas o está completamente en blanco
+    if (res.rowsCount === 0 || (!res.hasAnyValue && !res.hasAnyRowData)) {
       feedbackEl.style.display = 'none';
       table.classList.remove('beneficiarios-table--error');
       res.inputs.forEach(function (inp) {
         inp.classList.remove('beneficiarios-porcentaje-input--error');
         inp.classList.remove('beneficiarios-porcentaje-input--valid');
       });
-      return true;
+      return;
     }
 
     if (res.sum === 100) {
-      // Válido: Total es exactamente 100%
+      // Correcto: Total igual a 100%
       feedbackEl.className = 'beneficiarios-porcentaje-feedback beneficiarios-porcentaje-feedback--valid';
       feedbackEl.innerHTML = '<span class="feedback-icon">✓</span> Total porcentaje asignado: <strong>100%</strong>';
       feedbackEl.style.display = 'flex';
@@ -159,104 +157,80 @@
           inp.classList.add('beneficiarios-porcentaje-input--valid');
         }
       });
-      return true;
     } else {
-      // Inválido: La suma es diferente a 100%
-      if (showValidation) {
-        feedbackEl.className = 'beneficiarios-porcentaje-feedback beneficiarios-porcentaje-feedback--error';
-        feedbackEl.innerHTML = '<span class="feedback-icon">⚠</span> El porcentaje total de los beneficiarios debe ser igual a <strong>100%</strong>. (Total actual: <strong>' + res.sum + '%</strong>)';
-        feedbackEl.style.display = 'flex';
-        table.classList.add('beneficiarios-table--error');
-        res.inputs.forEach(function (inp) {
-          inp.classList.remove('beneficiarios-porcentaje-input--valid');
-          inp.classList.add('beneficiarios-porcentaje-input--error');
-        });
-      }
-      return false;
+      // Advertencia: Total diferente a 100%
+      feedbackEl.className = 'beneficiarios-porcentaje-feedback beneficiarios-porcentaje-feedback--error';
+      feedbackEl.innerHTML = '<span class="feedback-icon">⚠</span> Total porcentaje asignado: <strong>' + res.sum + '%</strong>. La suma debe ser igual a <strong>100%</strong>.';
+      feedbackEl.style.display = 'flex';
+      table.classList.add('beneficiarios-table--error');
+      res.inputs.forEach(function (inp) {
+        inp.classList.remove('beneficiarios-porcentaje-input--valid');
+        inp.classList.add('beneficiarios-porcentaje-input--error');
+      });
     }
   }
 
   // =========================================================================
-  // Delegación de eventos en puro Vanilla JS (funciona siempre, incluso con AJAX)
+  // Observadores y Eventos en tiempo real para calcular automáticamente
   // =========================================================================
 
-  // 1. Pérdida de foco en la tabla de beneficiarios (focusout)
-  document.addEventListener('focusout', function (e) {
-    const table = e.target.closest('table');
-    if (!table || !isBeneficiariosTable(table)) {
-      return;
-    }
-
-    setTimeout(function () {
-      const activeEl = document.activeElement;
-      // Si el nuevo elemento con foco sigue dentro de la misma tabla, no validar todavía
-      if (activeEl && table.contains(activeEl)) {
-        return;
-      }
-      // La tabla perdió el foco: validar y mostrar mensaje
-      validateBeneficiariosTable(table, true);
-    }, 70);
-  });
-
-  // 2. Actualización en tiempo real al escribir en la tabla si ya se mostró feedback
+  // 1. Recalcular al escribir o modificar cualquier campo de la tabla
   document.addEventListener('input', function (e) {
     const table = e.target.closest('table');
-    if (!table || !isBeneficiariosTable(table)) {
-      return;
-    }
-    const feedbackEl = table.parentNode.querySelector('.beneficiarios-porcentaje-feedback');
-    if (feedbackEl && feedbackEl.style.display !== 'none') {
-      validateBeneficiariosTable(table, true);
+    if (table && isBeneficiariosTable(table)) {
+      updateBeneficiariosTotalMessage(table);
     }
   });
 
-  // 3. Manejo de botones de navegación (Siguiente) y Envío final
+  document.addEventListener('change', function (e) {
+    const table = e.target.closest('table');
+    if (table && isBeneficiariosTable(table)) {
+      updateBeneficiariosTotalMessage(table);
+    }
+  });
+
+  // 2. Recalcular al perder el foco la tabla
+  document.addEventListener('focusout', function (e) {
+    const table = e.target.closest('table');
+    if (table && isBeneficiariosTable(table)) {
+      setTimeout(function () {
+        updateBeneficiariosTotalMessage(table);
+      }, 50);
+    }
+  });
+
+  // 3. Recalcular cuando se hace clic en botones para agregar o eliminar filas
   document.addEventListener('click', function (e) {
-    const btn = e.target.closest('button, input[type="submit"], input[type="button"]');
-    if (!btn) return;
-
-    const form = btn.closest('.webform-submission-formulario-equidad-seguros-add-form, .formulario-equidad-seguros');
-    if (!form) return;
-
-    const table = form.querySelector('.webform-multiple-table, table');
-    if (!table || !isBeneficiariosTable(table)) return;
-
-    const name = (btn.name || '').toLowerCase();
-    const drupalSelector = (btn.getAttribute('data-drupal-selector') || '').toLowerCase();
-    const cls = btn.className || '';
-
-    const isNextButton = cls.includes('webform-button--next') || name.includes('wizard_next') || drupalSelector.includes('wizard-next');
-    const isPrevButton = cls.includes('webform-button--previous') || name.includes('wizard_prev') || drupalSelector.includes('wizard-prev');
-    const isFinalSubmit = (cls.includes('webform-button--submit') || name === 'op' || drupalSelector.includes('submit') || btn.type === 'submit') && !isNextButton && !isPrevButton;
-
-    if (isNextButton) {
-      // En el Paso 2 (tabla visible): actualizar alerta visual si hay error pero PERMITIR navegar en el wizard
-      if (table.offsetParent !== null) {
-        const res = calculateBeneficiariosTotal(table);
-        if (res.hasAnyValue || res.hasAnyRowData) {
-          if (res.sum !== 100) {
-            validateBeneficiariosTable(table, true);
-            // NO bloqueamos para permitir navegación libre entre pasos
+    const target = e.target;
+    // Si se hace clic en botones de agregar fila, eliminar fila o drag
+    if (target.matches('input[type="submit"], button, .button, [value*="Agregar"], [value*="add"], [value*="Eliminar"], [value*="remove"]') ||
+        target.closest('.webform-multiple-add, .webform-multiple-table-operations')) {
+      setTimeout(function () {
+        const tables = document.querySelectorAll('.webform-multiple-table, table');
+        tables.forEach(function (table) {
+          if (isBeneficiariosTable(table)) {
+            updateBeneficiariosTotalMessage(table);
           }
-        }
-      }
-      return;
+        });
+      }, 250);
     }
+  });
 
-    if (isFinalSubmit) {
-      // Al final del formulario: si el error persiste, bloquear el envío
-      const res = calculateBeneficiariosTotal(table);
-      if ((res.hasAnyValue || res.hasAnyRowData) && res.sum !== 100) {
-        e.preventDefault();
-        e.stopPropagation();
-        validateBeneficiariosTable(table, true);
-        alert('Atención: El porcentaje total de los beneficiarios debe ser igual a 100% (la suma actual es ' + res.sum + '%). Por favor revise el Paso 2 de beneficiarios antes de enviar la solicitud.');
-      }
-    }
-  }, true);
+  // 4. Observar mutaciones en el DOM para cuando Drupal inserte nuevas filas <tr> en la tabla
+  function attachTableObserver(table) {
+    if (table.dataset.observerAttached) return;
+    table.dataset.observerAttached = 'true';
+
+    const observer = new MutationObserver(function () {
+      updateBeneficiariosTotalMessage(table);
+    });
+
+    const tbody = table.querySelector('tbody') || table;
+    observer.observe(tbody, { childList: true, subtree: true });
+  }
 
   /**
-   * Inicialización de mejoras estéticas y gestos en Vanilla JS.
+   * Inicialización de mejoras estéticas, cálculos y gestos en Vanilla JS.
    */
   function initVanillaEnhancements(root) {
     const context = root || document;
@@ -314,7 +288,7 @@
         }
       });
 
-      // 4. Ancho para columna "Tipo de documento"
+      // 4. Tablas de beneficiarios: columna tipo doc, observador de nuevas filas y cálculo inicial
       const tables = form.querySelectorAll('.webform-multiple-table, table');
       tables.forEach(function (table) {
         const headers = table.querySelectorAll('th');
@@ -331,6 +305,11 @@
             });
           }
         });
+
+        if (isBeneficiariosTable(table)) {
+          attachTableObserver(table);
+          updateBeneficiariosTotalMessage(table);
+        }
       });
 
       // 5. Swipe Navigation
