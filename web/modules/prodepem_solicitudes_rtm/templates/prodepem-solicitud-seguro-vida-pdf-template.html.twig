@@ -326,12 +326,12 @@
             margin-top: 1px;
         }
         .footer-left {
-            width: 73%;
+            width: 76%;
             vertical-align: top;
-            padding-right: 8px;
+            padding-right: 10px;
         }
         .footer-right {
-            width: 27%;
+            width: 24%;
             vertical-align: top;
             text-align: right;
         }
@@ -342,25 +342,25 @@
             color: #000000;
         }
         .huella-box-border {
-            border: 0.7pt solid #000000;
-            width: 130px;
-            height: 42px;
-            float: right;
-            text-align: center;
+            border: 0.75pt solid #000000;
+            border-radius: 8px;
+            width: 82px;
+            height: 62px;
+            margin-left: auto;
+            margin-right: 0;
             background-color: #ffffff;
             box-sizing: border-box;
         }
-        .huella-box-border .huella-label {
-            font-size: 5pt;
-            color: #333333;
+        .doc-code-right {
+            width: 82px;
+            margin-left: auto;
+            margin-right: 0;
+            text-align: center;
+            font-size: 5.4pt;
+            color: #000000;
             margin-top: 2px;
-        }
-        .doc-code {
-            text-align: right;
-            font-size: 5.5pt;
-            color: #333333;
-            margin-top: 1px;
-            clear: both;
+            font-family: Arial, Helvetica, sans-serif;
+            letter-spacing: 0.1px;
         }
     </style>
 </head>
@@ -682,20 +682,37 @@
                 <div class="warning-text">
                     <strong>Importante:</strong> la falta de veracidad y exactitud de la información suministrada y consignada en este documento en todas sus partes será causal de nulidad del contrato de seguro; esta situación da derecho a la compañía de seguros a objetar cualquier posterior reclamación por omisión de información existente con anterioridad a la fecha de contratación del seguro <strong>(código de comercio, articulo 1058)</strong>.
                 </div>
-                <div style="margin-top: 6px; font-size: 6.2pt; color: #000000;">
-                    <strong>Asegurado:</strong> {{ data.nombre_completo|default('') }} &nbsp;&nbsp;&nbsp;&nbsp;
-                    <strong>Identificación:</strong> {{ data.tipo_de_documento|default('C.C.') }} {{ data.numero_de_documento|default('') }}
-                </div>
+
+                <table style="width: 100%; border-collapse: collapse; margin-top: 4px;">
+                    <tr>
+                        <td style="width: 1%; white-space: nowrap; font-size: 6.2pt; color: #000000; padding: 1px 4px 1px 0; vertical-align: bottom;">
+                            FIRMA DEL ASEGURADO:
+                        </td>
+                        <td style="border-bottom: 0.6pt solid #000000; vertical-align: bottom; height: 11px;">
+                            &nbsp;
+                        </td>
+                    </tr>
+                    <tr>
+                        <td colspan="2" style="font-size: 6.2pt; color: #000000; padding: 4px 0 3px 0; vertical-align: middle;">
+                            Autoriza Ingreso:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Si&nbsp;&nbsp;<span class="chk-box" style="width: 8.5px; height: 8.5px; line-height: 8px;">&nbsp;</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;No&nbsp;&nbsp;<span class="chk-box" style="width: 8.5px; height: 8.5px; line-height: 8px;">&nbsp;</span>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td style="width: 1%; white-space: nowrap; font-size: 6.2pt; color: #000000; padding: 1px 4px 1px 0; vertical-align: bottom;">
+                            Nombre y firma de quien autoriza
+                        </td>
+                        <td style="border-bottom: 0.6pt solid #000000; vertical-align: bottom; height: 11px;">
+                            &nbsp;
+                        </td>
+                    </tr>
+                </table>
             </td>
             <td class="footer-right">
-                <div class="huella-box-border">
-                    
-                </div>
+                <div class="huella-box-border"></div>
+                <div class="doc-code-right">SUS-FO-0006 (06-2026)</div>
             </td>
         </tr>
     </table>
-
-    <div class="doc-code">SUS-FO-0006 (06-2026)</div>
 
 </body>
 </html>

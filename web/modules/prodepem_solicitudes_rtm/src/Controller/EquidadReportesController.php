@@ -204,8 +204,14 @@ class EquidadReportesController extends ControllerBase {
    * Exportación de registros en formato XLS (Excel XML Spreadsheet).
    */
   public function exportarXls($reporte, Request $request) {
-    $tomador = (strpos($reporte, 'aspu') !== FALSE) ? 'aspu' : 'foneducor';
-    $tipo = (strpos($reporte, 'adicionales') !== FALSE) ? 'adicionales' : 'vida';
+    if ($reporte === 'rifas') {
+      $tomador = 'aspu';
+      $tipo = 'rifas';
+    }
+    else {
+      $tomador = (strpos($reporte, 'aspu') !== FALSE) ? 'aspu' : 'foneducor';
+      $tipo = (strpos($reporte, 'adicionales') !== FALSE) ? 'adicionales' : 'vida';
+    }
 
     $search = trim((string) $request->query->get('search', ''));
     $fecha_desde = trim((string) $request->query->get('fecha_desde', ''));
@@ -213,9 +219,14 @@ class EquidadReportesController extends ControllerBase {
 
     $items = $this->obtenerRegistrosFiltrados($tomador, $tipo, $search, $fecha_desde, $fecha_hasta);
 
-    $nombre_tomador = ($tomador === 'aspu') ? 'ASPU' : 'FONEDUCOR';
-    $tipo_nombre = ($tipo === 'adicionales') ? 'Datos_Complementarios' : 'Seguro_Vida';
-    $filename = 'reporte_' . strtolower($nombre_tomador) . '_' . $tipo_nombre . '_' . date('Ymd_His') . '.xls';
+    if ($tipo === 'rifas') {
+      $filename = 'reporte_boletas_rifa_' . date('Ymd_His') . '.xls';
+    }
+    else {
+      $nombre_tomador = ($tomador === 'aspu') ? 'ASPU' : 'FONEDUCOR';
+      $tipo_nombre = ($tipo === 'adicionales') ? 'Datos_Complementarios' : 'Seguro_Vida';
+      $filename = 'reporte_' . strtolower($nombre_tomador) . '_' . $tipo_nombre . '_' . date('Ymd_His') . '.xls';
+    }
 
     $xml = $this->construirXmlExcel($items, $tomador, $tipo);
 
@@ -292,7 +303,10 @@ class EquidadReportesController extends ControllerBase {
           $item['serial'],
           $item['nombre'],
           $item['documento'],
+          $item['c_c'] ?? '',
           $item['tipo_documento'],
+          $item['numero_de_rifa_1'] ?? '',
+          $item['numero_de_rifa_2'] ?? '',
           $item['email'],
           $item['telefono'],
           $item['ciudad'],
@@ -853,21 +867,18 @@ class EquidadReportesController extends ControllerBase {
     $sids = $query->execute();
 
     $aspu_count = 0;
-    $foneducor_count = 0;
+    $rifas_count = 0;
     $total = count($sids);
 
     if (!empty($sids)) {
       $subs = $storage->loadMultiple($sids);
       foreach ($subs as $sub) {
         $raw = $sub->getData();
-        $selector = (string) ($raw['selector_tomador'] ?? '2');
-        $tomador_text = mb_strtolower((string) ($raw['tomador'] ?? ''));
-
-        if ($selector === '1' || strpos($tomador_text, 'fondo') !== FALSE || strpos($tomador_text, 'cordoba') !== FALSE || strpos($tomador_text, 'foneducor') !== FALSE) {
-          $foneducor_count++;
-        }
-        else {
-          $aspu_count++;
+        $aspu_count++;
+        $rifa1 = $raw['numero_de_rifa_1'] ?? $raw['numero_rifa_1'] ?? '';
+        $rifa2 = $raw['numero_de_rifa_2'] ?? $raw['numero_rifa_2'] ?? '';
+        if (!empty($rifa1) || !empty($rifa2)) {
+          $rifas_count++;
         }
       }
     }
@@ -875,7 +886,7 @@ class EquidadReportesController extends ControllerBase {
     return [
       'total' => $total,
       'aspu' => $aspu_count,
-      'foneducor' => $foneducor_count,
+      'rifas' => $rifas_count,
     ];
   }
 
