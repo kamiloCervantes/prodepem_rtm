@@ -240,8 +240,8 @@
                   <td>{{ b.tipo_doc }}</td>
                   <td>{{ b.num_doc }}</td>
                   <td>{{ b.parentesco }}</td>
-                  <td>{{ b.edad }}</td>
-                  <td style="text-align: right; font-weight: 700; color: #15803d;">{{ b.porcentaje }}%</td>
+                  <td>{{ b.edad ?: '-' }}</td>
+                  <td style="text-align: right; font-weight: 700; color: #15803d;">{{ b.porcentaje ? (b.porcentaje|replace({'%': ''}) ~ '%') : '-' }}</td>
                 </tr>
               {% endfor %}
             </tbody>

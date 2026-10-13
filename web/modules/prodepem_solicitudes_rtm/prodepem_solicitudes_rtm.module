@@ -309,8 +309,95 @@ function prodepem_solicitudes_rtm_form_alter(&$form, FormStateInterface $form_st
       $set_tomador_defaults($form['elements']);
     }
 
+    // Omitir la opción '- Ninguno -' en los selectores con opciones Sí / No.
+    $omit_ninguno_selects = function (&$elements) use (&$omit_ninguno_selects) {
+      foreach ($elements as $key => &$child) {
+        if (is_array($child) && strpos((string) $key, '#') !== 0) {
+          if (isset($child['#type']) && in_array($child['#type'], ['select', 'webform_select_other'])) {
+            unset($child['#empty_option']);
+            unset($child['#empty_value']);
+            if (isset($child['#options']) && is_array($child['#options'])) {
+              $has_yes = FALSE;
+              $has_no = FALSE;
+              foreach ($child['#options'] as $opt_k => $opt_v) {
+                $v_str = mb_strtolower(trim((string) (is_array($opt_v) ? '' : $opt_v)));
+                $k_str = mb_strtolower(trim((string) $opt_k));
+                if (in_array($v_str, ['si', 'sí', 'yes']) || in_array($k_str, ['si', 'sí', 'yes', '1'])) {
+                  $has_yes = TRUE;
+                }
+                if (in_array($v_str, ['no']) || in_array($k_str, ['no', '0'])) {
+                  $has_no = TRUE;
+                }
+              }
+              if ($has_yes && $has_no) {
+                unset($child['#options']['']);
+                unset($child['#options']['_none']);
+                foreach ($child['#options'] as $opt_k => $opt_v) {
+                  $v_str = mb_strtolower(trim((string) (is_array($opt_v) ? '' : $opt_v)));
+                  if (strpos($v_str, 'ninguno') !== FALSE || strpos($v_str, 'none') !== FALSE || $v_str === '-') {
+                    unset($child['#options'][$opt_k]);
+                  }
+                }
+              }
+            }
+          }
+          $omit_ninguno_selects($child);
+        }
+      }
+    };
+    if (isset($form['elements'])) {
+      $omit_ninguno_selects($form['elements']);
+    }
+
+    // Registrar after_build para garantizar que processSelect no reintroduzca '- Ninguno -'.
+    $form['#after_build'][] = 'prodepem_solicitudes_rtm_formulario_equidad_after_build';
 
   }
+}
+
+/**
+ * After build callback para formulario_equidad_seguros.
+ *
+ * Remueve la opción '- Ninguno -' de los selectores que contienen opciones Sí/No.
+ */
+function prodepem_solicitudes_rtm_formulario_equidad_after_build($form, FormStateInterface $form_state) {
+  $clean_selects = function (&$elements) use (&$clean_selects) {
+    foreach ($elements as $key => &$child) {
+      if (is_array($child) && strpos((string) $key, '#') !== 0) {
+        if (isset($child['#type']) && in_array($child['#type'], ['select', 'webform_select_other']) && isset($child['#options']) && is_array($child['#options'])) {
+          $has_yes = FALSE;
+          $has_no = FALSE;
+          foreach ($child['#options'] as $opt_k => $opt_v) {
+            $v_str = mb_strtolower(trim((string) (is_array($opt_v) ? '' : $opt_v)));
+            $k_str = mb_strtolower(trim((string) $opt_k));
+            if (in_array($v_str, ['si', 'sí', 'yes']) || in_array($k_str, ['si', 'sí', 'yes', '1'])) {
+              $has_yes = TRUE;
+            }
+            if (in_array($v_str, ['no']) || in_array($k_str, ['no', '0'])) {
+              $has_no = TRUE;
+            }
+          }
+
+          if ($has_yes && $has_no) {
+            unset($child['#empty_option']);
+            unset($child['#empty_value']);
+            unset($child['#options']['']);
+            unset($child['#options']['_none']);
+            foreach ($child['#options'] as $opt_k => $opt_v) {
+              $v_str = mb_strtolower(trim((string) (is_array($opt_v) ? '' : $opt_v)));
+              if (strpos($v_str, 'ninguno') !== FALSE || strpos($v_str, 'none') !== FALSE || $v_str === '-') {
+                unset($child['#options'][$opt_k]);
+              }
+            }
+          }
+        }
+        $clean_selects($child);
+      }
+    }
+  };
+
+  $clean_selects($form);
+  return $form;
 }
 
 /**

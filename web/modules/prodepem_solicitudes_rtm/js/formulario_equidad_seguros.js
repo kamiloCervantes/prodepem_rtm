@@ -275,6 +275,36 @@
         }
       });
 
+      // 2.1. Omitir la opción "- Ninguno -" en selectores con opciones Sí / No
+      const cleanNingunoSelects = function (container) {
+        const selects = container.querySelectorAll('select');
+        selects.forEach(function (select) {
+          const options = Array.from(select.options);
+          const hasYes = options.some(function (opt) {
+            const val = (opt.value || '').toLowerCase().trim();
+            const txt = (opt.textContent || '').toLowerCase().trim();
+            return val === 'si' || val === 'sí' || val === '1' || txt === 'sí' || txt === 'si';
+          });
+          const hasNo = options.some(function (opt) {
+            const val = (opt.value || '').toLowerCase().trim();
+            const txt = (opt.textContent || '').toLowerCase().trim();
+            return val === 'no' || val === '0' || txt === 'no';
+          });
+
+          if (hasYes && hasNo) {
+            for (let i = select.options.length - 1; i >= 0; i--) {
+              const opt = select.options[i];
+              const txt = (opt.textContent || '').toLowerCase().trim();
+              const val = (opt.value || '').toLowerCase().trim();
+              if (val === '' || val === '_none' || txt.includes('ninguno') || txt.includes('none') || txt === '-') {
+                opt.remove();
+              }
+            }
+          }
+        });
+      };
+      cleanNingunoSelects(form);
+
       // 3. Alineación de checkboxes
       const checkboxes = form.querySelectorAll('input[type="checkbox"], input[type="radio"]');
       checkboxes.forEach(function (cb) {

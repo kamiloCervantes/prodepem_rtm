@@ -420,19 +420,13 @@ class EquidadReportesController extends ControllerBase {
     $valor_asegurado = $raw['valor_asegurado_solicitado'] ?? $raw['valor_asegurado'] ?? '';
     $total_asegurado = $raw['total_valor_asegurado'] ?? $valor_asegurado;
 
-    // Beneficiarios resumen:
-    $beneficiarios_count = 0;
+    // Beneficiarios resumen (usar tabla_de_beneficiarios, o tabla_de_beneficiarios_2 si está vacía):
+    $beneficiarios = self::obtenerBeneficiariosNormalizados($raw);
+    $beneficiarios_count = count($beneficiarios);
     $beneficiarios_nombres = [];
-    $raw_bene = $raw['beneficiarios'] ?? $raw['tabla_beneficiarios'] ?? [];
-    if (is_array($raw_bene)) {
-      foreach ($raw_bene as $b) {
-        if (is_array($b) && (!empty($b['nombre']) || !empty($b['nombre_y_apellido']) || !empty($b['numero_de_documento']))) {
-          $beneficiarios_count++;
-          $b_name = $b['nombre_y_apellido'] ?? $b['nombre'] ?? '';
-          if (!empty($b_name)) {
-            $beneficiarios_nombres[] = $b_name;
-          }
-        }
+    foreach ($beneficiarios as $b) {
+      if (!empty($b['nombre'])) {
+        $beneficiarios_nombres[] = $b['nombre'];
       }
     }
 
@@ -554,7 +548,7 @@ class EquidadReportesController extends ControllerBase {
       'tipo_de_documento', 'tipo_documento', 'numero_de_documento', 'numero_documento', 'documento',
       'email', 'correo_electronico', 'trabaja_actualmente', 'trabaja_usted_actualmente',
       'ocupacion', 'cargo', 'fecha_de_nacimiento', 'fecha_nacimiento', 'estado_civil',
-      'valor_asegurado_solicitado', 'total_valor_asegurado', 'beneficiarios', 'tabla_beneficiarios',
+      'valor_asegurado_solicitado', 'total_valor_asegurado', 'beneficiarios', 'tabla_beneficiarios', 'tabla_de_beneficiarios', 'tabla_de_beneficiarios_2',
       'peso', 'estatura', 'explicacion_salud', 'explicacion_condiciones_salud', 'en_caso_de_haber_marcado_alguna_de_las_condiciones_anteriores_o',
       'esta_interesado_en_ampliar_el_amparo_de_vida', 'por_que', 'interesado_soat', 'interesado_todo_riesgo', 'interesado_hogar',
       'seguros_adicionales', 'placa', 'numero_de_rifa_1', 'numero_de_rifa_2',
@@ -633,23 +627,8 @@ class EquidadReportesController extends ControllerBase {
     $tomador_ciudad = 'Montería';
     $tomador_tel = $is_aspu ? '3242560489' : '3014619585';
 
-    // Beneficiarios completos
-    $bene_list = [];
-    $raw_bene = $raw['beneficiarios'] ?? $raw['tabla_beneficiarios'] ?? [];
-    if (is_array($raw_bene)) {
-      foreach ($raw_bene as $b) {
-        if (is_array($b)) {
-          $bene_list[] = [
-            'nombre' => $b['nombre_y_apellido'] ?? $b['nombre'] ?? 'N/A',
-            'tipo_doc' => $b['tipo_de_documento'] ?? $b['tipo_documento'] ?? 'C.C.',
-            'num_doc' => $b['numero_de_documento'] ?? $b['numero_documento'] ?? 'N/A',
-            'parentesco' => $b['parentesco'] ?? 'N/A',
-            'edad' => $b['edad'] ?? 'N/A',
-            'porcentaje' => $b['porcentaje'] ?? 'N/A',
-          ];
-        }
-      }
-    }
+    // Beneficiarios completos (usar tabla_de_beneficiarios, o tabla_de_beneficiarios_2 si está vacía):
+    $bene_list = self::obtenerBeneficiariosNormalizados($raw);
 
     // Salud completa (14 preguntas)
     $salud_preguntas = [
@@ -859,6 +838,192 @@ class EquidadReportesController extends ControllerBase {
   /**
    * Resumen numérico para el landing de reportes.
    */
+  /**
+   * Obtiene y normaliza los beneficiarios de una sumisión.
+   *
+   * Regla de negocio:
+   * Se utiliza 'tabla_de_beneficiarios'. Si se encuentra vacía o no contiene registros válidos,
+   * se utiliza el elemento 'tabla_de_beneficiarios_2'.
+   * Como respaldo para sumisiones anteriores o alternativas, también se evalúan claves históricas.
+   *
+   * @param array $raw
+   *   Datos sin procesar de la sumisión de webform.
+   *
+   * @return array
+   *   Arreglo de beneficiarios normalizados.
+   */
+  public static function obtenerBeneficiariosNormalizados(array $raw): array {
+    $candidatos = [];
+
+    // Prioridad 1: tabla_de_beneficiarios.
+    if (isset($raw['tabla_de_beneficiarios'])) {
+      $candidatos[] = $raw['tabla_de_beneficiarios'];
+    }
+
+    // Prioridad 2: tabla_de_beneficiarios_2 (se utiliza si tabla_de_beneficiarios está vacía).
+    if (isset($raw['tabla_de_beneficiarios_2'])) {
+      $candidatos[] = $raw['tabla_de_beneficiarios_2'];
+    }
+
+    // Prioridad 3: Claves de respaldo para compatibilidad histórica.
+    $claves_respaldo = [
+      'beneficiarios',
+      'tabla_beneficiarios',
+      'beneficiario',
+      'beneficiarios_tabla',
+      'datos_beneficiarios',
+      'designacion_beneficiarios',
+      'designacion_de_beneficiarios',
+      'beneficiarios_del_seguro',
+      'datos_de_los_beneficiarios',
+      'escriba_el_nombre_de_los_beneficiarios_de_este_seguro_y_su_respectivo_porcentaje',
+      'escriba_el_nombre_de_los_beneficiarios',
+    ];
+
+    foreach ($claves_respaldo as $clave) {
+      if (isset($raw[$clave]) && !in_array($clave, ['tabla_de_beneficiarios', 'tabla_de_beneficiarios_2'], TRUE)) {
+        $candidatos[] = $raw[$clave];
+      }
+    }
+
+    // Cualquier otra clave que contenga 'beneficiar' no evaluada previamente.
+    foreach ($raw as $k => $v) {
+      if (stripos($k, 'beneficiar') !== FALSE && !in_array($k, array_merge(['tabla_de_beneficiarios', 'tabla_de_beneficiarios_2'], $claves_respaldo), TRUE)) {
+        $candidatos[] = $v;
+      }
+    }
+
+    // Helper para resolver etiquetas de términos de taxonomía si vienen como ID numérico.
+    $resolve_term = function ($value) {
+      if (!empty($value) && is_numeric($value)) {
+        $term = Term::load((int) $value);
+        if ($term) {
+          return $term->label();
+        }
+      }
+      return (string) $value;
+    };
+
+    // Evaluar candidatos en orden estricto de prioridad.
+    foreach ($candidatos as $candidate) {
+      if (empty($candidate)) {
+        continue;
+      }
+
+      if (is_string($candidate)) {
+        $decoded = json_decode($candidate, TRUE);
+        if (is_array($decoded)) {
+          $candidate = $decoded;
+        }
+      }
+
+      if (!is_array($candidate) || empty($candidate)) {
+        continue;
+      }
+
+      $parsed_list = [];
+
+      foreach ($candidate as $item) {
+        if (!is_array($item)) {
+          continue;
+        }
+
+        // Nombre del beneficiario.
+        $nombre_ben = '';
+        foreach ($item as $ik => $iv) {
+          if (is_string($iv) && !empty(trim($iv))) {
+            $ik_lower = mb_strtolower((string) $ik);
+            if ($ik_lower === 'nombre_y_apellido' || $ik_lower === 'nombre_completo' || $ik_lower === 'nombre' || $ik_lower === 'nombres' || $ik_lower === 'nombres_y_apellidos' || strpos($ik_lower, 'nombre') !== FALSE) {
+              $nombre_ben = trim($iv);
+              break;
+            }
+          }
+        }
+
+        // Tipo de documento.
+        $tipo_doc = '';
+        foreach ($item as $ik => $iv) {
+          $ik_lower = mb_strtolower((string) $ik);
+          if (strpos($ik_lower, 'tipo') !== FALSE || $ik_lower === 'documento' || strpos($ik_lower, 'tipo_doc') !== FALSE) {
+            if (is_string($iv) || is_numeric($iv)) {
+              $tipo_doc = (string) $iv;
+              break;
+            }
+          }
+        }
+        $tipo_doc_label = !empty($tipo_doc) ? $resolve_term($tipo_doc) : 'C.C.';
+
+        // Número de documento.
+        $num_doc = '';
+        foreach ($item as $ik => $iv) {
+          $ik_lower = mb_strtolower((string) $ik);
+          if ((strpos($ik_lower, 'numero') !== FALSE || strpos($ik_lower, 'no_') !== FALSE || strpos($ik_lower, 'num') !== FALSE || strpos($ik_lower, 'cedula') !== FALSE || strpos($ik_lower, 'identifica') !== FALSE || $ik_lower === 'documento') && strpos($ik_lower, 'tipo') === FALSE) {
+            if (is_string($iv) || is_numeric($iv)) {
+              $num_doc = trim((string) $iv);
+              break;
+            }
+          }
+        }
+
+        // Parentesco.
+        $parentesco = '';
+        foreach ($item as $ik => $iv) {
+          $ik_lower = mb_strtolower((string) $ik);
+          if (strpos($ik_lower, 'parentesco') !== FALSE || strpos($ik_lower, 'vinculo') !== FALSE || strpos($ik_lower, 'relacion') !== FALSE) {
+            $parentesco = trim((string) $iv);
+            break;
+          }
+        }
+        $parentesco_label = !empty($parentesco) ? $resolve_term($parentesco) : 'N/A';
+
+        // Edad.
+        $edad = '';
+        foreach ($item as $ik => $iv) {
+          $ik_lower = mb_strtolower((string) $ik);
+          if (strpos($ik_lower, 'edad') !== FALSE || strpos($ik_lower, 'anos') !== FALSE || strpos($ik_lower, 'años') !== FALSE) {
+            $edad = trim((string) $iv);
+            break;
+          }
+        }
+
+        // Porcentaje.
+        $porcentaje = '';
+        foreach ($item as $ik => $iv) {
+          $ik_lower = mb_strtolower((string) $ik);
+          if (strpos($ik_lower, 'porcent') !== FALSE || strpos($ik_lower, 'particip') !== FALSE || $ik_lower === '%') {
+            $porcentaje = trim((string) $iv);
+            break;
+          }
+        }
+        if (!empty($porcentaje) && is_numeric($porcentaje)) {
+          $porcentaje .= '%';
+        }
+
+        // Si la fila cuenta con al menos un atributo relevante, es válida.
+        if (!empty($nombre_ben) || !empty($num_doc) || (!empty($parentesco) && $parentesco !== 'N/A') || !empty($porcentaje) || !empty($edad)) {
+          $parsed_list[] = [
+            'nombre' => $nombre_ben,
+            'nombre_y_apellido' => $nombre_ben,
+            'tipo_doc' => $tipo_doc_label,
+            'tipo_de_documento' => $tipo_doc_label,
+            'num_doc' => $num_doc,
+            'numero_de_documento' => $num_doc,
+            'parentesco' => $parentesco_label,
+            'edad' => $edad,
+            'porcentaje' => $porcentaje,
+          ];
+        }
+      }
+
+      // Si este candidato produjo al menos un beneficiario válido, se retorna de inmediato.
+      if (!empty($parsed_list)) {
+        return array_values($parsed_list);
+      }
+    }
+
+    return [];
+  }
+
   protected function obtenerEstadisticas() {
     $storage = \Drupal::entityTypeManager()->getStorage('webform_submission');
     $query = $storage->getQuery()
