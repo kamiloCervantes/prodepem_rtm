@@ -92,7 +92,7 @@ prodepem_solicitudes_rtm.reportes_equidad_section:
 
 prodepem_solicitudes_rtm.menu_reporte_aspu:
   title: 'Reporte ASPU (Seguro de Vida)'
-  description: 'Solicitudes con tomador ASPU.'
+  description: 'Solicitudes con tomador ASPU (formulario_equidad_seguros).'
   parent: prodepem_solicitudes_rtm.reportes_equidad_section
   route_name: prodepem_solicitudes_rtm.reporte_aspu
   weight: 10
@@ -104,9 +104,30 @@ prodepem_solicitudes_rtm.menu_reporte_aspu_adicionales:
   route_name: prodepem_solicitudes_rtm.reporte_aspu_adicionales
   weight: 20
 
-prodepem_solicitudes_rtm.menu_reporte_rifas:
-  title: 'Reporte de Boletas de Rifa'
-  description: 'Reporte con campos c_c, numero_de_rifa_1 y numero_de_rifa_2.'
+prodepem_solicitudes_rtm.menu_reporte_aspu_rifas:
+  title: 'Reporte ASPU (Boletas de Rifa)'
+  description: 'Reporte con campos c_c, numero_de_rifa_1 y numero_de_rifa_2 para ASPU.'
   parent: prodepem_solicitudes_rtm.reportes_equidad_section
-  route_name: prodepem_solicitudes_rtm.reporte_rifas
+  route_name: prodepem_solicitudes_rtm.reporte_aspu_rifas
   weight: 30
+
+prodepem_solicitudes_rtm.menu_reporte_prodepem:
+  title: 'Reporte PRODEPEM (Seguro de Vida)'
+  description: 'Solicitudes de seguro de vida (formulario_equidad_seguros_prode).'
+  parent: prodepem_solicitudes_rtm.reportes_equidad_section
+  route_name: prodepem_solicitudes_rtm.reporte_prodepem
+  weight: 40
+
+prodepem_solicitudes_rtm.menu_reporte_prodepem_adicionales:
+  title: 'Reporte PRODEPEM (Datos Complementarios)'
+  description: 'Datos complementarios: ampliación de amparo de vida, seguros, placa y rifa (PRODEPEM).'
+  parent: prodepem_solicitudes_rtm.reportes_equidad_section
+  route_name: prodepem_solicitudes_rtm.reporte_prodepem_adicionales
+  weight: 50
+
+prodepem_solicitudes_rtm.menu_reporte_prodepem_rifas:
+  title: 'Reporte PRODEPEM (Boletas de Rifa)'
+  description: 'Reporte con campos c_c, numero_de_rifa_1 y numero_de_rifa_2 para PRODEPEM.'
+  parent: prodepem_solicitudes_rtm.reportes_equidad_section
+  route_name: prodepem_solicitudes_rtm.reporte_prodepem_rifas
+  weight: 60

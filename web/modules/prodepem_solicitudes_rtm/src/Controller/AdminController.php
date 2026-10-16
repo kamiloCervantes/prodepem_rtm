@@ -140,16 +140,16 @@ class AdminController extends ControllerBase {
         ];
       }
 
-      // Validar si pertenece estrictamente al webform 'formulario_equidad_seguros'.
+      // Validar si pertenece a los formularios de Equidad Seguros (formulario_equidad_seguros o formulario_equidad_seguros_prode).
       $webform = $webform_submission->getWebform();
       $webform_id = $webform ? $webform->id() : '';
-      if ($webform_id !== 'formulario_equidad_seguros') {
+      if (!in_array($webform_id, ['formulario_equidad_seguros', 'formulario_equidad_seguros_prode'], TRUE)) {
         \Drupal::logger('prodepem_solicitudes_rtm')->warning('Intento de generar PDF Seguro de Vida con formulario no válido: @webform (SID: @sid)', [
           '@webform' => $webform_id,
           '@sid' => $sid,
         ]);
         return [
-          '#markup' => $this->t('El envío con ID @sid no pertenece al formulario de Equidad Seguros (formulario_equidad_seguros).', [
+          '#markup' => $this->t('El envío con ID @sid no pertenece al formulario de Equidad Seguros.', [
             '@sid' => $sid,
           ]),
         ];
@@ -190,14 +190,24 @@ class AdminController extends ControllerBase {
       // A. Datos del Tomador (corresponden directamente a los campos: tomador, c_c_nit, direccion, ciudad, telefono).
       $selector = (string) ($raw_data['selector_tomador'] ?? '2');
       $tomador_text = mb_strtolower((string) ($raw_data['tomador'] ?? ''));
-      $is_foneducor = ($selector === '1' || strpos($tomador_text, 'fondo') !== FALSE || strpos($tomador_text, 'cordoba') !== FALSE || strpos($tomador_text, 'foneducor') !== FALSE);
-      $is_aspu = ($selector === '2' || strpos($tomador_text, 'aspu') !== FALSE || strpos($tomador_text, 'sindical') !== FALSE || !$is_foneducor);
 
-      $default_tomador = $is_foneducor ? 'Fondo de empleado de docente de la Universidad de Córdoba' : 'Asociación Sindical de Profesores Universitarios - ASPU';
-      $default_nit = $is_foneducor ? '900834726' : '830001998';
-      $default_dir = $is_foneducor ? 'Cra 6 # 76-103' : 'Cra 6 # 77-305';
-      $default_ciudad = 'Montería';
-      $default_tel = $is_foneducor ? '3014619585' : '3242560489';
+      if ($webform_id === 'formulario_equidad_seguros_prode' || strpos($tomador_text, 'prodepem') !== FALSE) {
+        $default_tomador = 'PRODEPEM S.A.S';
+        $default_nit = '900.582.164-1';
+        $default_dir = 'Cra 6 # 77-305';
+        $default_ciudad = 'Montería';
+        $default_tel = '3242560489';
+      }
+      else {
+        $is_foneducor = ($selector === '1' || strpos($tomador_text, 'fondo') !== FALSE || strpos($tomador_text, 'cordoba') !== FALSE || strpos($tomador_text, 'foneducor') !== FALSE);
+        $is_aspu = ($selector === '2' || strpos($tomador_text, 'aspu') !== FALSE || strpos($tomador_text, 'sindical') !== FALSE || !$is_foneducor);
+
+        $default_tomador = $is_foneducor ? 'Fondo de empleado de docente de la Universidad de Córdoba' : 'Asociación Sindical de Profesores Universitarios - ASPU';
+        $default_nit = $is_foneducor ? '900834726' : '830001998';
+        $default_dir = $is_foneducor ? 'Cra 6 # 76-103' : 'Cra 6 # 77-305';
+        $default_ciudad = 'Montería';
+        $default_tel = $is_foneducor ? '3014619585' : '3242560489';
+      }
 
       $data['tomador'] = !empty($raw_data['tomador']) ? $raw_data['tomador'] : $default_tomador;
       $data['nit_tomador'] = !empty($raw_data['c_c_nit']) ? $raw_data['c_c_nit'] : (!empty($raw_data['nit_tomador']) ? $raw_data['nit_tomador'] : $default_nit);

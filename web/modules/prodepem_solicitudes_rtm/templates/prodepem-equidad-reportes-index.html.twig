@@ -4,7 +4,7 @@
  * Template for Reportes de Equidad Seguros - Panel Central.
  *
  * Variables:
- * - stats: Array con total, aspu y rifas.
+ * - stats: Array con total, aspu, rifas_aspu, prodepem, rifas_prodepem, rifas.
  */
 #}
 <div class="reportes-equidad-container">
@@ -15,7 +15,7 @@
         {{ 'Reportes de Equidad Seguros'|t }}
       </h2>
       <p class="reportes-header__desc">
-        {{ 'Gestión consolidada de respuestas del formulario de asegurabilidad con filtros, visualización de sumisiones y exportación a Excel.'|t }}
+        {{ 'Gestión consolidada de respuestas de asegurabilidad para ASPU y PRODEPEM con filtros avanzados, visualización de sumisiones y exportación a Excel.'|t }}
       </p>
     </div>
     <div style="display: flex; gap: 0.5rem;">
@@ -27,85 +27,179 @@
 
   <!-- Estadísticas Rápidas -->
   <div style="display: flex; gap: 1rem; flex-wrap: wrap; margin-bottom: 2rem;">
-    <div style="flex: 1; min-width: 200px; background: #ffffff; border: 1px solid #e5e7eb; border-radius: 10px; padding: 1.15rem 1.25rem;">
+    <div style="flex: 1; min-width: 200px; background: #ffffff; border: 1px solid #e5e7eb; border-radius: 10px; padding: 1.15rem 1.25rem; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
       <div style="font-size: 0.8rem; font-weight: 600; color: #6b7280; text-transform: uppercase;">{{ 'Total Solicitudes'|t }}</div>
       <div style="font-size: 1.85rem; font-weight: 800; color: #111827; margin-top: 0.2rem;">{{ stats.total|default(0) }}</div>
+      <div style="font-size: 0.8rem; color: #9ca3af; margin-top: 0.35rem;">{{ 'ASPU + PRODEPEM consolidadas'|t }}</div>
     </div>
     <div style="flex: 1; min-width: 200px; background: #faf5ff; border: 1px solid #e9d5ff; border-radius: 10px; padding: 1.15rem 1.25rem;">
       <div style="font-size: 0.8rem; font-weight: 600; color: #7c3aed; text-transform: uppercase;">{{ 'Tomador ASPU'|t }}</div>
       <div style="font-size: 1.85rem; font-weight: 800; color: #5b21b6; margin-top: 0.2rem;">{{ stats.aspu|default(0) }}</div>
+      <div style="font-size: 0.8rem; color: #7c3aed; margin-top: 0.35rem;">
+        <i class="fa-solid fa-ticket"></i> {{ 'Boletas rifa: '|t }}<strong>{{ stats.rifas_aspu|default(0) }}</strong>
+      </div>
     </div>
-    <div style="flex: 1; min-width: 200px; background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 10px; padding: 1.15rem 1.25rem;">
-      <div style="font-size: 0.8rem; font-weight: 600; color: #16a34a; text-transform: uppercase;">{{ 'Con Boletas de Rifa'|t }}</div>
-      <div style="font-size: 1.85rem; font-weight: 800; color: #065f46; margin-top: 0.2rem;">{{ stats.rifas|default(0) }}</div>
+    <div style="flex: 1; min-width: 200px; background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 10px; padding: 1.15rem 1.25rem;">
+      <div style="font-size: 0.8rem; font-weight: 600; color: #2563eb; text-transform: uppercase;">{{ 'Tomador PRODEPEM'|t }}</div>
+      <div style="font-size: 1.85rem; font-weight: 800; color: #1e40af; margin-top: 0.2rem;">{{ stats.prodepem|default(0) }}</div>
+      <div style="font-size: 0.8rem; color: #2563eb; margin-top: 0.35rem;">
+        <i class="fa-solid fa-ticket"></i> {{ 'Boletas rifa: '|t }}<strong>{{ stats.rifas_prodepem|default(0) }}</strong>
+      </div>
     </div>
   </div>
 
-  <!-- Grid de Reportes -->
-  <div class="reportes-grid">
-    <!-- Reporte 1: ASPU Seguro de Vida -->
-    <div class="reportes-card">
-      <div>
-        <div class="reportes-card__icon" style="color: #6366f1;">
-          <i class="fa-solid fa-file-shield"></i>
-        </div>
-        <span class="reportes-badge reportes-badge--aspu">ASPU</span>
-        <h3 class="reportes-card__title" style="margin-top: 0.5rem;">{{ 'Reporte ASPU (Seguro de Vida)'|t }}</h3>
-        <p class="reportes-card__desc">
-          {{ 'Respuestas de declaración de asegurabilidad del tomador ASPU. Incluye datos personales, laborales, valor asegurado, beneficiarios y salud.'|t }}
-        </p>
-      </div>
-      <div class="reportes-card__actions">
-        <a href="{{ path('prodepem_solicitudes_rtm.reporte_aspu') }}" class="btn-reporte btn-reporte--primary btn-reporte--sm">
-          <i class="fa-solid fa-table-list"></i> {{ 'Ver Reporte'|t }}
-        </a>
-        <a href="{{ path('prodepem_solicitudes_rtm.reportes_equidad_exportar', {'reporte': 'aspu'}) }}" class="btn-reporte btn-reporte--excel btn-reporte--sm">
-          <i class="fa-solid fa-file-excel"></i> {{ 'Descargar XLS'|t }}
-        </a>
-      </div>
+  <!-- SECCIÓN 1: REPORTES ASPU -->
+  <div style="margin-bottom: 2.5rem;">
+    <div style="display: flex; align-items: center; gap: 0.65rem; margin-bottom: 1.15rem; border-bottom: 2px solid #ede9fe; padding-bottom: 0.65rem;">
+      <span class="reportes-badge reportes-badge--aspu" style="font-size: 0.85rem; padding: 0.4rem 0.85rem;">ASPU</span>
+      <h3 style="font-size: 1.15rem; font-weight: 700; color: #374151; margin: 0;">
+        {{ 'Reportes ASPU (formulario_equidad_seguros)'|t }}
+      </h3>
     </div>
 
-    <!-- Reporte 2: ASPU Adicionales & Rifa -->
-    <div class="reportes-card">
-      <div>
-        <div class="reportes-card__icon" style="color: #8b5cf6;">
-          <i class="fa-solid fa-ticket"></i>
+    <div class="reportes-grid">
+      <!-- ASPU Seguro de Vida -->
+      <div class="reportes-card">
+        <div>
+          <div class="reportes-card__icon" style="color: #6366f1;">
+            <i class="fa-solid fa-file-shield"></i>
+          </div>
+          <span class="reportes-badge reportes-badge--aspu">ASPU • SEGURO VIDA</span>
+          <h3 class="reportes-card__title" style="margin-top: 0.5rem;">{{ 'Reporte ASPU (Seguro de Vida)'|t }}</h3>
+          <p class="reportes-card__desc">
+            {{ 'Declaración de asegurabilidad tomador ASPU. Incluye datos personales, laborales, valor asegurado, beneficiarios y salud.'|t }}
+          </p>
         </div>
-        <span class="reportes-badge reportes-badge--aspu">ASPU • Datos Complementarios</span>
-        <h3 class="reportes-card__title" style="margin-top: 0.5rem;">{{ 'Reporte ASPU (Datos Complementarios)'|t }}</h3>
-        <p class="reportes-card__desc">
-          {{ 'Datos comerciales complementarios: ampliar amparo de vida y motivo, seguros de interés (SOAT, todo riesgo, hogar, adicionales), placa y números de rifa.'|t }}
-        </p>
+        <div class="reportes-card__actions">
+          <a href="{{ path('prodepem_solicitudes_rtm.reporte_aspu') }}" class="btn-reporte btn-reporte--primary btn-reporte--sm">
+            <i class="fa-solid fa-table-list"></i> {{ 'Ver Reporte'|t }}
+          </a>
+          <a href="{{ path('prodepem_solicitudes_rtm.reportes_equidad_exportar', {'reporte': 'aspu'}) }}" class="btn-reporte btn-reporte--excel btn-reporte--sm">
+            <i class="fa-solid fa-file-excel"></i> {{ 'Descargar XLS'|t }}
+          </a>
+        </div>
       </div>
-      <div class="reportes-card__actions">
-        <a href="{{ path('prodepem_solicitudes_rtm.reporte_aspu_adicionales') }}" class="btn-reporte btn-reporte--primary btn-reporte--sm">
-          <i class="fa-solid fa-table-list"></i> {{ 'Ver Reporte'|t }}
-        </a>
-        <a href="{{ path('prodepem_solicitudes_rtm.reportes_equidad_exportar', {'reporte': 'aspu-adicionales'}) }}" class="btn-reporte btn-reporte--excel btn-reporte--sm">
-          <i class="fa-solid fa-file-excel"></i> {{ 'Descargar XLS'|t }}
-        </a>
+
+      <!-- ASPU Datos Complementarios -->
+      <div class="reportes-card">
+        <div>
+          <div class="reportes-card__icon" style="color: #8b5cf6;">
+            <i class="fa-solid fa-list-check"></i>
+          </div>
+          <span class="reportes-badge reportes-badge--aspu">ASPU • COMPLEMENTARIOS</span>
+          <h3 class="reportes-card__title" style="margin-top: 0.5rem;">{{ 'Reporte ASPU (Datos Complementarios)'|t }}</h3>
+          <p class="reportes-card__desc">
+            {{ 'Datos comerciales complementarios: ampliación amparo de vida, seguros (SOAT, todo riesgo, hogar, adicionales), placa y rifa (ASPU).'|t }}
+          </p>
+        </div>
+        <div class="reportes-card__actions">
+          <a href="{{ path('prodepem_solicitudes_rtm.reporte_aspu_adicionales') }}" class="btn-reporte btn-reporte--primary btn-reporte--sm">
+            <i class="fa-solid fa-table-list"></i> {{ 'Ver Reporte'|t }}
+          </a>
+          <a href="{{ path('prodepem_solicitudes_rtm.reportes_equidad_exportar', {'reporte': 'aspu-adicionales'}) }}" class="btn-reporte btn-reporte--excel btn-reporte--sm">
+            <i class="fa-solid fa-file-excel"></i> {{ 'Descargar XLS'|t }}
+          </a>
+        </div>
+      </div>
+
+      <!-- ASPU Boletas de Rifa -->
+      <div class="reportes-card">
+        <div>
+          <div class="reportes-card__icon" style="color: #7c3aed;">
+            <i class="fa-solid fa-ticket"></i>
+          </div>
+          <span class="reportes-badge reportes-badge--aspu">ASPU • BOLETAS RIFA</span>
+          <h3 class="reportes-card__title" style="margin-top: 0.5rem;">{{ 'Reporte ASPU (Boletas de Rifa)'|t }}</h3>
+          <p class="reportes-card__desc">
+            {{ 'Boletas asignadas en solicitudes de ASPU: cédula de ciudadanía (c_c), número de rifa 1 y número de rifa 2.'|t }}
+          </p>
+        </div>
+        <div class="reportes-card__actions">
+          <a href="{{ path('prodepem_solicitudes_rtm.reporte_aspu_rifas') }}" class="btn-reporte btn-reporte--primary btn-reporte--sm">
+            <i class="fa-solid fa-table-list"></i> {{ 'Ver Reporte'|t }}
+          </a>
+          <a href="{{ path('prodepem_solicitudes_rtm.reportes_equidad_exportar', {'reporte': 'aspu-rifas'}) }}" class="btn-reporte btn-reporte--excel btn-reporte--sm">
+            <i class="fa-solid fa-file-excel"></i> {{ 'Descargar XLS'|t }}
+          </a>
+        </div>
       </div>
     </div>
+  </div>
 
-    <!-- Reporte 3: Boletas de Rifa (c_c, numero_de_rifa_1, numero_de_rifa_2) -->
-    <div class="reportes-card">
-      <div>
-        <div class="reportes-card__icon" style="color: #10b981;">
-          <i class="fa-solid fa-gift"></i>
+  <!-- SECCIÓN 2: REPORTES PRODEPEM -->
+  <div style="margin-bottom: 2rem;">
+    <div style="display: flex; align-items: center; gap: 0.65rem; margin-bottom: 1.15rem; border-bottom: 2px solid #dbeafe; padding-bottom: 0.65rem;">
+      <span class="reportes-badge reportes-badge--prodepem" style="font-size: 0.85rem; padding: 0.4rem 0.85rem;">PRODEPEM</span>
+      <h3 style="font-size: 1.15rem; font-weight: 700; color: #1e3a8a; margin: 0;">
+        {{ 'Reportes PRODEPEM (formulario_equidad_seguros_prode)'|t }}
+      </h3>
+    </div>
+
+    <div class="reportes-grid">
+      <!-- PRODEPEM Seguro de Vida -->
+      <div class="reportes-card" style="border-top: 4px solid #2563eb;">
+        <div>
+          <div class="reportes-card__icon" style="color: #2563eb;">
+            <i class="fa-solid fa-file-invoice"></i>
+          </div>
+          <span class="reportes-badge reportes-badge--prodepem">PRODEPEM • SEGURO VIDA</span>
+          <h3 class="reportes-card__title" style="margin-top: 0.5rem;">{{ 'Reporte PRODEPEM (Seguro de Vida)'|t }}</h3>
+          <p class="reportes-card__desc">
+            {{ 'Declaración de asegurabilidad tomador PRODEPEM. Incluye datos personales, laborales, valor asegurado, beneficiarios y salud.'|t }}
+          </p>
         </div>
-        <span class="reportes-badge" style="background-color: #ecfdf5; color: #047857;">RIFAS • c_c, rifa_1, rifa_2</span>
-        <h3 class="reportes-card__title" style="margin-top: 0.5rem;">{{ 'Reporte de Boletas de Rifa'|t }}</h3>
-        <p class="reportes-card__desc">
-          {{ 'Reporte enfocado exclusivamente en las boletas asignadas: cédula de ciudadanía (c_c), número de rifa 1 y número de rifa 2.'|t }}
-        </p>
+        <div class="reportes-card__actions">
+          <a href="{{ path('prodepem_solicitudes_rtm.reporte_prodepem') }}" class="btn-reporte btn-reporte--primary btn-reporte--sm" style="background-color: #2563eb;">
+            <i class="fa-solid fa-table-list"></i> {{ 'Ver Reporte'|t }}
+          </a>
+          <a href="{{ path('prodepem_solicitudes_rtm.reportes_equidad_exportar', {'reporte': 'prodepem'}) }}" class="btn-reporte btn-reporte--excel btn-reporte--sm">
+            <i class="fa-solid fa-file-excel"></i> {{ 'Descargar XLS'|t }}
+          </a>
+        </div>
       </div>
-      <div class="reportes-card__actions">
-        <a href="{{ path('prodepem_solicitudes_rtm.reporte_rifas') }}" class="btn-reporte btn-reporte--primary btn-reporte--sm">
-          <i class="fa-solid fa-table-list"></i> {{ 'Ver Reporte'|t }}
-        </a>
-        <a href="{{ path('prodepem_solicitudes_rtm.reportes_equidad_exportar', {'reporte': 'rifas'}) }}" class="btn-reporte btn-reporte--excel btn-reporte--sm">
-          <i class="fa-solid fa-file-excel"></i> {{ 'Descargar XLS'|t }}
-        </a>
+
+      <!-- PRODEPEM Datos Complementarios -->
+      <div class="reportes-card" style="border-top: 4px solid #3b82f6;">
+        <div>
+          <div class="reportes-card__icon" style="color: #3b82f6;">
+            <i class="fa-solid fa-sliders"></i>
+          </div>
+          <span class="reportes-badge reportes-badge--prodepem">PRODEPEM • COMPLEMENTARIOS</span>
+          <h3 class="reportes-card__title" style="margin-top: 0.5rem;">{{ 'Reporte PRODEPEM (Datos Complementarios)'|t }}</h3>
+          <p class="reportes-card__desc">
+            {{ 'Datos comerciales complementarios: ampliación amparo de vida, seguros (SOAT, todo riesgo, hogar, adicionales), placa y rifa (PRODEPEM).'|t }}
+          </p>
+        </div>
+        <div class="reportes-card__actions">
+          <a href="{{ path('prodepem_solicitudes_rtm.reporte_prodepem_adicionales') }}" class="btn-reporte btn-reporte--primary btn-reporte--sm" style="background-color: #3b82f6;">
+            <i class="fa-solid fa-table-list"></i> {{ 'Ver Reporte'|t }}
+          </a>
+          <a href="{{ path('prodepem_solicitudes_rtm.reportes_equidad_exportar', {'reporte': 'prodepem-adicionales'}) }}" class="btn-reporte btn-reporte--excel btn-reporte--sm">
+            <i class="fa-solid fa-file-excel"></i> {{ 'Descargar XLS'|t }}
+          </a>
+        </div>
+      </div>
+
+      <!-- PRODEPEM Boletas de Rifa -->
+      <div class="reportes-card" style="border-top: 4px solid #0284c7;">
+        <div>
+          <div class="reportes-card__icon" style="color: #0284c7;">
+            <i class="fa-solid fa-ticket-simple"></i>
+          </div>
+          <span class="reportes-badge reportes-badge--prodepem">PRODEPEM • BOLETAS RIFA</span>
+          <h3 class="reportes-card__title" style="margin-top: 0.5rem;">{{ 'Reporte PRODEPEM (Boletas de Rifa)'|t }}</h3>
+          <p class="reportes-card__desc">
+            {{ 'Boletas asignadas en solicitudes de PRODEPEM: cédula de ciudadanía (c_c), número de rifa 1 y número de rifa 2.'|t }}
+          </p>
+        </div>
+        <div class="reportes-card__actions">
+          <a href="{{ path('prodepem_solicitudes_rtm.reporte_prodepem_rifas') }}" class="btn-reporte btn-reporte--primary btn-reporte--sm" style="background-color: #0284c7;">
+            <i class="fa-solid fa-table-list"></i> {{ 'Ver Reporte'|t }}
+          </a>
+          <a href="{{ path('prodepem_solicitudes_rtm.reportes_equidad_exportar', {'reporte': 'prodepem-rifas'}) }}" class="btn-reporte btn-reporte--excel btn-reporte--sm">
+            <i class="fa-solid fa-file-excel"></i> {{ 'Descargar XLS'|t }}
+          </a>
+        </div>
       </div>
     </div>
   </div>

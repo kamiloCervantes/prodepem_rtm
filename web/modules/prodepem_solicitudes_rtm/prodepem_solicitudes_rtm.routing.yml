@@ -167,6 +167,38 @@ prodepem_solicitudes_rtm.reportes_equidad_exportar:
   requirements:
     _permission: 'administer rtm solicitudes'
 
+prodepem_solicitudes_rtm.reporte_aspu_rifas:
+  path: '/admin/config/prodepem/rtm-admin/reportes-equidad/aspu-rifas'
+  defaults:
+    _controller: '\Drupal\prodepem_solicitudes_rtm\Controller\EquidadReportesController::reporteAspuRifas'
+    _title: 'Reporte ASPU - Boletas de Rifa'
+  requirements:
+    _permission: 'administer rtm solicitudes'
+
+prodepem_solicitudes_rtm.reporte_prodepem:
+  path: '/admin/config/prodepem/rtm-admin/reportes-equidad/prodepem'
+  defaults:
+    _controller: '\Drupal\prodepem_solicitudes_rtm\Controller\EquidadReportesController::reporteProdepem'
+    _title: 'Reporte PRODEPEM - Seguro de Vida'
+  requirements:
+    _permission: 'administer rtm solicitudes'
+
+prodepem_solicitudes_rtm.reporte_prodepem_adicionales:
+  path: '/admin/config/prodepem/rtm-admin/reportes-equidad/prodepem-adicionales'
+  defaults:
+    _controller: '\Drupal\prodepem_solicitudes_rtm\Controller\EquidadReportesController::reporteProdepemAdicionales'
+    _title: 'Reporte PRODEPEM - Datos Complementarios'
+  requirements:
+    _permission: 'administer rtm solicitudes'
+
+prodepem_solicitudes_rtm.reporte_prodepem_rifas:
+  path: '/admin/config/prodepem/rtm-admin/reportes-equidad/prodepem-rifas'
+  defaults:
+    _controller: '\Drupal\prodepem_solicitudes_rtm\Controller\EquidadReportesController::reporteProdepemRifas'
+    _title: 'Reporte PRODEPEM - Boletas de Rifa'
+  requirements:
+    _permission: 'administer rtm solicitudes'
+
 prodepem_solicitudes_rtm.reporte_rifas:
   path: '/admin/config/prodepem/rtm-admin/reportes-equidad/rifas'
   defaults:

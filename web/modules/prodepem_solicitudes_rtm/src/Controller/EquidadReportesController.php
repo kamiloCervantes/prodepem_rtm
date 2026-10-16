@@ -41,7 +41,35 @@ class EquidadReportesController extends ControllerBase {
   }
 
   /**
-   * Reporte de Boletas de Rifa (campos: c_c, numero_de_rifa_1, numero_de_rifa_2).
+   * Reporte ASPU - Boletas de Rifa (campos: c_c, numero_de_rifa_1, numero_de_rifa_2).
+   */
+  public function reporteAspuRifas(Request $request) {
+    return $this->generarVistaReporte('aspu', 'rifas', $request);
+  }
+
+  /**
+   * Reporte PRODEPEM - Solicitudes de Seguro de Vida.
+   */
+  public function reporteProdepem(Request $request) {
+    return $this->generarVistaReporte('prodepem', 'vida', $request);
+  }
+
+  /**
+   * Reporte PRODEPEM - Datos Complementarios (Seguros adicionales y Rifa).
+   */
+  public function reporteProdepemAdicionales(Request $request) {
+    return $this->generarVistaReporte('prodepem', 'adicionales', $request);
+  }
+
+  /**
+   * Reporte PRODEPEM - Boletas de Rifa.
+   */
+  public function reporteProdepemRifas(Request $request) {
+    return $this->generarVistaReporte('prodepem', 'rifas', $request);
+  }
+
+  /**
+   * Reporte de Boletas de Rifa (compatibilidad con ruta anterior).
    */
   public function reporteRifas(Request $request) {
     return $this->generarVistaReporte('aspu', 'rifas', $request);
@@ -95,9 +123,24 @@ class EquidadReportesController extends ControllerBase {
         'badge' => 'ASPU (Datos Complementarios)',
       ],
       'aspu_rifas' => [
-        'title' => 'Reporte de Boletas de Rifa',
-        'desc' => 'Reporte con campos: c_c, numero_de_rifa_1 y numero_de_rifa_2.',
-        'badge' => 'RIFAS (c_c, rifa_1, rifa_2)',
+        'title' => 'Reporte ASPU - Boletas de Rifa',
+        'desc' => 'Reporte con campos: c_c, numero_de_rifa_1 y numero_de_rifa_2 para solicitudes de ASPU.',
+        'badge' => 'ASPU • RIFAS',
+      ],
+      'prodepem_vida' => [
+        'title' => 'Reporte PRODEPEM - Seguro de Vida',
+        'desc' => 'Solicitudes de declaración de asegurabilidad registradas a través de formulario_equidad_seguros_prode (PRODEPEM).',
+        'badge' => 'PRODEPEM (Tomador)',
+      ],
+      'prodepem_adicionales' => [
+        'title' => 'Reporte PRODEPEM - Datos Complementarios',
+        'desc' => 'Datos complementarios comerciales: ampliación de amparo de vida, interés en seguros (SOAT, todo riesgo, hogar, adicionales), placa y rifa (PRODEPEM).',
+        'badge' => 'PRODEPEM (Datos Complementarios)',
+      ],
+      'prodepem_rifas' => [
+        'title' => 'Reporte PRODEPEM - Boletas de Rifa',
+        'desc' => 'Reporte con campos: c_c, numero_de_rifa_1 y numero_de_rifa_2 para solicitudes de PRODEPEM.',
+        'badge' => 'PRODEPEM • RIFAS',
       ],
       'foneducor_adicionales' => [
         'title' => 'Reporte FONEDUCOR - Datos Complementarios',
@@ -115,7 +158,7 @@ class EquidadReportesController extends ControllerBase {
 
     // URL para descarga XLS conservando los filtros activos.
     if ($tipo === 'rifas') {
-      $export_key = 'rifas';
+      $export_key = ($tomador === 'prodepem') ? 'prodepem-rifas' : 'aspu-rifas';
     } elseif ($tipo === 'adicionales') {
       $export_key = $tomador . '-adicionales';
     } else {
@@ -157,7 +200,7 @@ class EquidadReportesController extends ControllerBase {
    */
   public function verDetalleSubmission($sid) {
     $submission = WebformSubmission::load($sid);
-    if (!$submission || $submission->getWebform()->id() !== 'formulario_equidad_seguros') {
+    if (!$submission || !in_array($submission->getWebform()->id(), ['formulario_equidad_seguros', 'formulario_equidad_seguros_prode'], TRUE)) {
       return [
         '#markup' => $this->t('No se encontró la sumisión @sid del formulario de Equidad Seguros.', ['@sid' => $sid]),
       ];
@@ -168,11 +211,16 @@ class EquidadReportesController extends ControllerBase {
 
     $pdf_url = Url::fromRoute('prodepem_solicitudes_rtm.generar_pdf_seguro_vida', ['sid' => $sid])->toString();
 
-    // Determinar URL de retorno según el tomador.
-    $selector = (string) ($raw['selector_tomador'] ?? '2');
-    $tomador_text = mb_strtolower((string) ($raw['tomador'] ?? ''));
-    $is_foneducor = ($selector === '1' || strpos($tomador_text, 'fondo') !== FALSE || strpos($tomador_text, 'cordoba') !== FALSE || strpos($tomador_text, 'foneducor') !== FALSE);
-    $back_route = $is_foneducor ? 'prodepem_solicitudes_rtm.reporte_foneducor' : 'prodepem_solicitudes_rtm.reporte_aspu';
+    // Determinar URL de retorno según el tomador / webform.
+    if ($submission->getWebform()->id() === 'formulario_equidad_seguros_prode') {
+      $back_route = 'prodepem_solicitudes_rtm.reporte_prodepem';
+    }
+    else {
+      $selector = (string) ($raw['selector_tomador'] ?? '2');
+      $tomador_text = mb_strtolower((string) ($raw['tomador'] ?? ''));
+      $is_foneducor = ($selector === '1' || strpos($tomador_text, 'fondo') !== FALSE || strpos($tomador_text, 'cordoba') !== FALSE || strpos($tomador_text, 'foneducor') !== FALSE);
+      $back_route = $is_foneducor ? 'prodepem_solicitudes_rtm.reporte_foneducor' : 'prodepem_solicitudes_rtm.reporte_aspu';
+    }
     $back_url = Url::fromRoute($back_route)->toString();
 
     return [
@@ -204,12 +252,24 @@ class EquidadReportesController extends ControllerBase {
    * Exportación de registros en formato XLS (Excel XML Spreadsheet).
    */
   public function exportarXls($reporte, Request $request) {
-    if ($reporte === 'rifas') {
+    if ($reporte === 'rifas' || $reporte === 'aspu-rifas') {
       $tomador = 'aspu';
       $tipo = 'rifas';
     }
+    elseif ($reporte === 'prodepem-rifas') {
+      $tomador = 'prodepem';
+      $tipo = 'rifas';
+    }
+    elseif (strpos($reporte, 'prodepem') !== FALSE) {
+      $tomador = 'prodepem';
+      $tipo = (strpos($reporte, 'adicionales') !== FALSE) ? 'adicionales' : 'vida';
+    }
+    elseif (strpos($reporte, 'aspu') !== FALSE) {
+      $tomador = 'aspu';
+      $tipo = (strpos($reporte, 'adicionales') !== FALSE) ? 'adicionales' : 'vida';
+    }
     else {
-      $tomador = (strpos($reporte, 'aspu') !== FALSE) ? 'aspu' : 'foneducor';
+      $tomador = 'foneducor';
       $tipo = (strpos($reporte, 'adicionales') !== FALSE) ? 'adicionales' : 'vida';
     }
 
@@ -220,10 +280,10 @@ class EquidadReportesController extends ControllerBase {
     $items = $this->obtenerRegistrosFiltrados($tomador, $tipo, $search, $fecha_desde, $fecha_hasta);
 
     if ($tipo === 'rifas') {
-      $filename = 'reporte_boletas_rifa_' . date('Ymd_His') . '.xls';
+      $filename = 'reporte_' . $tomador . '_boletas_rifa_' . date('Ymd_His') . '.xls';
     }
     else {
-      $nombre_tomador = ($tomador === 'aspu') ? 'ASPU' : 'FONEDUCOR';
+      $nombre_tomador = ($tomador === 'prodepem') ? 'PRODEPEM' : (($tomador === 'aspu') ? 'ASPU' : 'FONEDUCOR');
       $tipo_nombre = ($tipo === 'adicionales') ? 'Datos_Complementarios' : 'Seguro_Vida';
       $filename = 'reporte_' . strtolower($nombre_tomador) . '_' . $tipo_nombre . '_' . date('Ymd_His') . '.xls';
     }
@@ -247,9 +307,10 @@ class EquidadReportesController extends ControllerBase {
    * Obtiene y normaliza los registros aplicando filtros.
    */
   protected function obtenerRegistrosFiltrados($tomador, $tipo, $search = '', $fecha_desde = '', $fecha_hasta = '') {
+    $webform_id = ($tomador === 'prodepem') ? 'formulario_equidad_seguros_prode' : 'formulario_equidad_seguros';
     $storage = \Drupal::entityTypeManager()->getStorage('webform_submission');
     $query = $storage->getQuery()
-      ->condition('webform_id', 'formulario_equidad_seguros')
+      ->condition('webform_id', $webform_id)
       ->accessCheck(FALSE)
       ->sort('created', 'DESC');
 
@@ -277,20 +338,23 @@ class EquidadReportesController extends ControllerBase {
     foreach ($submissions as $sub) {
       $raw = $sub->getData();
 
-      // Validación del tomador:
-      // ASPU: selector_tomador == 2 o texto 'aspu'
-      // FONEDUCOR: selector_tomador == 1 o texto 'cordoba'/'docente'/'foneducor'
-      $selector = (string) ($raw['selector_tomador'] ?? '');
-      $tomador_text = mb_strtolower((string) ($raw['tomador'] ?? ''));
-
-      $is_aspu = ($selector === '2' || strpos($tomador_text, 'aspu') !== FALSE || strpos($tomador_text, 'sindical') !== FALSE);
-      $is_foneducor = ($selector === '1' || strpos($tomador_text, 'fondo') !== FALSE || strpos($tomador_text, 'cordoba') !== FALSE || strpos($tomador_text, 'docente') !== FALSE || strpos($tomador_text, 'foneducor') !== FALSE);
-
-      if ($tomador === 'aspu' && !$is_aspu) {
-        continue;
+      if ($tomador === 'prodepem') {
+        // En formulario_equidad_seguros_prode todas las sumisiones corresponden a PRODEPEM.
       }
-      if ($tomador === 'foneducor' && !$is_foneducor) {
-        continue;
+      else {
+        // Validación del tomador para formulario_equidad_seguros (ASPU o FONEDUCOR):
+        $selector = (string) ($raw['selector_tomador'] ?? '');
+        $tomador_text = mb_strtolower((string) ($raw['tomador'] ?? ''));
+
+        $is_aspu = ($selector === '2' || strpos($tomador_text, 'aspu') !== FALSE || strpos($tomador_text, 'sindical') !== FALSE || $selector === '');
+        $is_foneducor = ($selector === '1' || strpos($tomador_text, 'fondo') !== FALSE || strpos($tomador_text, 'cordoba') !== FALSE || strpos($tomador_text, 'docente') !== FALSE || strpos($tomador_text, 'foneducor') !== FALSE);
+
+        if ($tomador === 'aspu' && !$is_aspu) {
+          continue;
+        }
+        if ($tomador === 'foneducor' && !$is_foneducor) {
+          continue;
+        }
       }
 
       $item = $this->extraerDatosRegistro($sub, $raw);
@@ -640,16 +704,27 @@ class EquidadReportesController extends ControllerBase {
     $item = $this->extraerDatosRegistro($sub, $raw);
 
     // Tomador
+    $webform_id = $sub->getWebform()->id();
     $selector = (string) ($raw['selector_tomador'] ?? '2');
     $tomador_text = mb_strtolower((string) ($raw['tomador'] ?? ''));
-    $is_foneducor = ($selector === '1' || strpos($tomador_text, 'fondo') !== FALSE || strpos($tomador_text, 'cordoba') !== FALSE || strpos($tomador_text, 'foneducor') !== FALSE);
-    $is_aspu = ($selector === '2' || strpos($tomador_text, 'aspu') !== FALSE || strpos($tomador_text, 'sindical') !== FALSE || !$is_foneducor);
 
-    $tomador_nombre = $is_aspu ? 'Asociación Sindical de Profesores Universitarios - ASPU' : 'Fondo de empleado de docente de la Universidad de Córdoba';
-    $tomador_nit = $is_aspu ? '830001998' : '900834726';
-    $tomador_dir = $is_aspu ? 'Cra 6 # 77-305' : 'Cra 6 # 76-103';
-    $tomador_ciudad = 'Montería';
-    $tomador_tel = $is_aspu ? '3242560489' : '3014619585';
+    if ($webform_id === 'formulario_equidad_seguros_prode' || strpos($tomador_text, 'prodepem') !== FALSE) {
+      $tomador_nombre = 'PRODEPEM S.A.S';
+      $tomador_nit = '900.582.164-1';
+      $tomador_dir = 'Cra 6 # 77-305';
+      $tomador_ciudad = 'Montería';
+      $tomador_tel = '3242560489';
+    }
+    else {
+      $is_foneducor = ($selector === '1' || strpos($tomador_text, 'fondo') !== FALSE || strpos($tomador_text, 'cordoba') !== FALSE || strpos($tomador_text, 'foneducor') !== FALSE);
+      $is_aspu = ($selector === '2' || strpos($tomador_text, 'aspu') !== FALSE || strpos($tomador_text, 'sindical') !== FALSE || !$is_foneducor);
+
+      $tomador_nombre = $is_aspu ? 'Asociación Sindical de Profesores Universitarios - ASPU' : 'Fondo de empleado de docente de la Universidad de Córdoba';
+      $tomador_nit = $is_aspu ? '830001998' : '900834726';
+      $tomador_dir = $is_aspu ? 'Cra 6 # 77-305' : 'Cra 6 # 76-103';
+      $tomador_ciudad = 'Montería';
+      $tomador_tel = $is_aspu ? '3242560489' : '3014619585';
+    }
 
     // Beneficiarios completos (usar tabla_de_beneficiarios, o tabla_de_beneficiarios_2 si está vacía):
     $bene_list = self::obtenerBeneficiariosNormalizados($raw);
@@ -734,9 +809,16 @@ class EquidadReportesController extends ControllerBase {
    * Construye el documento Excel XML Spreadsheet para descarga.
    */
   protected function construirXmlExcel(array $items, $tomador, $tipo) {
-    $nombre_tomador = ($tomador === 'aspu') ? 'ASPU' : 'FONEDUCOR';
-    $nombre_tomador = ($tomador === 'aspu') ? 'ASPU' : 'FONEDUCOR';
-    $titulo_hoja = ($tipo === 'adicionales') ? ('Datos Complementarios ' . $nombre_tomador) : ('Seguro Vida ' . $nombre_tomador);
+    $nombre_tomador = ($tomador === 'prodepem') ? 'PRODEPEM' : (($tomador === 'aspu') ? 'ASPU' : 'FONEDUCOR');
+    if ($tipo === 'rifas') {
+      $titulo_hoja = 'Boletas Rifa ' . $nombre_tomador;
+    }
+    elseif ($tipo === 'adicionales') {
+      $titulo_hoja = 'Datos Complementarios ' . $nombre_tomador;
+    }
+    else {
+      $titulo_hoja = 'Seguro Vida ' . $nombre_tomador;
+    }
 
     ob_start();
     echo '<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40">' . "\n";
@@ -1051,32 +1133,61 @@ class EquidadReportesController extends ControllerBase {
 
   protected function obtenerEstadisticas() {
     $storage = \Drupal::entityTypeManager()->getStorage('webform_submission');
-    $query = $storage->getQuery()
+
+    // Estadísticas ASPU (formulario_equidad_seguros)
+    $sids_aspu = $storage->getQuery()
       ->condition('webform_id', 'formulario_equidad_seguros')
-      ->accessCheck(FALSE);
-    $sids = $query->execute();
+      ->accessCheck(FALSE)
+      ->execute();
 
     $aspu_count = 0;
-    $rifas_count = 0;
-    $total = count($sids);
-
-    if (!empty($sids)) {
-      $subs = $storage->loadMultiple($sids);
-      foreach ($subs as $sub) {
+    $rifas_aspu = 0;
+    if (!empty($sids_aspu)) {
+      $subs_aspu = $storage->loadMultiple($sids_aspu);
+      foreach ($subs_aspu as $sub) {
         $raw = $sub->getData();
-        $aspu_count++;
-        $rifa1 = $raw['numero_de_rifa_1'] ?? $raw['numero_rifa_1'] ?? '';
-        $rifa2 = $raw['numero_de_rifa_2'] ?? $raw['numero_rifa_2'] ?? '';
-        if (!empty($rifa1) || !empty($rifa2)) {
-          $rifas_count++;
+        $selector = (string) ($raw['selector_tomador'] ?? '');
+        $tomador_text = mb_strtolower((string) ($raw['tomador'] ?? ''));
+        $is_aspu = ($selector === '2' || strpos($tomador_text, 'aspu') !== FALSE || strpos($tomador_text, 'sindical') !== FALSE || $selector === '');
+        if ($is_aspu) {
+          $aspu_count++;
+          $r1 = $raw['numero_de_rifa_1'] ?? $raw['numero_rifa_1'] ?? '';
+          $r2 = $raw['numero_de_rifa_2'] ?? $raw['numero_rifa_2'] ?? '';
+          if (!empty($r1) || !empty($r2)) {
+            $rifas_aspu++;
+          }
+        }
+      }
+    }
+
+    // Estadísticas PRODEPEM (formulario_equidad_seguros_prode)
+    $sids_prode = $storage->getQuery()
+      ->condition('webform_id', 'formulario_equidad_seguros_prode')
+      ->accessCheck(FALSE)
+      ->execute();
+
+    $prode_count = 0;
+    $rifas_prode = 0;
+    if (!empty($sids_prode)) {
+      $subs_prode = $storage->loadMultiple($sids_prode);
+      foreach ($subs_prode as $sub) {
+        $raw = $sub->getData();
+        $prode_count++;
+        $r1 = $raw['numero_de_rifa_1'] ?? $raw['numero_rifa_1'] ?? '';
+        $r2 = $raw['numero_de_rifa_2'] ?? $raw['numero_rifa_2'] ?? '';
+        if (!empty($r1) || !empty($r2)) {
+          $rifas_prode++;
         }
       }
     }
 
     return [
-      'total' => $total,
+      'total' => $aspu_count + $prode_count,
       'aspu' => $aspu_count,
-      'rifas' => $rifas_count,
+      'rifas_aspu' => $rifas_aspu,
+      'prodepem' => $prode_count,
+      'rifas_prodepem' => $rifas_prode,
+      'rifas' => $rifas_aspu + $rifas_prode,
     ];
   }
 
