@@ -206,9 +206,17 @@
       {% if adicionales_data.otros_campos %}
         <div style="margin-top: 1.25rem; padding-top: 1rem; border-top: 1px dashed #e5e7eb;">
           <span class="detalle-item__label" style="display: block; margin-bottom: 0.5rem;">Otros Parámetros Registrados:</span>
-          <p style="font-size: 0.85rem; color: #4b5563; margin: 0; line-height: 1.5;">
-            {{ adicionales_data.otros_campos }}
-          </p>
+          {% if adicionales_data.otros_campos_lista and adicionales_data.otros_campos_lista is iterable %}
+            <ul style="font-size: 0.85rem; color: #4b5563; margin: 0; padding-left: 1.25rem; line-height: 1.5;">
+              {% for k, v in adicionales_data.otros_campos_lista %}
+                <li><strong>{{ k|replace({'_': ' '})|title }}:</strong> {{ v is iterable ? v|join(', ') : v }}</li>
+              {% endfor %}
+            </ul>
+          {% else %}
+            <p style="font-size: 0.85rem; color: #4b5563; margin: 0; line-height: 1.5;">
+              {{ adicionales_data.otros_campos }}
+            </p>
+          {% endif %}
         </div>
       {% endif %}
     </div>
@@ -236,10 +244,10 @@
               {% for b in beneficiarios %}
                 <tr>
                   <td>{{ loop.index }}</td>
-                  <td><strong>{{ b.nombre }}</strong></td>
-                  <td>{{ b.tipo_doc }}</td>
-                  <td>{{ b.num_doc }}</td>
-                  <td>{{ b.parentesco }}</td>
+                  <td><strong>{{ b.nombre|default(b.nombre_y_apellido|default('-')) }}</strong></td>
+                  <td>{{ b.tipo_doc|default(b.tipo_de_documento|default('C.C.')) }}</td>
+                  <td>{{ b.num_doc|default(b.numero_de_documento|default('-')) }}</td>
+                  <td>{{ b.parentesco|default('N/A') }}</td>
                   <td>{{ b.edad ?: '-' }}</td>
                   <td style="text-align: right; font-weight: 700; color: #15803d;">{{ b.porcentaje ? (b.porcentaje|replace({'%': ''}) ~ '%') : '-' }}</td>
                 </tr>

@@ -544,26 +544,49 @@ class EquidadReportesController extends ControllerBase {
     $otros_adicionales = [];
     $keys_originales = [
       'tomador', 'nit_tomador', 'c_c_nit', 'direccion_tomador', 'direccion', 'ciudad_tomador', 'ciudad', 'telefono_tomador', 'telefono',
-      'selector_tomador', 'nombre_completo', 'nombre', 'nombres', 'apellidos', 'primer_apellido', 'segundo_apellido',
-      'tipo_de_documento', 'tipo_documento', 'numero_de_documento', 'numero_documento', 'documento',
-      'email', 'correo_electronico', 'trabaja_actualmente', 'trabaja_usted_actualmente',
+      'selector_tomador', 'nombre_completo', 'nombre', 'nombres', 'apellidos', 'primer_apellido', 'segundo_apellido', 'primer_nombre', 'segundo_nombre',
+      'asegurado_principal', 'nombre_del_asegurado', 'nombre_asegurado', 'asegurado', 'nombres_y_apellidos', 'nombre_y_apellidos',
+      'tipo_de_documento', 'tipo_documento', 'numero_de_documento', 'numero_documento', 'documento', 'c_c', 'cedula', 'identificacion', 'numero_de_identificacion', 'numero_identificacion',
+      'email', 'correo_electronico', 'correo', 'telefono_asegurado', 'celular', 'numero_contacto',
+      'direccion_residencia', 'lugar_residencia', 'trabaja_actualmente', 'trabaja_usted_actualmente',
       'ocupacion', 'cargo', 'fecha_de_nacimiento', 'fecha_nacimiento', 'estado_civil',
-      'valor_asegurado_solicitado', 'total_valor_asegurado', 'beneficiarios', 'tabla_beneficiarios', 'tabla_de_beneficiarios', 'tabla_de_beneficiarios_2',
-      'peso', 'estatura', 'explicacion_salud', 'explicacion_condiciones_salud', 'en_caso_de_haber_marcado_alguna_de_las_condiciones_anteriores_o',
+      'valor_asegurado_solicitado', 'total_valor_asegurado', 'valor_asegurado', 'plan',
+      'beneficiarios', 'tabla_beneficiarios', 'tabla_de_beneficiarios', 'tabla_de_beneficiarios_2', 'beneficiario', 'beneficiarios_tabla', 'datos_beneficiarios', 'designacion_beneficiarios', 'designacion_de_beneficiarios', 'beneficiarios_del_seguro', 'datos_de_los_beneficiarios', 'escriba_el_nombre_de_los_beneficiarios_de_este_seguro_y_su_respectivo_porcentaje', 'escriba_el_nombre_de_los_beneficiarios',
+      'peso', 'estatura', 'explicacion_salud', 'explicacion_condiciones_salud', 'en_caso_de_haber_marcado_alguna_de_las_condiciones_anteriores_o', 'favor_explicar_detalladamente',
       'esta_interesado_en_ampliar_el_amparo_de_vida', 'por_que', 'interesado_soat', 'interesado_todo_riesgo', 'interesado_hogar',
-      'seguros_adicionales', 'placa', 'numero_de_rifa_1', 'numero_de_rifa_2',
+      'seguros_adicionales', 'placa', 'numero_de_rifa_1', 'numero_de_rifa_2', 'numero_de_rifa', 'numero_rifa', 'rifa', 'boleta',
     ];
     for ($i = 1; $i <= 14; $i++) {
       $keys_originales[] = 'salud_' . $i;
     }
 
     foreach ($raw as $k => $v) {
-      if (!in_array($k, $keys_originales) && strpos($k, 'salud') === FALSE && strpos($k, 'interes') === FALSE && strpos($k, 'rifa') === FALSE && strpos($k, 'sorteo') === FALSE && strpos($k, 'boleta') === FALSE) {
-        if (is_string($v) && !empty(trim($v))) {
-          $otros_adicionales[$k] = $v;
-        }
+      $k_lower = mb_strtolower((string) $k);
+      if (
+        in_array($k, $keys_originales, TRUE) ||
+        strpos($k_lower, 'salud') !== FALSE ||
+        strpos($k_lower, 'interes') !== FALSE ||
+        strpos($k_lower, 'rifa') !== FALSE ||
+        strpos($k_lower, 'sorteo') !== FALSE ||
+        strpos($k_lower, 'boleta') !== FALSE ||
+        strpos($k_lower, 'beneficiar') !== FALSE ||
+        strpos($k_lower, 'asegurad') !== FALSE ||
+        strpos($k_lower, 'tomador') !== FALSE ||
+        strpos($k_lower, 'documento') !== FALSE ||
+        strpos($k_lower, 'cedula') !== FALSE
+      ) {
+        continue;
+      }
+      if (is_string($v) && !empty(trim($v))) {
+        $otros_adicionales[$k] = trim($v);
       }
     }
+
+    $otros_adicionales_texto = !empty($otros_adicionales)
+      ? implode(', ', array_map(function ($k, $v) {
+          return ucwords(str_replace('_', ' ', $k)) . ': ' . $v;
+        }, array_keys($otros_adicionales), $otros_adicionales))
+      : '';
 
     $url_detalle = Url::fromRoute('prodepem_solicitudes_rtm.reportes_equidad_detalle', ['sid' => $sid])->toString();
     $url_pdf = Url::fromRoute('prodepem_solicitudes_rtm.generar_pdf_seguro_vida', ['sid' => $sid])->toString();
@@ -601,7 +624,8 @@ class EquidadReportesController extends ControllerBase {
       'interes_otros' => (!empty($seguros_adicionales) || $interesado_soat === 'SÍ' || $interesado_todo_riesgo === 'SÍ' || $interesado_hogar === 'SÍ') ? 'SÍ' : 'NO',
       'participa_rifa' => (!empty($numero_de_rifa_1) || !empty($numero_de_rifa_2)) ? 'SÍ' : 'NO',
       'rifa_texto' => trim($numero_de_rifa_1 . (!empty($numero_de_rifa_2) ? ' / ' . $numero_de_rifa_2 : '')),
-      'otros_adicionales' => $otros_adicionales,
+      'otros_adicionales' => $otros_adicionales_texto,
+      'otros_adicionales_lista' => $otros_adicionales,
       // Acciones:
       'url_detalle' => $url_detalle,
       'url_pdf' => $url_pdf,
@@ -694,6 +718,7 @@ class EquidadReportesController extends ControllerBase {
         'participa_rifa' => $item['participa_rifa'],
         'rifa_detalle' => $item['rifa_texto'],
         'otros_campos' => $item['otros_adicionales'],
+        'otros_campos_lista' => $item['otros_adicionales_lista'],
       ],
       'beneficiarios' => $bene_list,
       'salud' => [
@@ -999,8 +1024,8 @@ class EquidadReportesController extends ControllerBase {
           $porcentaje .= '%';
         }
 
-        // Si la fila cuenta con al menos un atributo relevante, es válida.
-        if (!empty($nombre_ben) || !empty($num_doc) || (!empty($parentesco) && $parentesco !== 'N/A') || !empty($porcentaje) || !empty($edad)) {
+        // Un beneficiario solo es válido si cuenta con al menos un nombre O número de documento.
+        if (!empty($nombre_ben) || !empty($num_doc)) {
           $parsed_list[] = [
             'nombre' => $nombre_ben,
             'nombre_y_apellido' => $nombre_ben,
