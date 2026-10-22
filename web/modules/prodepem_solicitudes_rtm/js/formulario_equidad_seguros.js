@@ -229,23 +229,229 @@
     observer.observe(tbody, { childList: true, subtree: true });
   }
 
+
+  // =========================================================================
+  // Directiva de Formato Monetario (Moneda Colombiana COP: $20.000.000)
+  // =========================================================================
+
+  /**
+   * Formatea un valor numérico como monto monetario ($20.000.000 con puntos y signo de peso).
+   */
+  function formatMoneyCOP(value) {
+    if (value === null || value === undefined) return '';
+    const digits = String(value).replace(/\D/g, '');
+    if (!digits) return '';
+    const cleanDigits = digits.replace(/^0+(?=\d)/, '');
+    const withDots = cleanDigits.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+    return '$' + withDots;
+  }
+
+  /**
+   * Verifica si un campo de entrada corresponde a un campo monetario.
+   */
+  function isCurrencyField(input) {
+    if (!input || input.type === 'hidden' || input.type === 'submit' || input.type === 'button') {
+      return false;
+    }
+    const name = (input.name || '').toLowerCase();
+    const selector = (input.getAttribute('data-drupal-selector') || '').toLowerCase();
+    const id = (input.id || '').toLowerCase();
+    const className = (input.className || '').toLowerCase();
+    const isExplicit = input.hasAttribute('data-currency-mask') || className.includes('js-currency-mask') || className.includes('input-formato-moneda');
+
+    return isExplicit ||
+      name.includes('valor_asegurado_solicitado') ||
+      name.includes('total_valor_asegurado') ||
+      name === 'valor_asegurado' ||
+      selector.includes('valor-asegurado-solicitado') ||
+      selector.includes('total-valor-asegurado') ||
+      selector.includes('valor-asegurado') ||
+      id.includes('valor-asegurado-solicitado') ||
+      id.includes('total-valor-asegurado');
+  }
+
+  /**
+   * Aplica la máscara monetaria manteniendo la posición adecuada del cursor.
+   */
+  function applyCurrencyMask(input) {
+    if (!input) return;
+
+    if (input.type === 'number') {
+      input.type = 'text';
+    }
+    if (!input.getAttribute('inputmode')) {
+      input.setAttribute('inputmode', 'numeric');
+    }
+    input.setAttribute('autocomplete', 'off');
+
+    const oldVal = input.value || '';
+    const oldCursor = input.selectionStart !== null ? input.selectionStart : oldVal.length;
+
+    // Contar cuántos dígitos había antes del cursor
+    const digitsBeforeCursor = oldVal.slice(0, oldCursor).replace(/\D/g, '').length;
+
+    const newVal = formatMoneyCOP(oldVal);
+    if (newVal === oldVal) return;
+
+    input.value = newVal;
+
+    if (newVal === '') {
+      try {
+        input.setSelectionRange(0, 0);
+      } catch (e) {}
+      return;
+    }
+
+    // Calcular la nueva posición del cursor
+    let newCursorPos = newVal.length;
+    let digitsCounted = 0;
+
+    for (let i = 0; i < newVal.length; i++) {
+      if (/\d/.test(newVal[i])) {
+        digitsCounted++;
+      }
+      if (digitsCounted === digitsBeforeCursor) {
+        newCursorPos = i + 1;
+        break;
+      }
+    }
+
+    if (digitsBeforeCursor === 0) {
+      newCursorPos = 1; // Justo después de '$'
+    }
+
+    try {
+      input.setSelectionRange(newCursorPos, newCursorPos);
+    } catch (e) {}
+  }
+
+  /**
+   * Inicializa la directiva de máscara de moneda en los inputs seleccionados.
+   */
+  function initCurrencyInputs(container) {
+    const root = container || document;
+    const inputs = root.querySelectorAll(
+      'input[name="valor_asegurado_solicitado"], input[data-drupal-selector*="valor-asegurado-solicitado"], ' +
+      'input[name="total_valor_asegurado"], input[data-drupal-selector*="total-valor-asegurado"], ' +
+      'input[name="valor_asegurado"], input[data-currency-mask], .js-currency-mask, .input-formato-moneda'
+    );
+
+    inputs.forEach(function (input) {
+      if (input.dataset.currencyMaskInitialized) return;
+      input.dataset.currencyMaskInitialized = 'true';
+
+      if (input.type === 'number') {
+        input.type = 'text';
+      }
+      input.setAttribute('inputmode', 'numeric');
+      input.setAttribute('autocomplete', 'off');
+      input.classList.add('input-formato-moneda');
+
+      // Si tiene un valor preexistente, formatearlo de inmediato
+      if (input.value && input.value.trim() !== '') {
+        input.value = formatMoneyCOP(input.value);
+      }
+
+      input.addEventListener('input', function () {
+        applyCurrencyMask(input);
+
+        // Si es valor_asegurado_solicitado, sincronizar con total_valor_asegurado
+        const name = (input.name || '').toLowerCase();
+        const selector = (input.getAttribute('data-drupal-selector') || '').toLowerCase();
+        if (name.includes('valor_asegurado_solicitado') || selector.includes('valor-asegurado-solicitado')) {
+          const form = input.closest('form');
+          if (form) {
+            const totalInput = form.querySelector('input[name="total_valor_asegurado"], input[data-drupal-selector*="total-valor-asegurado"]');
+            if (totalInput && (!totalInput.value || totalInput.dataset.autoSynced === 'true')) {
+              totalInput.value = input.value;
+              totalInput.dataset.autoSynced = 'true';
+              applyCurrencyMask(totalInput);
+            }
+          }
+        }
+      });
+
+      // Si el usuario edita total_valor_asegurado manualmente, desactivar auto-sincronización
+      const name = (input.name || '').toLowerCase();
+      const selector = (input.getAttribute('data-drupal-selector') || '').toLowerCase();
+      if (name.includes('total_valor_asegurado') || selector.includes('total-valor-asegurado')) {
+        input.addEventListener('keydown', function () {
+          input.dataset.autoSynced = 'false';
+        });
+      }
+
+      // Manejar retroceso en separadores de miles con punto
+      input.addEventListener('keydown', function (e) {
+        if (e.key === 'Backspace') {
+          const cur = input.selectionStart;
+          const end = input.selectionEnd;
+          if (cur === end && cur > 1) {
+            const charBefore = input.value[cur - 1];
+            if (charBefore === '.') {
+              e.preventDefault();
+              const beforeSlice = input.value.slice(0, cur - 1);
+              const afterSlice = input.value.slice(cur);
+              const digitsBefore = beforeSlice.replace(/\D/g, '');
+              const digitsAfter = afterSlice.replace(/\D/g, '');
+              const newDigits = digitsBefore.slice(0, -1) + digitsAfter;
+              input.value = formatMoneyCOP(newDigits);
+
+              const targetDigits = Math.max(0, digitsBefore.length - 1);
+              let count = 0;
+              let newPos = input.value ? 1 : 0;
+              for (let i = 0; i < input.value.length; i++) {
+                if (/\d/.test(input.value[i])) {
+                  count++;
+                  if (count === targetDigits) {
+                    newPos = i + 1;
+                    break;
+                  }
+                }
+              }
+              try {
+                input.setSelectionRange(newPos, newPos);
+              } catch (err) {}
+              input.dispatchEvent(new Event('input', { bubbles: true }));
+            }
+          }
+        }
+      });
+
+      input.addEventListener('blur', function () {
+        if (input.value && input.value.trim() !== '') {
+          input.value = formatMoneyCOP(input.value);
+        }
+      });
+    });
+  }
+
+  // Delegación global en captura para asegurar formateo instantáneo incluso en elementos dinámicos
+  document.addEventListener('input', function (e) {
+    const target = e.target;
+    if (target && isCurrencyField(target)) {
+      applyCurrencyMask(target);
+    }
+  }, true);
+
   /**
    * Inicialización de mejoras estéticas, cálculos y gestos en Vanilla JS.
    */
   function initVanillaEnhancements(root) {
     const context = root || document;
-    const forms = context.querySelectorAll ? context.querySelectorAll('.webform-submission-formulario-equidad-seguros-add-form, .formulario-equidad-seguros') : [];
+    const forms = context.querySelectorAll ? context.querySelectorAll('.webform-submission-formulario-equidad-seguros-add-form, .webform-submission-formulario-equidad-seguros-prode-add-form, .formulario-equidad-seguros, .formulario-equidad-seguros-prode, form[id*="formulario-equidad-seguros"]') : [];
 
     forms.forEach(function (form) {
-      // 1. Datos automáticos de ASPU cuando selector_tomador es 2
-      const selectorTomadorInput = form.querySelector('[name="selector_tomador"]');
-      const selectorVal = selectorTomadorInput ? (selectorTomadorInput.value || '2') : '2';
+      // 1. Datos automáticos del tomador (PRODEPEM o ASPU)
+      const isProdeForm = form.classList.contains('webform-submission-formulario-equidad-seguros-prode-add-form') ||
+        form.classList.contains('formulario-equidad-seguros-prode') ||
+        (form.id && form.id.includes('formulario-equidad-seguros-prode')) ||
+        (form.getAttribute('data-drupal-selector') && form.getAttribute('data-drupal-selector').includes('formulario-equidad-seguros-prode'));
 
-      if (selectorVal === '2') {
-        const aspuFields = {
-          'tomador': 'Asociación Sindical de Profesores Universitarios - ASPU',
-          'c_c_nit': '830001998',
-          'nit_tomador': '830001998',
+      if (isProdeForm) {
+        const prodepemFields = {
+          'tomador': 'PRODEPEM S.A.S',
+          'c_c_nit': '900.582.164-1',
+          'nit_tomador': '900.582.164-1',
           'direccion': 'Cra 6 # 77-305',
           'direccion_tomador': 'Cra 6 # 77-305',
           'ciudad': 'Montería',
@@ -253,14 +459,40 @@
           'telefono': '3242560489',
           'telefono_tomador': '3242560489'
         };
-
-        Object.keys(aspuFields).forEach(function (fieldName) {
+        Object.keys(prodepemFields).forEach(function (fieldName) {
           const field = form.querySelector('[name="' + fieldName + '"]');
           if (field && (!field.value || field.value.trim() === '')) {
-            field.value = aspuFields[fieldName];
+            field.value = prodepemFields[fieldName];
           }
         });
+      } else {
+        const selectorTomadorInput = form.querySelector('[name="selector_tomador"]');
+        const selectorVal = selectorTomadorInput ? (selectorTomadorInput.value || '2') : '2';
+
+        if (selectorVal === '2') {
+          const aspuFields = {
+            'tomador': 'Asociación Sindical de Profesores Universitarios - ASPU',
+            'c_c_nit': '830001998',
+            'nit_tomador': '830001998',
+            'direccion': 'Cra 6 # 77-305',
+            'direccion_tomador': 'Cra 6 # 77-305',
+            'ciudad': 'Montería',
+            'ciudad_tomador': 'Montería',
+            'telefono': '3242560489',
+            'telefono_tomador': '3242560489'
+          };
+
+          Object.keys(aspuFields).forEach(function (fieldName) {
+            const field = form.querySelector('[name="' + fieldName + '"]');
+            if (field && (!field.value || field.value.trim() === '')) {
+              field.value = aspuFields[fieldName];
+            }
+          });
+        }
       }
+
+      // 1.1. Directiva de formato monetario para campos de valor asegurado ($20.000.000)
+      initCurrencyInputs(form);
 
       // 2. Homologar estilo de "¿Está interesado en otros productos?"
       const titles = form.querySelectorAll('label, legend, .fieldset-legend, .form-item__label, h2, h3, h4');
@@ -413,9 +645,11 @@
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', function () {
       initVanillaEnhancements(document);
+      initCurrencyInputs(document);
     });
   } else {
     initVanillaEnhancements(document);
+    initCurrencyInputs(document);
   }
 
   // Compatibilidad con Drupal.behaviors si el framework está presente
@@ -424,6 +658,7 @@
     window.Drupal.behaviors.formularioEquidadSeguros = {
       attach: function (context) {
         initVanillaEnhancements(context);
+        initCurrencyInputs(context);
       }
     };
   }

@@ -231,11 +231,17 @@ function prodepem_solicitudes_rtm_form_alter(&$form, FormStateInterface $form_st
     }
   }
 
-  // Check if the form is for 'formulario_equidad_seguros'.
+  // Check if the form is for 'formulario_equidad_seguros' or 'formulario_equidad_seguros_prode'.
+  $is_prode_form = (
+    (isset($form['#webform_id']) && $form['#webform_id'] === 'formulario_equidad_seguros_prode') ||
+    strpos($form_id, 'formulario_equidad_seguros_prode') !== FALSE
+  );
   $is_equidad_form = (
+    $is_prode_form ||
     $form_id === 'webform_submission_formulario_equidad_seguros_add_form' ||
+    $form_id === 'webform_submission_formulario_equidad_seguros_prode_add_form' ||
     strpos($form_id, 'webform_submission_formulario_equidad_seguros') === 0 ||
-    (isset($form['#webform_id']) && $form['#webform_id'] === 'formulario_equidad_seguros')
+    (isset($form['#webform_id']) && in_array($form['#webform_id'], ['formulario_equidad_seguros', 'formulario_equidad_seguros_prode'], TRUE))
   );
   if ($is_equidad_form) {
     // Attach custom library for styles and gestures.
@@ -243,6 +249,9 @@ function prodepem_solicitudes_rtm_form_alter(&$form, FormStateInterface $form_st
 
     // Clases CSS personalizadas o atributos para ajustes de estilo.
     $form['#attributes']['class'][] = 'formulario-equidad-seguros';
+    if ($is_prode_form) {
+      $form['#attributes']['class'][] = 'formulario-equidad-seguros-prode';
+    }
 
     // Desactivar input de cantidad adicional y texto 'more items' en elementos m?ltiples.
     $disable_add_more = function (&$elements) use (&$disable_add_more) {
@@ -277,28 +286,43 @@ function prodepem_solicitudes_rtm_form_alter(&$form, FormStateInterface $form_st
       $apply_style_interesado($form['elements']);
     }
 
-    // Pre-llenar datos de ASPU en los campos del tomador si selector_tomador es 2 (por defecto).
-    $aspu_tomador_data = [
-      'tomador' => 'Asociación Sindical de Profesores Universitarios - ASPU',
-      'c_c_nit' => '830001998',
-      'nit_tomador' => '830001998',
-      'direccion' => 'Cra 6 # 77-305',
-      'direccion_tomador' => 'Cra 6 # 77-305',
-      'ciudad' => 'Montería',
-      'ciudad_tomador' => 'Montería',
-      'telefono' => '3242560489',
-      'telefono_tomador' => '3242560489',
-    ];
+    // Pre-llenar datos del tomador según corresponda (PRODEPEM o ASPU).
+    if ($is_prode_form) {
+      $tomador_data = [
+        'tomador' => 'PRODEPEM S.A.S',
+        'c_c_nit' => '900.582.164-1',
+        'nit_tomador' => '900.582.164-1',
+        'direccion' => 'Cra 6 # 77-305',
+        'direccion_tomador' => 'Cra 6 # 77-305',
+        'ciudad' => 'Montería',
+        'ciudad_tomador' => 'Montería',
+        'telefono' => '3242560489',
+        'telefono_tomador' => '3242560489',
+      ];
+    }
+    else {
+      $tomador_data = [
+        'tomador' => 'Asociación Sindical de Profesores Universitarios - ASPU',
+        'c_c_nit' => '830001998',
+        'nit_tomador' => '830001998',
+        'direccion' => 'Cra 6 # 77-305',
+        'direccion_tomador' => 'Cra 6 # 77-305',
+        'ciudad' => 'Montería',
+        'ciudad_tomador' => 'Montería',
+        'telefono' => '3242560489',
+        'telefono_tomador' => '3242560489',
+      ];
+    }
 
-    $set_tomador_defaults = function (&$elements) use (&$set_tomador_defaults, $aspu_tomador_data) {
+    $set_tomador_defaults = function (&$elements) use (&$set_tomador_defaults, $tomador_data, $is_prode_form) {
       foreach ($elements as $key => &$child) {
         if (is_array($child) && strpos((string) $key, '#') !== 0) {
-          if ($key === 'selector_tomador' && empty($child['#default_value'])) {
+          if (!$is_prode_form && $key === 'selector_tomador' && empty($child['#default_value'])) {
             $child['#default_value'] = '2';
           }
-          if (isset($aspu_tomador_data[$key])) {
+          if (isset($tomador_data[$key])) {
             if (!isset($child['#default_value']) || $child['#default_value'] === '') {
-              $child['#default_value'] = $aspu_tomador_data[$key];
+              $child['#default_value'] = $tomador_data[$key];
             }
           }
           $set_tomador_defaults($child);
@@ -307,6 +331,30 @@ function prodepem_solicitudes_rtm_form_alter(&$form, FormStateInterface $form_st
     };
     if (isset($form['elements'])) {
       $set_tomador_defaults($form['elements']);
+    }
+
+    // Configurar campos monetarios con directiva de máscara de moneda ($20.000.000)
+    $currency_fields = ['valor_asegurado_solicitado', 'total_valor_asegurado', 'valor_asegurado'];
+    $configure_currency_fields = function (&$elements) use (&$configure_currency_fields, $currency_fields) {
+      foreach ($elements as $key => &$child) {
+        if (is_array($child) && strpos((string) $key, '#') !== 0) {
+          if (in_array($key, $currency_fields, TRUE)) {
+            // Asegurar tipo textfield para permitir '$' y separadores de miles
+            if (isset($child['#type']) && in_array($child['#type'], ['number', 'tel'])) {
+              $child['#type'] = 'textfield';
+            }
+            $child['#attributes']['class'][] = 'input-formato-moneda';
+            $child['#attributes']['class'][] = 'js-currency-mask';
+            $child['#attributes']['data-currency-mask'] = 'true';
+            $child['#attributes']['inputmode'] = 'numeric';
+            $child['#attributes']['autocomplete'] = 'off';
+          }
+          $configure_currency_fields($child);
+        }
+      }
+    };
+    if (isset($form['elements'])) {
+      $configure_currency_fields($form['elements']);
     }
 
     // Omitir la opción '- Ninguno -' en los selectores con opciones Sí / No.
@@ -361,6 +409,25 @@ function prodepem_solicitudes_rtm_form_alter(&$form, FormStateInterface $form_st
  * Remueve la opción '- Ninguno -' de los selectores que contienen opciones Sí/No.
  */
 function prodepem_solicitudes_rtm_formulario_equidad_after_build($form, FormStateInterface $form_state) {
+  // Asegurar atributos en campos de moneda durante after_build
+  $currency_fields = ['valor_asegurado_solicitado', 'total_valor_asegurado', 'valor_asegurado'];
+  $fix_currency_elements = function (&$elements) use (&$fix_currency_elements, $currency_fields) {
+    foreach ($elements as $key => &$child) {
+      if (is_array($child) && strpos((string) $key, '#') !== 0) {
+        if (in_array($key, $currency_fields, TRUE)) {
+          $child['#attributes']['type'] = 'text';
+          $child['#attributes']['inputmode'] = 'numeric';
+          $child['#attributes']['autocomplete'] = 'off';
+          $child['#attributes']['data-currency-mask'] = 'true';
+          $child['#attributes']['class'][] = 'input-formato-moneda';
+          $child['#attributes']['class'][] = 'js-currency-mask';
+        }
+        $fix_currency_elements($child);
+      }
+    }
+  };
+  $fix_currency_elements($form);
+
   $clean_selects = function (&$elements) use (&$clean_selects) {
     foreach ($elements as $key => &$child) {
       if (is_array($child) && strpos((string) $key, '#') !== 0) {
@@ -455,9 +522,22 @@ function prodepem_solicitudes_rtm_webform_submission_presave(WebformSubmissionIn
   $webform = $webform_submission->getWebform();
   $webform_id = $webform ? $webform->id() : '';
 
+  // Formulario Equidad Seguros PRODEPEM: Asignar tomador PRODEPEM
+  if ($webform_id === 'formulario_equidad_seguros_prode') {
+    $data['tomador'] = 'PRODEPEM S.A.S';
+    $data['c_c_nit'] = '900.582.164-1';
+    $data['nit_tomador'] = '900.582.164-1';
+    $data['direccion'] = 'Cra 6 # 77-305';
+    $data['direccion_tomador'] = 'Cra 6 # 77-305';
+    $data['ciudad'] = 'Montería';
+    $data['ciudad_tomador'] = 'Montería';
+    $data['telefono'] = '3242560489';
+    $data['telefono_tomador'] = '3242560489';
+    $webform_submission->setData($data);
+  }
   // Formulario Equidad Seguros: Asignar automáticamente los datos del tomador según 'selector_tomador'.
   // Si selector_tomador es 2 (o por defecto en este formulario), corresponde a ASPU y se colocan sus datos en tomador, c_c_nit, direccion, ciudad, telefono.
-  if ($webform_id === 'formulario_equidad_seguros' || isset($data['selector_tomador'])) {
+  elseif ($webform_id === 'formulario_equidad_seguros' || isset($data['selector_tomador'])) {
     $selector = (string) ($data['selector_tomador'] ?? '2');
     if ($selector === '2' || $selector === 'aspu') {
       $data['selector_tomador'] = '2';
@@ -485,6 +565,34 @@ function prodepem_solicitudes_rtm_webform_submission_presave(WebformSubmissionIn
       $data['telefono_tomador'] = '3014619585';
       $webform_submission->setData($data);
     }
+  }
+
+  // Normalizar formato monetario para formulario_equidad_seguros y formulario_equidad_seguros_prode ($20.000.000)
+  if (in_array($webform_id, ['formulario_equidad_seguros', 'formulario_equidad_seguros_prode'], TRUE)) {
+    $format_cop = function ($val) {
+      if (empty($val)) {
+        return '';
+      }
+      $digits = preg_replace('/\D/', '', (string) $val);
+      if ($digits === '') {
+        return '';
+      }
+      return '$' . number_format((float) $digits, 0, ',', '.');
+    };
+
+    if (!empty($data['valor_asegurado_solicitado'])) {
+      $data['valor_asegurado_solicitado'] = $format_cop($data['valor_asegurado_solicitado']);
+    }
+    if (!empty($data['total_valor_asegurado'])) {
+      $data['total_valor_asegurado'] = $format_cop($data['total_valor_asegurado']);
+    }
+    elseif (!empty($data['valor_asegurado_solicitado'])) {
+      $data['total_valor_asegurado'] = $data['valor_asegurado_solicitado'];
+    }
+    if (!empty($data['valor_asegurado'])) {
+      $data['valor_asegurado'] = $format_cop($data['valor_asegurado']);
+    }
+    $webform_submission->setData($data);
   }
 
   // Check if the webform is 'solicitud_de_revision_tecnico_me'.

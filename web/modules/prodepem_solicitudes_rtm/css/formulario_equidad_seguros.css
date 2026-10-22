@@ -6,7 +6,9 @@
    1. Contenedor Principal (Mobile Base)
    ========================================================================== */
 .webform-submission-formulario-equidad-seguros-add-form,
-.formulario-equidad-seguros {
+.webform-submission-formulario-equidad-seguros-prode-add-form,
+.formulario-equidad-seguros,
+.formulario-equidad-seguros-prode {
   width: 100% !important;
   max-width: 100%;
   box-sizing: border-box;
@@ -663,4 +665,25 @@
 .beneficiarios-porcentaje-input--valid {
   border-color: #059669 !important;
   background-color: #f0fdf4 !important;
+}
+
+
+/* ==========================================================================
+   Máscara y Formato de Campos Monetarios ($20.000.000)
+   ========================================================================== */
+.input-formato-moneda,
+input[data-currency-mask="true"],
+.js-currency-mask {
+  font-variant-numeric: tabular-nums !important;
+  font-feature-settings: "tnum" !important;
+  font-weight: 600 !important;
+  letter-spacing: 0.5px !important;
+  color: #0f172a !important;
+}
+
+.input-formato-moneda:focus,
+input[data-currency-mask="true"]:focus,
+.js-currency-mask:focus {
+  border-color: #059669 !important;
+  box-shadow: 0 0 0 3px rgba(5, 150, 105, 0.15) !important;
 }
