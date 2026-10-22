@@ -235,6 +235,46 @@
   // =========================================================================
 
   /**
+   * Asegura que el input sea de tipo text y remueva restricciones numéricas nativas de HTML5.
+   * Si el navegador bloquea cambiar input.type directamente, reemplaza el nodo con un clon textfield.
+   */
+  function prepareCurrencyInput(input) {
+    if (!input) return input;
+    if (input.dataset.currencyReady === 'true') return input;
+
+    if (input.type === 'number' || input.getAttribute('type') === 'number') {
+      try {
+        input.type = 'text';
+      } catch (e) {
+        try {
+          const replacement = document.createElement('input');
+          for (let i = 0; i < input.attributes.length; i++) {
+            const attr = input.attributes[i];
+            if (attr.name !== 'type' && attr.name !== 'min' && attr.name !== 'max' && attr.name !== 'step') {
+              replacement.setAttribute(attr.name, attr.value);
+            }
+          }
+          replacement.setAttribute('type', 'text');
+          replacement.value = input.value;
+          if (input.parentNode) {
+            input.parentNode.replaceChild(replacement, input);
+            input = replacement;
+          }
+        } catch (err) {}
+      }
+      input.removeAttribute('step');
+      input.removeAttribute('min');
+      input.removeAttribute('max');
+    }
+
+    input.setAttribute('inputmode', 'numeric');
+    input.setAttribute('autocomplete', 'off');
+    input.classList.add('input-formato-moneda');
+    input.dataset.currencyReady = 'true';
+    return input;
+  }
+
+  /**
    * Formatea un valor numérico como monto monetario ($20.000.000 con puntos y signo de peso).
    */
   function formatMoneyCOP(value) {
@@ -275,54 +315,44 @@
    */
   function applyCurrencyMask(input) {
     if (!input) return;
+    input = prepareCurrencyInput(input);
 
-    if (input.type === 'number') {
-      input.type = 'text';
-    }
-    if (!input.getAttribute('inputmode')) {
-      input.setAttribute('inputmode', 'numeric');
-    }
-    input.setAttribute('autocomplete', 'off');
+    const rawVal = input.value || '';
+    const digits = rawVal.replace(/\D/g, '');
 
-    const oldVal = input.value || '';
-    const oldCursor = input.selectionStart !== null ? input.selectionStart : oldVal.length;
-
-    // Contar cuántos dígitos había antes del cursor
-    const digitsBeforeCursor = oldVal.slice(0, oldCursor).replace(/\D/g, '').length;
-
-    const newVal = formatMoneyCOP(oldVal);
-    if (newVal === oldVal) return;
-
-    input.value = newVal;
-
-    if (newVal === '') {
-      try {
-        input.setSelectionRange(0, 0);
-      } catch (e) {}
+    if (!digits) {
+      input.value = '';
       return;
     }
 
-    // Calcular la nueva posición del cursor
-    let newCursorPos = newVal.length;
-    let digitsCounted = 0;
-
-    for (let i = 0; i < newVal.length; i++) {
-      if (/\d/.test(newVal[i])) {
-        digitsCounted++;
+    const formatted = formatMoneyCOP(rawVal);
+    if (input.value !== formatted) {
+      let oldSel = input.selectionEnd;
+      if (oldSel === null || oldSel === undefined) {
+        oldSel = rawVal.length;
       }
-      if (digitsCounted === digitsBeforeCursor) {
-        newCursorPos = i + 1;
-        break;
+      const digitsBefore = rawVal.slice(0, oldSel).replace(/\D/g, '').length;
+
+      input.value = formatted;
+
+      let newPos = formatted.length;
+      let count = 0;
+      for (let i = 0; i < formatted.length; i++) {
+        if (/\d/.test(formatted[i])) {
+          count++;
+          if (count === digitsBefore) {
+            newPos = i + 1;
+            break;
+          }
+        }
       }
+      if (digitsBefore === 0) {
+        newPos = formatted ? 1 : 0;
+      }
+      try {
+        input.setSelectionRange(newPos, newPos);
+      } catch (err) {}
     }
-
-    if (digitsBeforeCursor === 0) {
-      newCursorPos = 1; // Justo después de '$'
-    }
-
-    try {
-      input.setSelectionRange(newCursorPos, newCursorPos);
-    } catch (e) {}
   }
 
   /**
@@ -337,15 +367,9 @@
     );
 
     inputs.forEach(function (input) {
-      if (input.dataset.currencyMaskInitialized) return;
+      input = prepareCurrencyInput(input);
+      if (input.dataset.currencyMaskInitialized === 'true') return;
       input.dataset.currencyMaskInitialized = 'true';
-
-      if (input.type === 'number') {
-        input.type = 'text';
-      }
-      input.setAttribute('inputmode', 'numeric');
-      input.setAttribute('autocomplete', 'off');
-      input.classList.add('input-formato-moneda');
 
       // Si tiene un valor preexistente, formatearlo de inmediato
       if (input.value && input.value.trim() !== '') {
@@ -359,14 +383,13 @@
         const name = (input.name || '').toLowerCase();
         const selector = (input.getAttribute('data-drupal-selector') || '').toLowerCase();
         if (name.includes('valor_asegurado_solicitado') || selector.includes('valor-asegurado-solicitado')) {
-          const form = input.closest('form');
-          if (form) {
-            const totalInput = form.querySelector('input[name="total_valor_asegurado"], input[data-drupal-selector*="total-valor-asegurado"]');
-            if (totalInput && (!totalInput.value || totalInput.dataset.autoSynced === 'true')) {
-              totalInput.value = input.value;
-              totalInput.dataset.autoSynced = 'true';
-              applyCurrencyMask(totalInput);
-            }
+          const form = input.closest('form') || document;
+          const totalInput = form.querySelector('input[name="total_valor_asegurado"], input[data-drupal-selector*="total-valor-asegurado"]');
+          if (totalInput && (!totalInput.value || totalInput.dataset.autoSynced === 'true')) {
+            prepareCurrencyInput(totalInput);
+            totalInput.value = input.value;
+            totalInput.dataset.autoSynced = 'true';
+            applyCurrencyMask(totalInput);
           }
         }
       });
@@ -424,6 +447,19 @@
       });
     });
   }
+
+  // Preparar proactivamente los inputs al hacer focus, clic o touch antes de que ocurra la primera pulsación de tecla
+  document.addEventListener('focusin', function (e) {
+    if (e.target && isCurrencyField(e.target)) {
+      prepareCurrencyInput(e.target);
+    }
+  }, true);
+
+  document.addEventListener('pointerdown', function (e) {
+    if (e.target && isCurrencyField(e.target)) {
+      prepareCurrencyInput(e.target);
+    }
+  }, true);
 
   // Delegación global en captura para asegurar formateo instantáneo incluso en elementos dinámicos
   document.addEventListener('input', function (e) {

@@ -83,6 +83,18 @@ use Drupal\Core\Ajax\ReplaceCommand;
 function prodepem_solicitudes_rtm_webform_element_alter(array &$element, FormStateInterface $form_state, array $context) {
     $key = $element['#webform_key'] ?? NULL;
 
+    // Configurar campos monetarios para permitir caracteres de moneda ('$', '.') sin rechazo de validación HTML5
+    if (in_array($key, ['valor_asegurado_solicitado', 'total_valor_asegurado', 'valor_asegurado'], TRUE)) {
+      $element['#type'] = 'textfield';
+      $element['#attributes']['type'] = 'text';
+      $element['#attributes']['inputmode'] = 'numeric';
+      $element['#attributes']['autocomplete'] = 'off';
+      $element['#attributes']['class'][] = 'input-formato-moneda';
+      $element['#attributes']['class'][] = 'js-currency-mask';
+      $element['#attributes']['data-currency-mask'] = 'true';
+      unset($element['#min'], $element['#max'], $element['#step']);
+    }
+
     // Set default value for 'fecha_convenio'.
     if ($key === 'fecha_convenio') {
       $element['#default_value'] = date('Y-m-d');
