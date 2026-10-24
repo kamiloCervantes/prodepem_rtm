@@ -376,6 +376,10 @@ class EquidadReportesController extends ControllerBase {
           $item['ciudad'],
           $item['ocupacion'],
           $item['cargo'],
+          $item['peso'] ?? '',
+          $item['estatura'] ?? '',
+          $item['condiciones_salud_texto'] ?? '',
+          $item['explicacion_condiciones'] ?? '',
           $item['esta_interesado_en_ampliar_el_amparo_de_vida'],
           $item['por_que'],
           $item['interesado_soat'],
@@ -494,14 +498,62 @@ class EquidadReportesController extends ControllerBase {
       }
     }
 
-    // Salud resumen:
-    $salud_positivas = 0;
-    for ($i = 1; $i <= 14; $i++) {
-      $val = $raw['salud_' . $i] ?? '';
-      if (in_array(mb_strtolower(trim((string) $val)), ['si', '1', 'true', 'sí'])) {
-        $salud_positivas++;
+    // Cuestionario de salud (campos marcados con true):
+    $condiciones_marcadas_titulos = [];
+    $salud_def = self::getDefinicionCamposSalud();
+    $webform = $sub->getWebform();
+
+    foreach ($salud_def as $campo_key => $info) {
+      $titulo = $info['titulo'];
+      if ($webform) {
+        $elem = $webform->getElement($campo_key);
+        if (!empty($elem['#title'])) {
+          $titulo = trim(strip_tags((string) $elem['#title']));
+        }
+      }
+
+      $val = NULL;
+      foreach ($info['aliases'] as $alias) {
+        if (isset($raw[$alias]) && $raw[$alias] !== '' && $raw[$alias] !== NULL) {
+          $val = $raw[$alias];
+          break;
+        }
+      }
+
+      $is_true = FALSE;
+      if (is_bool($val)) {
+        $is_true = $val === TRUE;
+      }
+      elseif (is_numeric($val)) {
+        $is_true = (int) $val === 1;
+      }
+      elseif (is_string($val)) {
+        $v = mb_strtolower(trim($val));
+        $is_true = in_array($v, ['1', 'true', 'si', 'sí', 'yes', 'on', 'checked'], TRUE);
+      }
+
+      if ($is_true) {
+        $condiciones_marcadas_titulos[] = $titulo;
       }
     }
+
+    $salud_positivas = count($condiciones_marcadas_titulos);
+    $condiciones_salud_texto = !empty($condiciones_marcadas_titulos)
+      ? implode(', ', $condiciones_marcadas_titulos)
+      : 'Ninguna';
+
+    // Peso y estatura:
+    $peso = trim((string) ($raw['peso'] ?? $raw['peso_kg'] ?? ''));
+    $estatura = trim((string) ($raw['estatura'] ?? $raw['estatura_cm'] ?? $raw['altura'] ?? ''));
+
+    // Explicación de condiciones de salud:
+    $explicacion_condiciones = trim((string) (
+      $raw['en_caso_de_haber_marcado_alguna_de_las_condiciones_anteriores_o']
+      ?? $raw['explicacion_salud']
+      ?? $raw['explicacion_condiciones_salud']
+      ?? $raw['favor_explicar_detalladamente']
+      ?? ''
+    ));
 
     // Helper para normalizar respuestas Si/No/Valores booleanos:
     $normalizar_sino = function ($val) {
@@ -674,6 +726,12 @@ class EquidadReportesController extends ControllerBase {
       'beneficiarios_count' => $beneficiarios_count,
       'beneficiarios_nombres' => implode(', ', $beneficiarios_nombres),
       'salud_positivas' => $salud_positivas,
+      'peso' => $peso,
+      'estatura' => $estatura,
+      'condiciones_marcadas' => $condiciones_marcadas_titulos,
+      'condiciones_salud_texto' => $condiciones_salud_texto,
+      'condiciones_salud_count' => $salud_positivas,
+      'explicacion_condiciones' => $explicacion_condiciones,
       // Datos complementarios:
       'esta_interesado_en_ampliar_el_amparo_de_vida' => $esta_interesado_ampliar_vida,
       'por_que' => $por_que,
@@ -729,30 +787,42 @@ class EquidadReportesController extends ControllerBase {
     // Beneficiarios completos (usar tabla_de_beneficiarios, o tabla_de_beneficiarios_2 si está vacía):
     $bene_list = self::obtenerBeneficiariosNormalizados($raw);
 
-    // Salud completa (14 preguntas)
-    $salud_preguntas = [
-      1 => 'Afecciones cardiovasculares',
-      2 => 'Afecciones cerebrovasculares',
-      3 => 'Alcoholismo',
-      4 => 'Cirugía / Hospitalización previa',
-      5 => 'Diabetes',
-      6 => 'Enfermedad oncológica (cáncer)',
-      7 => 'EPOC / Enfermedad pulmonar obstructiva',
-      8 => 'Insuficiencia renal',
-      9 => 'Leucemia',
-      10 => 'Lupus eritematoso',
-      11 => 'Trastornos neurológicos / Psiquiátricos',
-      12 => 'VIH / SIDA',
-      13 => 'Adicción a drogas / Sustancias psicoactivas',
-      14 => 'Enfermedades del colágeno / Autoinmunes',
-    ];
+    // Salud completa (14 preguntas del cuestionario de salud)
+    $salud_def = self::getDefinicionCamposSalud();
     $salud_respuestas = [];
-    foreach ($salud_preguntas as $num => $preg) {
-      $val = $raw['salud_' . $num] ?? 'no';
+    $num = 1;
+    $webform = $submission->getWebform();
+    foreach ($salud_def as $campo_key => $info) {
+      $titulo = $info['titulo'];
+      if ($webform) {
+        $elem = $webform->getElement($campo_key);
+        if (!empty($elem['#title'])) {
+          $titulo = trim(strip_tags((string) $elem['#title']));
+        }
+      }
+      $val = NULL;
+      foreach ($info['aliases'] as $alias) {
+        if (isset($raw[$alias]) && $raw[$alias] !== '' && $raw[$alias] !== NULL) {
+          $val = $raw[$alias];
+          break;
+        }
+      }
+      $is_true = FALSE;
+      if (is_bool($val)) {
+        $is_true = $val === TRUE;
+      }
+      elseif (is_numeric($val)) {
+        $is_true = (int) $val === 1;
+      }
+      elseif (is_string($val)) {
+        $v = mb_strtolower(trim($val));
+        $is_true = in_array($v, ['1', 'true', 'si', 'sí', 'yes', 'on', 'checked'], TRUE);
+      }
+
       $salud_respuestas[] = [
-        'num' => $num,
-        'pregunta' => $preg,
-        'respuesta' => in_array(mb_strtolower(trim((string) $val)), ['si', '1', 'true', 'sí']) ? 'SÍ' : 'NO',
+        'num' => $num++,
+        'pregunta' => $titulo,
+        'respuesta' => $is_true ? 'SÍ' : 'NO',
       ];
     }
 
@@ -797,10 +867,10 @@ class EquidadReportesController extends ControllerBase {
       ],
       'beneficiarios' => $bene_list,
       'salud' => [
-        'peso' => $raw['peso'] ?? '',
-        'estatura' => $raw['estatura'] ?? '',
+        'peso' => $item['peso'],
+        'estatura' => $item['estatura'],
         'respuestas' => $salud_respuestas,
-        'explicacion' => $raw['en_caso_de_haber_marcado_alguna_de_las_condiciones_anteriores_o'] ?? $raw['explicacion_salud'] ?? $raw['favor_explicar_detalladamente'] ?? 'Ninguna condición declarada.',
+        'explicacion' => !empty($item['explicacion_condiciones']) ? $item['explicacion_condiciones'] : 'Ninguna condición declarada.',
       ],
     ];
   }
@@ -837,8 +907,8 @@ class EquidadReportesController extends ControllerBase {
     echo '<body>' . "\n";
 
     echo '<table border="1">' . "\n";
-    echo '<tr><td colspan="' . ($tipo === 'adicionales' ? '14' : '10') . '" class="header-title">REPORTE DE SOLICITUDES DE EQUIDAD SEGUROS - ' . htmlspecialchars($nombre_tomador) . ' (' . ($tipo === 'adicionales' ? 'DATOS COMPLEMENTARIOS' : 'SEGURO VIDA') . ')</td></tr>' . "\n";
-    echo '<tr><td colspan="' . ($tipo === 'adicionales' ? '14' : '10') . '" class="header-meta">Generado el: ' . date('d/m/Y H:i:s') . ' | Total Registros: ' . count($items) . '</td></tr>' . "\n";
+    echo '<tr><td colspan="' . '14' . '" class="header-title">REPORTE DE SOLICITUDES DE EQUIDAD SEGUROS - ' . htmlspecialchars($nombre_tomador) . ' (' . ($tipo === 'adicionales' ? 'DATOS COMPLEMENTARIOS' : 'SEGURO VIDA') . ')</td></tr>' . "\n";
+    echo '<tr><td colspan="' . '14' . '" class="header-meta">Generado el: ' . date('d/m/Y H:i:s') . ' | Total Registros: ' . count($items) . '</td></tr>' . "\n";
     echo '<tr></tr>' . "\n";
 
     if ($tipo === 'rifas') {
@@ -875,6 +945,10 @@ class EquidadReportesController extends ControllerBase {
       echo '  <th>OCUPACIÓN / CARGO</th>' . "\n";
       echo '  <th>VALOR SOLICITADO</th>' . "\n";
       echo '  <th>BENEFICIARIOS</th>' . "\n";
+      echo '  <th>PESO</th>' . "\n";
+      echo '  <th>ESTATURA</th>' . "\n";
+      echo '  <th>CONDICIONES DE SALUD (MARCADAS)</th>' . "\n";
+      echo '  <th>EXPLICACIÓN CONDICIONES</th>' . "\n";
       echo '</tr>' . "\n";
 
       foreach ($items as $it) {
@@ -889,6 +963,10 @@ class EquidadReportesController extends ControllerBase {
         echo '  <td>' . htmlspecialchars(trim($it['ocupacion'] . ' - ' . $it['cargo'], ' -')) . '</td>' . "\n";
         echo '  <td class="text-right">' . htmlspecialchars((string) $it['valor_asegurado']) . '</td>' . "\n";
         echo '  <td>' . htmlspecialchars((string) ($it['beneficiarios_nombres'] ?: 'Sin beneficiarios')) . '</td>' . "\n";
+        echo '  <td class="text-center">' . htmlspecialchars((string) ($it['peso'] ?: '-')) . '</td>' . "\n";
+        echo '  <td class="text-center">' . htmlspecialchars((string) ($it['estatura'] ?: '-')) . '</td>' . "\n";
+        echo '  <td>' . htmlspecialchars((string) ($it['condiciones_salud_texto'] ?: 'Ninguna')) . '</td>' . "\n";
+        echo '  <td>' . htmlspecialchars((string) ($it['explicacion_condiciones'] ?: '-')) . '</td>' . "\n";
         echo '</tr>' . "\n";
       }
     }
@@ -959,6 +1037,73 @@ class EquidadReportesController extends ControllerBase {
    * @return array
    *   Arreglo de beneficiarios normalizados.
    */
+  /**
+   * Definición centralizada de los 14 campos del cuestionario de salud.
+   *
+   * @return array
+   *   Arreglo de campos de salud con títulos por defecto y alias.
+   */
+  public static function getDefinicionCamposSalud(): array {
+    return [
+      'afecciones_cardiovasculares' => [
+        'titulo' => 'Afecciones cardiovasculares',
+        'aliases' => ['afecciones_cardiovasculares', 'salud_1'],
+      ],
+      'afecciones_cerebrovasculares' => [
+        'titulo' => 'Afecciones cerebrovasculares',
+        'aliases' => ['afecciones_cerebrovasculares', 'salud_2'],
+      ],
+      'durante_los_ultimos_4_anos_ha_sido_diagnosticado_o_tratado_por' => [
+        'titulo' => '¿Durante los últimos 4 años ha sido diagnosticado o tratado por alguna enfermedad oncológica?',
+        'aliases' => ['durante_los_ultimos_4_anos_ha_sido_diagnosticado_o_tratado_por', 'enfermedad_oncologica', 'salud_6'],
+      ],
+      'diabetes' => [
+        'titulo' => 'Diabetes',
+        'aliases' => ['diabetes', 'salud_5'],
+      ],
+      'vih_positivo_sida' => [
+        'titulo' => 'VIH positivo / SIDA',
+        'aliases' => ['vih_positivo_sida', 'vih_sida', 'salud_9'],
+      ],
+      'insuficiencia_renal_cronica' => [
+        'titulo' => 'Insuficiencia renal crónica',
+        'aliases' => ['insuficiencia_renal_cronica', 'insuficiencia_renal', 'salud_8'],
+      ],
+      'epoc_enfermedad_pulmonar_obstructiva_cronica' => [
+        'titulo' => 'EPOC (Enfermedad pulmonar obstructiva crónica)',
+        'aliases' => ['epoc_enfermedad_pulmonar_obstructiva_cronica', 'epoc', 'salud_7'],
+      ],
+      'cirugia' => [
+        'titulo' => 'Cirugía',
+        'aliases' => ['cirugia', 'salud_4'],
+      ],
+      'alcoholismo' => [
+        'titulo' => 'Alcoholismo',
+        'aliases' => ['alcoholismo', 'salud_3'],
+      ],
+      'tabaquismo_drogadiccion' => [
+        'titulo' => 'Tabaquismo / Drogadicción',
+        'aliases' => ['tabaquismo_drogadiccion', 'salud_10'],
+      ],
+      'hipertension_arterial' => [
+        'titulo' => 'Hipertensión arterial',
+        'aliases' => ['hipertension_arterial', 'hipertension', 'salud_11'],
+      ],
+      'enfermedades_congenitas' => [
+        'titulo' => 'Enfermedades congénitas',
+        'aliases' => ['enfermedades_congenitas', 'salud_12'],
+      ],
+      'enfermedades_hematologicas' => [
+        'titulo' => 'Enfermedades hematológicas',
+        'aliases' => ['enfermedades_hematologicas', 'salud_13'],
+      ],
+      'enfermedades_del_colageno_enfermedad_que_afecta_el_sistema_autoi' => [
+        'titulo' => 'Enfermedades del colágeno (sistema autoinmune)',
+        'aliases' => ['enfermedades_del_colageno_enfermedad_que_afecta_el_sistema_autoi', 'enfermedades_colageno', 'salud_14'],
+      ],
+    ];
+  }
+
   public static function obtenerBeneficiariosNormalizados(array $raw): array {
     $candidatos = [];
 

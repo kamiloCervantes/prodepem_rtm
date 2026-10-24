@@ -441,3 +441,9 @@
   font-weight: 600;
   color: #374151;
 }
+
+.reportes-tag--condition {
+  background-color: #fff7ed;
+  color: #c2410c;
+  border: 1px solid #fed7aa;
+}

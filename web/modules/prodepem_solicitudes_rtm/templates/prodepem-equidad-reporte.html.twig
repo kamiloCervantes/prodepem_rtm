@@ -107,6 +107,10 @@
               <th>{{ 'Ocupación / Cargo'|t }}</th>
               <th>{{ 'Valor Solicitado'|t }}</th>
               <th>{{ 'Beneficiarios'|t }}</th>
+              <th style="text-align: center;">{{ 'Peso'|t }}</th>
+              <th style="text-align: center;">{{ 'Estatura'|t }}</th>
+              <th style="min-width: 220px;">{{ 'Condiciones de Salud'|t }}</th>
+              <th style="min-width: 200px;">{{ 'Explicación Condiciones'|t }}</th>
               <th style="text-align: right;">{{ 'Acciones'|t }}</th>
             </tr>
           {% else %}
@@ -167,6 +171,44 @@
                     </span>
                   {% else %}
                     <span style="color: #9ca3af; font-size: 0.785rem;">{{ 'Sin beneficiarios'|t }}</span>
+                  {% endif %}
+                </td>
+                <td style="text-align: center; white-space: nowrap;">
+                  {% if item.peso %}
+                    <span style="font-weight: 600; color: #1f2937;">{{ item.peso }}</span>
+                  {% else %}
+                    <span style="color: #9ca3af; font-size: 0.85rem;">-</span>
+                  {% endif %}
+                </td>
+                <td style="text-align: center; white-space: nowrap;">
+                  {% if item.estatura %}
+                    <span style="font-weight: 600; color: #1f2937;">{{ item.estatura }}</span>
+                  {% else %}
+                    <span style="color: #9ca3af; font-size: 0.85rem;">-</span>
+                  {% endif %}
+                </td>
+                <td style="min-width: 220px;">
+                  {% if item.condiciones_marcadas is not empty %}
+                    <div style="display: flex; flex-direction: column; gap: 4px;">
+                      {% for cond in item.condiciones_marcadas %}
+                        <span class="reportes-tag reportes-tag--condition" style="white-space: normal; text-align: left; line-height: 1.25; padding: 3px 8px; font-size: 0.775rem;">
+                          <i class="fa-solid fa-triangle-exclamation" style="font-size: 0.7rem; margin-right: 4px;"></i>{{ cond }}
+                        </span>
+                      {% endfor %}
+                    </div>
+                  {% else %}
+                    <span style="color: #059669; font-weight: 600; font-size: 0.825rem; display: inline-flex; align-items: center; gap: 4px;">
+                      <i class="fa-solid fa-circle-check"></i> {{ 'Ninguna'|t }}
+                    </span>
+                  {% endif %}
+                </td>
+                <td style="min-width: 200px; max-width: 320px;">
+                  {% if item.explicacion_condiciones %}
+                    <div style="font-size: 0.825rem; color: #374151; line-height: 1.35; word-break: break-word;">
+                      {{ item.explicacion_condiciones }}
+                    </div>
+                  {% else %}
+                    <span style="color: #9ca3af; font-size: 0.85rem;">-</span>
                   {% endif %}
                 </td>
               {% else %}
