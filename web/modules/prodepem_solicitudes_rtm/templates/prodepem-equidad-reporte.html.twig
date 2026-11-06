@@ -102,6 +102,8 @@
               <th>{{ 'Fecha'|t }}</th>
               <th>{{ 'Asegurado Principal'|t }}</th>
               <th>{{ 'Documento'|t }}</th>
+              <th style="text-align: center;">{{ 'Fecha Nacimiento'|t }}</th>
+              <th style="text-align: center;">{{ 'Edad'|t }}</th>
               <th>{{ 'Correo'|t }}</th>
               <th>{{ 'Teléfono'|t }}</th>
               <th>{{ 'Ocupación / Cargo'|t }}</th>
@@ -109,6 +111,7 @@
               <th>{{ 'Beneficiarios'|t }}</th>
               <th style="text-align: center;">{{ 'Peso'|t }}</th>
               <th style="text-align: center;">{{ 'Estatura'|t }}</th>
+              <th style="text-align: center;">{{ 'IMC'|t }}</th>
               <th style="min-width: 220px;">{{ 'Condiciones de Salud'|t }}</th>
               <th style="min-width: 200px;">{{ 'Explicación Condiciones'|t }}</th>
               <th style="text-align: right;">{{ 'Acciones'|t }}</th>
@@ -160,6 +163,14 @@
                 <td style="white-space: nowrap;">{{ item.tipo_documento }} {{ item.documento }}</td>
 
                 {% if tipo_reporte == 'vida' %}
+                <td style="white-space: nowrap; text-align: center;">{{ item.fecha_nacimiento|default('-') }}</td>
+                <td style="text-align: center; font-weight: 600;">
+                  {% if item.edad is not empty %}
+                    {{ item.edad }} <small style="color: #6b7280;">{{ 'años'|t }}</small>
+                  {% else %}
+                    -
+                  {% endif %}
+                </td>
                 <td>{{ item.email|default('N/A') }}</td>
                 <td style="white-space: nowrap;">{{ item.telefono|default('N/A') }}</td>
                 <td>{{ item.ocupacion }} {% if item.cargo %}<small style="color: #6b7280;">({{ item.cargo }})</small>{% endif %}</td>
@@ -183,6 +194,13 @@
                 <td style="text-align: center; white-space: nowrap;">
                   {% if item.estatura %}
                     <span style="font-weight: 600; color: #1f2937;">{{ item.estatura }}</span>
+                  {% else %}
+                    <span style="color: #9ca3af; font-size: 0.85rem;">-</span>
+                  {% endif %}
+                </td>
+                <td style="text-align: center; white-space: nowrap;">
+                  {% if item.imc %}
+                    <span style="font-weight: 600; color: #1f2937; padding: 2px 6px; background: #f3f4f6; border-radius: 4px;">{{ item.imc }}</span>
                   {% else %}
                     <span style="color: #9ca3af; font-size: 0.85rem;">-</span>
                   {% endif %}

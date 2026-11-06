@@ -369,6 +369,11 @@ class EquidadReportesController extends ControllerBase {
           $item['documento'],
           $item['c_c'] ?? '',
           $item['tipo_documento'],
+          $item['fecha_nacimiento'] ?? '',
+          $item['edad'] ?? '',
+          $item['peso'] ?? '',
+          $item['estatura'] ?? '',
+          $item['imc'] ?? '',
           $item['numero_de_rifa_1'] ?? '',
           $item['numero_de_rifa_2'] ?? '',
           $item['email'],
@@ -376,8 +381,6 @@ class EquidadReportesController extends ControllerBase {
           $item['ciudad'],
           $item['ocupacion'],
           $item['cargo'],
-          $item['peso'] ?? '',
-          $item['estatura'] ?? '',
           $item['condiciones_salud_texto'] ?? '',
           $item['explicacion_condiciones'] ?? '',
           $item['esta_interesado_en_ampliar_el_amparo_de_vida'],
@@ -542,9 +545,45 @@ class EquidadReportesController extends ControllerBase {
       ? implode(', ', $condiciones_marcadas_titulos)
       : 'Ninguna';
 
-    // Peso y estatura:
+    // Fecha de nacimiento y edad calculada:
+    $fecha_nac_raw = $raw['fecha_de_nacimiento']
+      ?? $raw['fecha_nacimiento']
+      ?? $raw['f_nacimiento']
+      ?? $raw['nacimiento']
+      ?? '';
+    if (empty($fecha_nac_raw)) {
+      foreach ($raw as $k => $v) {
+        if (is_string($v) && !empty(trim($v)) && stripos($k, 'nacimiento') !== FALSE && stripos($k, 'lugar') === FALSE) {
+          $fecha_nac_raw = trim($v);
+          break;
+        }
+      }
+    }
+    $fecha_nacimiento = self::formatearFecha($fecha_nac_raw);
+    $edad = self::calcularEdad($fecha_nac_raw);
+
+    // Peso, estatura e IMC (Índice de Masa Corporal):
     $peso = trim((string) ($raw['peso'] ?? $raw['peso_kg'] ?? ''));
+    if (empty($peso)) {
+      foreach ($raw as $k => $v) {
+        if ((is_string($v) || is_numeric($v)) && !empty(trim((string) $v)) && stripos($k, 'peso') !== FALSE && stripos($k, 'pesos') === FALSE) {
+          $peso = trim((string) $v);
+          break;
+        }
+      }
+    }
+
     $estatura = trim((string) ($raw['estatura'] ?? $raw['estatura_cm'] ?? $raw['altura'] ?? ''));
+    if (empty($estatura)) {
+      foreach ($raw as $k => $v) {
+        if ((is_string($v) || is_numeric($v)) && !empty(trim((string) $v)) && (stripos($k, 'estatura') !== FALSE || stripos($k, 'altura') !== FALSE)) {
+          $estatura = trim((string) $v);
+          break;
+        }
+      }
+    }
+
+    $imc = self::calcularImc($peso, $estatura);
 
     // Explicación de condiciones de salud:
     $explicacion_condiciones = trim((string) (
@@ -665,10 +704,10 @@ class EquidadReportesController extends ControllerBase {
       'tipo_de_documento', 'tipo_documento', 'numero_de_documento', 'numero_documento', 'documento', 'c_c', 'cedula', 'identificacion', 'numero_de_identificacion', 'numero_identificacion',
       'email', 'correo_electronico', 'correo', 'telefono_asegurado', 'celular', 'numero_contacto',
       'direccion_residencia', 'lugar_residencia', 'trabaja_actualmente', 'trabaja_usted_actualmente',
-      'ocupacion', 'cargo', 'fecha_de_nacimiento', 'fecha_nacimiento', 'estado_civil',
+      'ocupacion', 'cargo', 'fecha_de_nacimiento', 'fecha_nacimiento', 'f_nacimiento', 'nacimiento', 'estado_civil',
       'valor_asegurado_solicitado', 'total_valor_asegurado', 'valor_asegurado', 'plan',
       'beneficiarios', 'tabla_beneficiarios', 'tabla_de_beneficiarios', 'tabla_de_beneficiarios_2', 'beneficiario', 'beneficiarios_tabla', 'datos_beneficiarios', 'designacion_beneficiarios', 'designacion_de_beneficiarios', 'beneficiarios_del_seguro', 'datos_de_los_beneficiarios', 'escriba_el_nombre_de_los_beneficiarios_de_este_seguro_y_su_respectivo_porcentaje', 'escriba_el_nombre_de_los_beneficiarios',
-      'peso', 'estatura', 'explicacion_salud', 'explicacion_condiciones_salud', 'en_caso_de_haber_marcado_alguna_de_las_condiciones_anteriores_o', 'favor_explicar_detalladamente',
+      'peso', 'peso_kg', 'estatura', 'estatura_cm', 'altura', 'edad', 'imc', 'explicacion_salud', 'explicacion_condiciones_salud', 'en_caso_de_haber_marcado_alguna_de_las_condiciones_anteriores_o', 'favor_explicar_detalladamente',
       'esta_interesado_en_ampliar_el_amparo_de_vida', 'por_que', 'interesado_soat', 'interesado_todo_riesgo', 'interesado_hogar',
       'seguros_adicionales', 'placa', 'numero_de_rifa_1', 'numero_de_rifa_2', 'numero_de_rifa', 'numero_rifa', 'rifa', 'boleta',
     ];
@@ -726,8 +765,12 @@ class EquidadReportesController extends ControllerBase {
       'beneficiarios_count' => $beneficiarios_count,
       'beneficiarios_nombres' => implode(', ', $beneficiarios_nombres),
       'salud_positivas' => $salud_positivas,
+      'fecha_nacimiento' => $fecha_nacimiento,
+      'fecha_nacimiento_raw' => $fecha_nac_raw,
+      'edad' => $edad,
       'peso' => $peso,
       'estatura' => $estatura,
+      'imc' => $imc,
       'condiciones_marcadas' => $condiciones_marcadas_titulos,
       'condiciones_salud_texto' => $condiciones_salud_texto,
       'condiciones_salud_count' => $salud_positivas,
@@ -844,7 +887,8 @@ class EquidadReportesController extends ControllerBase {
         'ocupacion' => $item['ocupacion'],
         'cargo' => $item['cargo'],
         'trabaja_actualmente' => $raw['trabaja_actualmente'] ?? 'Si',
-        'fecha_nacimiento' => $raw['fecha_de_nacimiento'] ?? $raw['fecha_nacimiento'] ?? '',
+        'fecha_nacimiento' => !empty($item['fecha_nacimiento']) ? $item['fecha_nacimiento'] : ($raw['fecha_de_nacimiento'] ?? $raw['fecha_nacimiento'] ?? ''),
+        'edad' => $item['edad'],
         'estado_civil' => $raw['estado_civil'] ?? '',
         'valor_solicitado' => $item['valor_asegurado'],
         'total_asegurado' => $item['total_asegurado'],
@@ -869,6 +913,7 @@ class EquidadReportesController extends ControllerBase {
       'salud' => [
         'peso' => $item['peso'],
         'estatura' => $item['estatura'],
+        'imc' => $item['imc'],
         'respuestas' => $salud_respuestas,
         'explicacion' => !empty($item['explicacion_condiciones']) ? $item['explicacion_condiciones'] : 'Ninguna condición declarada.',
       ],
@@ -906,9 +951,11 @@ class EquidadReportesController extends ControllerBase {
     echo '</head>' . "\n";
     echo '<body>' . "\n";
 
+    $colspan_total = ($tipo === 'vida') ? '17' : ($tipo === 'rifas' ? '3' : '14');
+
     echo '<table border="1">' . "\n";
-    echo '<tr><td colspan="' . '14' . '" class="header-title">REPORTE DE SOLICITUDES DE EQUIDAD SEGUROS - ' . htmlspecialchars($nombre_tomador) . ' (' . ($tipo === 'adicionales' ? 'DATOS COMPLEMENTARIOS' : 'SEGURO VIDA') . ')</td></tr>' . "\n";
-    echo '<tr><td colspan="' . '14' . '" class="header-meta">Generado el: ' . date('d/m/Y H:i:s') . ' | Total Registros: ' . count($items) . '</td></tr>' . "\n";
+    echo '<tr><td colspan="' . $colspan_total . '" class="header-title">REPORTE DE SOLICITUDES DE EQUIDAD SEGUROS - ' . htmlspecialchars($nombre_tomador) . ' (' . ($tipo === 'adicionales' ? 'DATOS COMPLEMENTARIOS' : 'SEGURO VIDA') . ')</td></tr>' . "\n";
+    echo '<tr><td colspan="' . $colspan_total . '" class="header-meta">Generado el: ' . date('d/m/Y H:i:s') . ' | Total Registros: ' . count($items) . '</td></tr>' . "\n";
     echo '<tr></tr>' . "\n";
 
     if ($tipo === 'rifas') {
@@ -940,6 +987,8 @@ class EquidadReportesController extends ControllerBase {
       echo '  <th>ASEGURADO PRINCIPAL</th>' . "\n";
       echo '  <th>TIPO DOC</th>' . "\n";
       echo '  <th>N° DOCUMENTO</th>' . "\n";
+      echo '  <th>FECHA DE NACIMIENTO</th>' . "\n";
+      echo '  <th>EDAD (AÑOS)</th>' . "\n";
       echo '  <th>CORREO ELECTRÓNICO</th>' . "\n";
       echo '  <th>TELÉFONO</th>' . "\n";
       echo '  <th>OCUPACIÓN / CARGO</th>' . "\n";
@@ -947,6 +996,7 @@ class EquidadReportesController extends ControllerBase {
       echo '  <th>BENEFICIARIOS</th>' . "\n";
       echo '  <th>PESO</th>' . "\n";
       echo '  <th>ESTATURA</th>' . "\n";
+      echo '  <th>ÍNDICE DE MASA CORPORAL (IMC)</th>' . "\n";
       echo '  <th>CONDICIONES DE SALUD (MARCADAS)</th>' . "\n";
       echo '  <th>EXPLICACIÓN CONDICIONES</th>' . "\n";
       echo '</tr>' . "\n";
@@ -958,6 +1008,8 @@ class EquidadReportesController extends ControllerBase {
         echo '  <td>' . htmlspecialchars((string) $it['nombre']) . '</td>' . "\n";
         echo '  <td class="text-center">' . htmlspecialchars((string) $it['tipo_documento']) . '</td>' . "\n";
         echo '  <td class="text-center">' . htmlspecialchars((string) $it['documento']) . '</td>' . "\n";
+        echo '  <td class="text-center">' . htmlspecialchars((string) ($it['fecha_nacimiento'] ?: '-')) . '</td>' . "\n";
+        echo '  <td class="text-center">' . htmlspecialchars((string) ($it['edad'] !== '' ? $it['edad'] : '-')) . '</td>' . "\n";
         echo '  <td>' . htmlspecialchars((string) $it['email']) . '</td>' . "\n";
         echo '  <td class="text-center">' . htmlspecialchars((string) $it['telefono']) . '</td>' . "\n";
         echo '  <td>' . htmlspecialchars(trim($it['ocupacion'] . ' - ' . $it['cargo'], ' -')) . '</td>' . "\n";
@@ -965,6 +1017,7 @@ class EquidadReportesController extends ControllerBase {
         echo '  <td>' . htmlspecialchars((string) ($it['beneficiarios_nombres'] ?: 'Sin beneficiarios')) . '</td>' . "\n";
         echo '  <td class="text-center">' . htmlspecialchars((string) ($it['peso'] ?: '-')) . '</td>' . "\n";
         echo '  <td class="text-center">' . htmlspecialchars((string) ($it['estatura'] ?: '-')) . '</td>' . "\n";
+        echo '  <td class="text-center">' . htmlspecialchars((string) ($it['imc'] ?: '-')) . '</td>' . "\n";
         echo '  <td>' . htmlspecialchars((string) ($it['condiciones_salud_texto'] ?: 'Ninguna')) . '</td>' . "\n";
         echo '  <td>' . htmlspecialchars((string) ($it['explicacion_condiciones'] ?: '-')) . '</td>' . "\n";
         echo '</tr>' . "\n";
@@ -1021,22 +1074,122 @@ class EquidadReportesController extends ControllerBase {
   }
 
   /**
-   * Resumen numérico para el landing de reportes.
+   * Intenta parsear una cadena de fecha a un objeto DateTime con hora 00:00:00.
+   *
+   * @param string|null $fecha_str
+   *   Cadena de fecha a parsear.
+   *
+   * @return \DateTime|null
+   *   Objeto DateTime o NULL si la fecha no es válida.
    */
+  public static function parsearFecha($fecha_str): ?\DateTime {
+    if (empty($fecha_str)) {
+      return NULL;
+    }
+    $fecha_str = trim((string) $fecha_str);
+    $formatos = ['Y-m-d', 'd/m/Y', 'd-m-Y', 'Y/m/d', 'Y-m-d H:i:s', 'd/m/Y H:i:s'];
+    foreach ($formatos as $fmt) {
+      $d = \DateTime::createFromFormat($fmt, $fecha_str);
+      if ($d && $d->format($fmt) === $fecha_str) {
+        $d->setTime(0, 0, 0);
+        return $d;
+      }
+    }
+    $ts = strtotime(str_replace('/', '-', $fecha_str));
+    if ($ts !== FALSE && $ts > 0) {
+      $d = new \DateTime();
+      $d->setTimestamp($ts);
+      $d->setTime(0, 0, 0);
+      return $d;
+    }
+    return NULL;
+  }
+
   /**
-   * Obtiene y normaliza los beneficiarios de una sumisión.
+   * Normaliza y formatea una fecha al formato estándar d/m/Y.
    *
-   * Regla de negocio:
-   * Se utiliza 'tabla_de_beneficiarios'. Si se encuentra vacía o no contiene registros válidos,
-   * se utiliza el elemento 'tabla_de_beneficiarios_2'.
-   * Como respaldo para sumisiones anteriores o alternativas, también se evalúan claves históricas.
+   * @param string|null $fecha_str
+   *   Cadena de fecha.
    *
-   * @param array $raw
-   *   Datos sin procesar de la sumisión de webform.
-   *
-   * @return array
-   *   Arreglo de beneficiarios normalizados.
+   * @return string
+   *   Fecha en formato d/m/Y o la cadena original si no se pudo parsear.
    */
+  public static function formatearFecha($fecha_str): string {
+    $d = self::parsearFecha($fecha_str);
+    return $d ? $d->format('d/m/Y') : trim((string) $fecha_str);
+  }
+
+  /**
+   * Calcula la edad en años cumplidos a partir de la fecha de nacimiento.
+   *
+   * @param string|null $fecha_str
+   *   Fecha de nacimiento.
+   *
+   * @return string
+   *   Edad en años (entero como string) o cadena vacía si no se puede calcular.
+   */
+  public static function calcularEdad($fecha_str): string {
+    $d = self::parsearFecha($fecha_str);
+    if (!$d) {
+      return '';
+    }
+    $hoy = new \DateTime('today');
+    if ($d > $hoy) {
+      return '';
+    }
+    $diff = $d->diff($hoy);
+    return (string) $diff->y;
+  }
+
+  /**
+   * Calcula el Índice de Masa Corporal (IMC = peso_kg / (estatura_m)^2).
+   *
+   * Soporta estatura en centímetros (ej: 170) o en metros (ej: 1.70).
+   * Soporta peso en kilogramos con decimales y texto de unidades (ej: 75, 75.5, 75 kg).
+   *
+   * @param mixed $peso_raw
+   *   Peso ingresado.
+   * @param mixed $estatura_raw
+   *   Estatura / altura ingresada.
+   *
+   * @return string
+   *   IMC formateado a 2 decimales (ej: '24.22') o cadena vacía si no es calculable.
+   */
+  public static function calcularImc($peso_raw, $estatura_raw): string {
+    if (empty($peso_raw) || empty($estatura_raw)) {
+      return '';
+    }
+
+    $limpiar_numero = function ($val) {
+      $val = str_replace(',', '.', trim((string) $val));
+      if (preg_match('/[0-9]+(?:\.[0-9]+)?/', $val, $matches)) {
+        return (float) $matches[0];
+      }
+      return 0.0;
+    };
+
+    $peso = $limpiar_numero($peso_raw);
+    $estatura = $limpiar_numero($estatura_raw);
+
+    if ($peso <= 0.0 || $estatura <= 0.0) {
+      return '';
+    }
+
+    // Si la estatura fue ingresada en centímetros (ej: 140 - 250 cm), convertir a metros:
+    if ($estatura > 3.0) {
+      $estatura = $estatura / 100.0;
+    }
+
+    // Rango fisiológico admisible en metros (0.5 m a 2.5 m)
+    if ($estatura < 0.5 || $estatura > 2.5) {
+      return '';
+    }
+
+    $imc = $peso / ($estatura * $estatura);
+
+    return number_format($imc, 2, '.', '');
+  }
+
   /**
    * Definición centralizada de los 14 campos del cuestionario de salud.
    *

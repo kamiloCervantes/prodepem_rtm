@@ -106,6 +106,12 @@
             <span class="detalle-item__value">{{ asegurado_data.fecha_nacimiento }}</span>
           </div>
         {% endif %}
+        {% if asegurado_data.edad is not empty %}
+          <div class="detalle-item">
+            <span class="detalle-item__label">Edad Calculada</span>
+            <span class="detalle-item__value"><strong>{{ asegurado_data.edad }} años</strong></span>
+          </div>
+        {% endif %}
         {% if asegurado_data.estado_civil %}
           <div class="detalle-item">
             <span class="detalle-item__label">Estado Civil</span>
@@ -276,6 +282,12 @@
           <span class="detalle-item__label">Estatura:</span>
           <span class="detalle-item__value"><strong>{{ salud_data.estatura ? salud_data.estatura ~ ' m / cm' : 'N/A' }}</strong></span>
         </div>
+        {% if salud_data.imc is not empty %}
+          <div>
+            <span class="detalle-item__label">IMC (Masa Corporal):</span>
+            <span class="detalle-item__value"><strong style="color: #047857;">{{ salud_data.imc }}</strong></span>
+          </div>
+        {% endif %}
       </div>
 
       <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 0.65rem; margin-bottom: 1.25rem;">
