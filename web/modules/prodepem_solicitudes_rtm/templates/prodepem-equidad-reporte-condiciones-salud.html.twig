@@ -56,6 +56,11 @@
       <a href="{{ export_url }}" class="btn-reporte btn-reporte--excel" title="{{ 'Descargar reporte estadístico consolidado en Excel'|t }}">
         <i class="fa-solid fa-file-excel"></i> {{ 'Descargar Consolidado XLS'|t }}
       </a>
+      {% if pdf_url %}
+        <a href="{{ pdf_url }}" class="btn-reporte" style="background-color: #dc2626; color: #ffffff; border-color: #dc2626;" title="{{ 'Descargar reporte estadístico consolidado en PDF'|t }}">
+          <i class="fa-solid fa-file-pdf"></i> {{ 'Descargar PDF'|t }}
+        </a>
+      {% endif %}
       <a href="{{ back_url }}" class="btn-reporte btn-reporte--secondary">
         <i class="fa-solid fa-arrow-left"></i> {{ 'Volver a Seguro de Vida'|t }}
       </a>

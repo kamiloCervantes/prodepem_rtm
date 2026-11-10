@@ -69,9 +69,20 @@ function prodepem_solicitudes_rtm_theme($existing, $type, $theme, $path) {
         'total' => NULL,
         'filters' => NULL,
         'export_url' => NULL,
+        'pdf_url' => NULL,
         'back_url' => NULL,
         'card_urls' => NULL,
         'card_export_urls' => NULL,
+      ],
+    ],
+    'prodepem_equidad_reporte_condiciones_salud_pdf' => [
+      'variables' => [
+        'stats' => NULL,
+        'total' => NULL,
+        'filters' => NULL,
+        'date' => NULL,
+        'logo_path' => NULL,
+        'vigilado_path' => NULL,
       ],
     ],
   ];

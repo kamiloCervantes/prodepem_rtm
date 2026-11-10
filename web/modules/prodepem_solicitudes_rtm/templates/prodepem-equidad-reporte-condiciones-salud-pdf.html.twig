@@ -1,0 +1,637 @@
+{#
+/**
+ * @file
+ * Template for Reporte PDF - Conteo de Condiciones de Salud y Consolidado por Tarifa (ASPU).
+ *
+ * Variables disponibles:
+ * - stats: Array estructurado con métricas de salud y tarifas
+ * - total: Total de solicitudes evaluadas
+ * - filters: Array con filtros activos ('search', 'fecha_desde', 'fecha_hasta')
+ * - date: Fecha y hora de generación
+ * - logo_path: URI base64 del logo de La Equidad Seguros
+ * - vigilado_path: URI base64 del logo Vigilado Superfinanciera
+ */
+#}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="utf-8">
+    <title>{{ 'Reporte Estadístico ASPU - Condiciones de Salud y Tarifas'|t }}</title>
+    <style>
+        @page {
+            margin: 10mm 12mm 10mm 12mm;
+            size: letter portrait;
+        }
+        * {
+            box-sizing: border-box;
+            -webkit-box-sizing: border-box;
+        }
+        body {
+            font-family: Arial, Helvetica, sans-serif;
+            font-size: 8pt;
+            line-height: 1.25;
+            color: #1f2937;
+            margin: 0;
+            padding: 0;
+        }
+
+        /* Encabezado */
+        .header-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 8px;
+            border-bottom: 2px solid #047857;
+            padding-bottom: 6px;
+        }
+        .header-logo {
+            width: 35%;
+            vertical-align: middle;
+            text-align: left;
+        }
+        .header-logo img {
+            width: 155px;
+            height: auto;
+            display: block;
+        }
+        .header-title-cell {
+            width: 65%;
+            vertical-align: middle;
+            text-align: right;
+        }
+        .header-badge {
+            display: inline-block;
+            background-color: #ecfdf5;
+            color: #047857;
+            border: 1px solid #a7f3d0;
+            padding: 2px 7px;
+            border-radius: 4px;
+            font-size: 7pt;
+            font-weight: bold;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+            margin-bottom: 3px;
+        }
+        .header-title {
+            margin: 0;
+            color: #064e3b;
+            font-size: 11pt;
+            font-weight: bold;
+            line-height: 1.2;
+            text-transform: uppercase;
+        }
+        .header-subtitle {
+            margin: 2px 0 0 0;
+            font-size: 7.5pt;
+            color: #4b5563;
+        }
+
+        /* Metadata del reporte */
+        .meta-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 10px;
+            background-color: #f9fafb;
+            border: 1px solid #e5e7eb;
+            border-radius: 4px;
+        }
+        .meta-cell {
+            padding: 4px 8px;
+            font-size: 7.2pt;
+            border-right: 1px solid #e5e7eb;
+            vertical-align: middle;
+        }
+        .meta-cell:last-child {
+            border-right: none;
+        }
+        .meta-label {
+            font-weight: bold;
+            color: #374151;
+            text-transform: uppercase;
+            font-size: 6.5pt;
+            display: block;
+        }
+        .meta-value {
+            color: #111827;
+            font-weight: 600;
+        }
+
+        /* Resumen de Métricas (Tarjetas en tabla) */
+        .summary-table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 4px;
+            margin-bottom: 12px;
+        }
+        .summary-card {
+            padding: 6px 8px;
+            border-radius: 4px;
+            text-align: center;
+            vertical-align: middle;
+            border: 1px solid #d1d5db;
+        }
+        .card-total {
+            background-color: #f8fafc;
+            border-color: #cbd5e1;
+            border-left: 3px solid #475569;
+        }
+        .card-con-cond {
+            background-color: #fffbeb;
+            border-color: #fde68a;
+            border-left: 3px solid #d97706;
+        }
+        .card-sin-cond {
+            background-color: #f0fdf4;
+            border-color: #bbf7d0;
+            border-left: 3px solid #16a34a;
+        }
+        .card-tarifa-12000 {
+            background-color: #fef2f2;
+            border-color: #fecaca;
+            border-left: 3px solid #dc2626;
+        }
+        .card-tarifa-10000 {
+            background-color: #fefce8;
+            border-color: #fef08a;
+            border-left: 3px solid #ca8a04;
+        }
+        .card-tarifa-8000 {
+            background-color: #ecfdf5;
+            border-color: #a7f3d0;
+            border-left: 3px solid #059669;
+        }
+
+        .summary-label {
+            font-size: 6.3pt;
+            font-weight: bold;
+            text-transform: uppercase;
+            margin-bottom: 2px;
+            display: block;
+        }
+        .summary-num {
+            font-size: 13pt;
+            font-weight: bold;
+            line-height: 1;
+            margin-bottom: 2px;
+            display: block;
+        }
+        .summary-pct {
+            font-size: 6.3pt;
+            color: #6b7280;
+            display: block;
+        }
+
+        /* Secciones y Títulos */
+        .section-header {
+            background-color: #065f46;
+            color: #ffffff;
+            font-size: 8pt;
+            font-weight: bold;
+            padding: 4px 8px;
+            margin-top: 8px;
+            margin-bottom: 4px;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+        }
+
+        /* Tablas de Datos */
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 10px;
+        }
+        .data-table th {
+            background-color: #f3f4f6;
+            color: #1f2937;
+            font-size: 7pt;
+            font-weight: bold;
+            text-transform: uppercase;
+            padding: 4px 6px;
+            border: 1px solid #d1d5db;
+            text-align: left;
+        }
+        .data-table td {
+            padding: 3.5px 6px;
+            font-size: 7.2pt;
+            border: 1px solid #e5e7eb;
+            vertical-align: middle;
+        }
+        .data-table tr:nth-child(even) td {
+            background-color: #fafafa;
+        }
+        .data-table tr.row-highlight-amber td {
+            background-color: #fffbeb !important;
+        }
+        .data-table tr.row-highlight-red td {
+            background-color: #fef2f2 !important;
+        }
+        .data-table tr.row-highlight-green td {
+            background-color: #f0fdf4 !important;
+        }
+        .data-table tr.row-total td {
+            background-color: #f1f5f9 !important;
+            font-weight: bold;
+            border-top: 2px solid #64748b;
+            border-bottom: 2px solid #64748b;
+        }
+
+        .text-center { text-align: center; }
+        .text-right { text-align: right; }
+        .font-bold { font-weight: bold; }
+
+        /* Badges de Tarifas en Tablas */
+        .badge-tarifa-12000 {
+            display: inline-block;
+            background-color: #fee2e2;
+            color: #991b1b;
+            border: 1px solid #fca5a5;
+            padding: 1px 4px;
+            border-radius: 3px;
+            font-weight: bold;
+            font-size: 6.8pt;
+        }
+        .badge-tarifa-10000 {
+            display: inline-block;
+            background-color: #fef9c3;
+            color: #854d0e;
+            border: 1px solid #fde047;
+            padding: 1px 4px;
+            border-radius: 3px;
+            font-weight: bold;
+            font-size: 6.8pt;
+        }
+        .badge-tarifa-8000 {
+            display: inline-block;
+            background-color: #ecfdf5;
+            color: #047857;
+            border: 1px solid #a7f3d0;
+            padding: 1px 4px;
+            border-radius: 3px;
+            font-weight: bold;
+            font-size: 6.8pt;
+        }
+
+        /* Barra de porcentaje gráfica compatible con Dompdf */
+        .bar-container {
+            width: 100%;
+            height: 6px;
+            background-color: #e5e7eb;
+            border-radius: 3px;
+            overflow: hidden;
+            display: inline-block;
+            vertical-align: middle;
+        }
+        .bar-fill {
+            height: 6px;
+            background-color: #059669;
+            border-radius: 3px;
+        }
+
+        /* Pie de página */
+        .footer-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+            border-top: 1px solid #d1d5db;
+            padding-top: 5px;
+        }
+        .footer-left {
+            width: 70%;
+            font-size: 6.5pt;
+            color: #6b7280;
+            vertical-align: middle;
+        }
+        .footer-right {
+            width: 30%;
+            text-align: right;
+            vertical-align: middle;
+        }
+        .footer-right img {
+            height: 18px;
+            width: auto;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- ENCABEZADO INSTITUCIONAL -->
+    <table class="header-table">
+        <tr>
+            <td class="header-logo">
+                {% if logo_path %}
+                    <img src="{{ logo_path }}" alt="La Equidad Seguros" />
+                {% else %}
+                    <strong style="font-size: 12pt; color: #047857;">LA EQUIDAD SEGUROS</strong>
+                {% endif %}
+            </td>
+            <td class="header-title-cell">
+                <span class="header-badge">{{ 'ASPU • ESTADÍSTICAS DE ASEGURABILIDAD'|t }}</span>
+                <h1 class="header-title">{{ 'Reporte de Condiciones de Salud y Tarifas'|t }}</h1>
+                <p class="header-subtitle">
+                    {{ 'Póliza de Seguro de Vida Grupo • Asociación Sindical de Profesores Universitarios (ASPU)'|t }}
+                </p>
+            </td>
+        </tr>
+    </table>
+
+    <!-- METADATA Y FILTROS APLICADOS -->
+    <table class="meta-table">
+        <tr>
+            <td class="meta-cell" style="width: 25%;">
+                <span class="meta-label">{{ 'Fecha y Hora de Emisión'|t }}</span>
+                <span class="meta-value">{{ date }}</span>
+            </td>
+            <td class="meta-cell" style="width: 20%;">
+                <span class="meta-label">{{ 'Total Solicitudes'|t }}</span>
+                <span class="meta-value">{{ stats.total_solicitudes }} {{ 'registros'|t }}</span>
+            </td>
+            <td class="meta-cell" style="width: 35%;">
+                <span class="meta-label">{{ 'Filtros Aplicados'|t }}</span>
+                <span class="meta-value">
+                    {% set has_filter = false %}
+                    {% if filters.search %}
+                        {{ 'Búsqueda:'|t }} "{{ filters.search }}"
+                        {% set has_filter = true %}
+                    {% endif %}
+                    {% if filters.fecha_desde %}
+                        {% if has_filter %}, {% endif %}
+                        {{ 'Desde:'|t }} {{ filters.fecha_desde }}
+                        {% set has_filter = true %}
+                    {% endif %}
+                    {% if filters.fecha_hasta %}
+                        {% if has_filter %}, {% endif %}
+                        {{ 'Hasta:'|t }} {{ filters.fecha_hasta }}
+                        {% set has_filter = true %}
+                    {% endif %}
+                    {% if not has_filter %}
+                        <span style="color: #6b7280; font-weight: normal;">{{ 'Ninguno (Consolidado completo)'|t }}</span>
+                    {% endif %}
+                </span>
+            </td>
+            <td class="meta-cell" style="width: 20%;">
+                <span class="meta-label">{{ 'Formulario Fuente'|t }}</span>
+                <span class="meta-value">formulario_equidad_seguros</span>
+            </td>
+        </tr>
+    </table>
+
+    <!-- RESUMEN EJECUTIVO / MÉTRICAS CLAVE -->
+    <table class="summary-table">
+        <tr>
+            <td class="summary-card card-total" style="width: 16.66%;">
+                <span class="summary-label" style="color: #475569;">{{ 'Total General'|t }}</span>
+                <span class="summary-num" style="color: #1e293b;">{{ stats.total_solicitudes }}</span>
+                <span class="summary-pct">100.0% {{ 'evaluados'|t }}</span>
+            </td>
+            <td class="summary-card card-con-cond" style="width: 16.66%;">
+                <span class="summary-label" style="color: #92400e;">{{ 'Con Condiciones'|t }}</span>
+                <span class="summary-num" style="color: #b45309;">{{ stats.conteo_con_condiciones }}</span>
+                <span class="summary-pct">{{ stats.porcentaje_con_condiciones }}% {{ 'del total'|t }}</span>
+            </td>
+            <td class="summary-card card-sin-cond" style="width: 16.66%;">
+                <span class="summary-label" style="color: #166534;">{{ 'Sin Condiciones'|t }}</span>
+                <span class="summary-num" style="color: #15803d;">{{ stats.conteo_sin_condiciones }}</span>
+                <span class="summary-pct">{{ stats.porcentaje_sin_condiciones }}% {{ 'declararon "Ninguna"'|t }}</span>
+            </td>
+            <td class="summary-card card-tarifa-12000" style="width: 16.66%;">
+                <span class="summary-label" style="color: #991b1b;">{{ 'Tarifa $12.000'|t }}</span>
+                <span class="summary-num" style="color: #dc2626;">{{ stats.tarifas[12000].cantidad }}</span>
+                <span class="summary-pct">{{ stats.tarifas[12000].porcentaje }}% (Obesidad > 30)</span>
+            </td>
+            <td class="summary-card card-tarifa-10000" style="width: 16.66%;">
+                <span class="summary-label" style="color: #854d0e;">{{ 'Tarifa $10.000'|t }}</span>
+                <span class="summary-num" style="color: #d97706;">{{ stats.tarifas[10000].cantidad }}</span>
+                <span class="summary-pct">{{ stats.tarifas[10000].porcentaje }}% (HTA / Sobrepeso)</span>
+            </td>
+            <td class="summary-card card-tarifa-8000" style="width: 16.66%;">
+                <span class="summary-label" style="color: #065f46;">{{ 'Tarifa $8.000'|t }}</span>
+                <span class="summary-num" style="color: #059669;">{{ stats.tarifas[8000].cantidad }}</span>
+                <span class="summary-pct">{{ stats.tarifas[8000].porcentaje }}% (Tarifa Base)</span>
+            </td>
+        </tr>
+    </table>
+
+    <!-- SECCIÓN 1: CONTEO DE REGISTROS POR CONDICIÓN DE SALUD -->
+    <div class="section-header">
+        {{ '1. Conteo de Registros por Cada Condición de Salud Declarada'|t }}
+    </div>
+
+    <table class="data-table">
+        <thead>
+            <tr>
+                <th style="width: 5%;" class="text-center">{{ '#'|t }}</th>
+                <th style="width: 53%;">{{ 'Condición de Salud / Declaración Médica'|t }}</th>
+                <th style="width: 14%;" class="text-center">{{ 'Tarifa'|t }}</th>
+                <th style="width: 12%;" class="text-right">{{ 'Registros'|t }}</th>
+                <th style="width: 16%;" class="text-right">{{ 'Porcentaje (%)'|t }}</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% set item_num = 1 %}
+            {% for key, p in stats.conteo_preguntas %}
+                <tr {% if key == 'hipertension_arterial' %}class="row-highlight-amber"{% endif %}>
+                    <td class="text-center" style="color: #6b7280;">{{ item_num }}</td>
+                    <td>
+                        <strong style="color: #111827;">{{ p.titulo }}</strong>
+                        {% if key == 'hipertension_arterial' %}
+                            <span style="font-size: 6.5pt; color: #854d0e; font-weight: bold; margin-left: 4px;">[Regla $10.000]</span>
+                        {% endif %}
+                    </td>
+                    <td class="text-center">
+                        {% if key == 'hipertension_arterial' %}
+                            <span class="badge-tarifa-10000">$10.000</span>
+                        {% else %}
+                            <span style="color: #6b7280; font-size: 6.8pt;">$8.000 / $10.000</span>
+                        {% endif %}
+                    </td>
+                    <td class="text-right font-bold" style="color: {% if p.cantidad > 0 %}#111827{% else %}#9ca3af{% endif %};">
+                        {{ p.cantidad }}
+                    </td>
+                    <td class="text-right font-bold" style="color: #374151;">
+                        {{ p.porcentaje }}%
+                    </td>
+                </tr>
+                {% set item_num = item_num + 1 %}
+            {% endfor %}
+
+            <!-- Regla Específica: Sobrepeso -->
+            <tr class="row-highlight-amber">
+                <td class="text-center" style="color: #854d0e; font-weight: bold;">{{ item_num }}</td>
+                <td>
+                    <strong style="color: #92400e;">{{ 'Sobrepeso (declarado o registrado en explicación)'|t }}</strong>
+                    <span style="font-size: 6.5pt; color: #854d0e; font-weight: bold; margin-left: 4px;">[Regla $10.000]</span>
+                </td>
+                <td class="text-center">
+                    <span class="badge-tarifa-10000">$10.000</span>
+                </td>
+                <td class="text-right font-bold" style="color: #854d0e;">
+                    {{ stats.conteo_sobrepeso.cantidad }}
+                </td>
+                <td class="text-right font-bold" style="color: #854d0e;">
+                    {{ stats.conteo_sobrepeso.porcentaje }}%
+                </td>
+            </tr>
+            {% set item_num = item_num + 1 %}
+
+            <!-- Regla Específica: Obesidad con IMC > 30 -->
+            <tr class="row-highlight-red">
+                <td class="text-center" style="color: #991b1b; font-weight: bold;">{{ item_num }}</td>
+                <td>
+                    <strong style="color: #991b1b;">{{ 'Obesidad con IMC > 30 (Índice de Masa Corporal superior a 30.0)'|t }}</strong>
+                    <span style="font-size: 6.5pt; color: #991b1b; font-weight: bold; margin-left: 4px;">[Regla $12.000]</span>
+                </td>
+                <td class="text-center">
+                    <span class="badge-tarifa-12000">$12.000</span>
+                </td>
+                <td class="text-right font-bold" style="color: #991b1b;">
+                    {{ stats.conteo_obesidad_imc30.cantidad }}
+                </td>
+                <td class="text-right font-bold" style="color: #991b1b;">
+                    {{ stats.conteo_obesidad_imc30.porcentaje }}%
+                </td>
+            </tr>
+            {% set item_num = item_num + 1 %}
+
+            <!-- Regla Específica: Sin Condiciones (Sanos) -->
+            <tr class="row-highlight-green">
+                <td class="text-center" style="color: #166534; font-weight: bold;">{{ item_num }}</td>
+                <td>
+                    <strong style="color: #166534;">{{ 'Sin condiciones médicas declaradas (Ninguna condición marcada)'|t }}</strong>
+                    <span style="font-size: 6.5pt; color: #166534; font-weight: bold; margin-left: 4px;">[Tarifa Base $8.000]</span>
+                </td>
+                <td class="text-center">
+                    <span class="badge-tarifa-8000">$8.000</span>
+                </td>
+                <td class="text-right font-bold" style="color: #166534;">
+                    {{ stats.conteo_sin_condiciones }}
+                </td>
+                <td class="text-right font-bold" style="color: #166534;">
+                    {{ stats.porcentaje_sin_condiciones }}%
+                </td>
+            </tr>
+        </tbody>
+    </table>
+
+    <!-- SECCIÓN 2: CONSOLIDADO POR TARIFA -->
+    <div class="section-header" style="background-color: #1e3a8a;">
+        {{ '2. Consolidado por Tarifa (Valor Condición de Salud)'|t }}
+    </div>
+
+    <table class="data-table">
+        <thead>
+            <tr>
+                <th style="width: 12%;" class="text-center">{{ 'Valor ($)'|t }}</th>
+                <th style="width: 48%;">{{ 'Criterio / Condición de Salud Asignada'|t }}</th>
+                <th style="width: 12%;" class="text-right">{{ 'Registros'|t }}</th>
+                <th style="width: 12%;" class="text-right">{{ 'Porcentaje'|t }}</th>
+                <th style="width: 16%;" class="text-right">{{ 'Subtotal Est. ($)'|t }}</th>
+            </tr>
+        </thead>
+        <tbody>
+            <!-- Tarifa $12.000 -->
+            <tr class="row-highlight-red">
+                <td class="text-center">
+                    <span class="badge-tarifa-12000" style="font-size: 7.5pt; padding: 2px 6px;">$12.000</span>
+                </td>
+                <td>
+                    <strong style="color: #991b1b;">{{ 'Obesidad con IMC > 30'|t }}</strong>
+                    <div style="font-size: 6.5pt; color: #6b7280;">
+                        {{ 'Personas que presentan la palabra obesidad y su índice de masa corporal es superior a 30.0.'|t }}
+                    </div>
+                </td>
+                <td class="text-right font-bold" style="font-size: 8.5pt; color: #991b1b;">
+                    {{ stats.tarifas[12000].cantidad }}
+                </td>
+                <td class="text-right font-bold" style="color: #991b1b;">
+                    {{ stats.tarifas[12000].porcentaje }}%
+                </td>
+                <td class="text-right font-bold" style="color: #991b1b;">
+                    $ {{ (stats.tarifas[12000].cantidad * 12000)|number_format(0, ',', '.') }}
+                </td>
+            </tr>
+
+            <!-- Tarifa $10.000 -->
+            <tr class="row-highlight-amber">
+                <td class="text-center">
+                    <span class="badge-tarifa-10000" style="font-size: 7.5pt; padding: 2px 6px;">$10.000</span>
+                </td>
+                <td>
+                    <strong style="color: #854d0e;">{{ 'Hipertensión arterial / Presión arterial / Sobrepeso'|t }}</strong>
+                    <div style="font-size: 6.5pt; color: #6b7280;">
+                        {{ 'Personas que presentan alguna de estas condiciones en su declaración o explicación médica.'|t }}
+                    </div>
+                </td>
+                <td class="text-right font-bold" style="font-size: 8.5pt; color: #854d0e;">
+                    {{ stats.tarifas[10000].cantidad }}
+                </td>
+                <td class="text-right font-bold" style="color: #854d0e;">
+                    {{ stats.tarifas[10000].porcentaje }}%
+                </td>
+                <td class="text-right font-bold" style="color: #854d0e;">
+                    $ {{ (stats.tarifas[10000].cantidad * 10000)|number_format(0, ',', '.') }}
+                </td>
+            </tr>
+
+            <!-- Tarifa $8.000 -->
+            <tr class="row-highlight-green">
+                <td class="text-center">
+                    <span class="badge-tarifa-8000" style="font-size: 7.5pt; padding: 2px 6px;">$8.000</span>
+                </td>
+                <td>
+                    <strong style="color: #065f46;">{{ 'Tarifa Base (Sin condiciones o no cumple criterios anteriores)'|t }}</strong>
+                    <div style="font-size: 6.5pt; color: #6b7280;">
+                        {{ 'Personas sin condiciones declaradas o cuyas condiciones no implican tarifa diferencial de $10.000 o $12.000.'|t }}
+                    </div>
+                </td>
+                <td class="text-right font-bold" style="font-size: 8.5pt; color: #065f46;">
+                    {{ stats.tarifas[8000].cantidad }}
+                </td>
+                <td class="text-right font-bold" style="color: #065f46;">
+                    {{ stats.tarifas[8000].porcentaje }}%
+                </td>
+                <td class="text-right font-bold" style="color: #065f46;">
+                    $ {{ (stats.tarifas[8000].cantidad * 8000)|number_format(0, ',', '.') }}
+                </td>
+            </tr>
+
+            <!-- TOTAL CONSOLIDADO -->
+            <tr class="row-total">
+                <td class="text-center font-bold" style="font-size: 8pt; color: #0f172a;">
+                    {{ 'TOTAL'|t }}
+                </td>
+                <td class="font-bold" style="color: #0f172a;">
+                    {{ 'CONSOLIDADO GENERAL DE TODAS LAS TARIFAS'|t }}
+                </td>
+                <td class="text-right font-bold" style="font-size: 9pt; color: #0f172a;">
+                    {{ stats.total_solicitudes }}
+                </td>
+                <td class="text-right font-bold" style="color: #0f172a;">
+                    100.0%
+                </td>
+                <td class="text-right font-bold" style="font-size: 9pt; color: #0f172a;">
+                    {% set gran_total = (stats.tarifas[12000].cantidad * 12000) + (stats.tarifas[10000].cantidad * 10000) + (stats.tarifas[8000].cantidad * 8000) %}
+                    $ {{ gran_total|number_format(0, ',', '.') }}
+                </td>
+            </tr>
+        </tbody>
+    </table>
+
+    <!-- PIE DE PÁGINA INSTITUCIONAL -->
+    <table class="footer-table">
+        <tr>
+            <td class="footer-left">
+                <strong>{{ 'Sistema de Administración RTM • Prodepem / La Equidad Seguros'|t }}</strong><br>
+                <span>{{ 'Documento confidencial generado para uso administrativo y de conciliación actuarial/tarifaria.'|t }}</span>
+            </td>
+            <td class="footer-right">
+                {% if vigilado_path %}
+                    <img src="{{ vigilado_path }}" alt="Vigilado Superintendencia Financiera" />
+                {% else %}
+                    <span style="font-size: 6pt; color: #6b7280; font-weight: bold;">VIGILADO SUPERINTENDENCIA FINANCIERA</span>
+                {% endif %}
+            </td>
+        </tr>
+    </table>
+
+</body>
+</html>
+

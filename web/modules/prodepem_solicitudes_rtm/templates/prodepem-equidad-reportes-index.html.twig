@@ -143,6 +143,9 @@
           <a href="{{ path('prodepem_solicitudes_rtm.reportes_equidad_exportar', {'reporte': 'aspu-condiciones-salud'}) }}" class="btn-reporte btn-reporte--excel btn-reporte--sm">
             <i class="fa-solid fa-file-excel"></i> {{ 'Descargar XLS'|t }}
           </a>
+          <a href="{{ path('prodepem_solicitudes_rtm.exportar_pdf_condiciones_salud') }}" class="btn-reporte btn-reporte--sm" style="background-color: #dc2626; color: #ffffff; border-color: #dc2626;" title="{{ 'Descargar reporte estadístico en PDF'|t }}">
+            <i class="fa-solid fa-file-pdf"></i> {{ 'PDF'|t }}
+          </a>
         </div>
       </div>
     </div>

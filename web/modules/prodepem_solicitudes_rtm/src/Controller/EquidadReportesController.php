@@ -6,6 +6,8 @@ use Drupal\Core\Controller\ControllerBase;
 use Drupal\Core\Url;
 use Drupal\taxonomy\Entity\Term;
 use Drupal\webform\Entity\WebformSubmission;
+use Dompdf\Dompdf;
+use Dompdf\Options;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\ResponseHeaderBag;
@@ -64,6 +66,7 @@ class EquidadReportesController extends ControllerBase {
       'fecha_hasta' => $fecha_hasta,
     ]);
     $export_url = Url::fromRoute('prodepem_solicitudes_rtm.reportes_equidad_exportar', ['reporte' => 'aspu-condiciones-salud'], ['query' => $export_params])->toString();
+    $pdf_url = Url::fromRoute('prodepem_solicitudes_rtm.exportar_pdf_condiciones_salud', [], ['query' => $export_params])->toString();
     $back_url = Url::fromRoute('prodepem_solicitudes_rtm.reporte_aspu')->toString();
 
     // URLs para redirección a listados filtrados y exportación XLS directa por card:
@@ -111,6 +114,7 @@ class EquidadReportesController extends ControllerBase {
         'fecha_hasta' => $fecha_hasta,
       ],
       '#export_url' => $export_url,
+      '#pdf_url' => $pdf_url,
       '#back_url' => $back_url,
       '#card_urls' => $card_urls,
       '#card_export_urls' => $card_export_urls,
@@ -356,6 +360,87 @@ class EquidadReportesController extends ControllerBase {
         '@sid' => $sid,
       ]),
     ];
+  }
+
+  /**
+   * Exporta a PDF el conteo de registros por cada condición y consolidado por tarifa.
+   */
+  public function exportarPdfCondicionesSalud(Request $request) {
+    try {
+      $search = trim((string) $request->query->get('search', ''));
+      $fecha_desde = trim((string) $request->query->get('fecha_desde', ''));
+      $fecha_hasta = trim((string) $request->query->get('fecha_hasta', ''));
+
+      $items = $this->obtenerRegistrosFiltrados('aspu', 'vida', $search, $fecha_desde, $fecha_hasta);
+      $stats = $this->calcularEstadisticasCondicionesSalud($items);
+
+      $module_path = \Drupal::service('extension.list.module')->getPath('prodepem_solicitudes_rtm');
+
+      $logo_uri = NULL;
+      $equidad_logo_jpg = \Drupal::root() . '/' . $module_path . '/images/la_equidad_logo.jpg';
+      $equidad_logo_png = \Drupal::root() . '/' . $module_path . '/images/la_equidad_logo.png';
+      if (file_exists($equidad_logo_jpg)) {
+        $logo_uri = 'data:image/jpeg;base64,' . base64_encode(file_get_contents($equidad_logo_jpg));
+      }
+      elseif (file_exists($equidad_logo_png)) {
+        $logo_uri = 'data:image/png;base64,' . base64_encode(file_get_contents($equidad_logo_png));
+      }
+
+      $vigilado_uri = NULL;
+      $vigilado_jpg = \Drupal::root() . '/' . $module_path . '/images/vigilado_superfinanciera.jpg';
+      $vigilado_png = \Drupal::root() . '/' . $module_path . '/images/vigilado_superfinanciera.png';
+      if (file_exists($vigilado_jpg)) {
+        $vigilado_uri = 'data:image/jpeg;base64,' . base64_encode(file_get_contents($vigilado_jpg));
+      }
+      elseif (file_exists($vigilado_png)) {
+        $vigilado_uri = 'data:image/png;base64,' . base64_encode(file_get_contents($vigilado_png));
+      }
+
+      $render_array = [
+        '#theme' => 'prodepem_equidad_reporte_condiciones_salud_pdf',
+        '#stats' => $stats,
+        '#total' => $stats['total_solicitudes'],
+        '#filters' => [
+          'search' => $search,
+          'fecha_desde' => $fecha_desde,
+          'fecha_hasta' => $fecha_hasta,
+        ],
+        '#date' => date('d/m/Y H:i:s'),
+        '#logo_path' => $logo_uri,
+        '#vigilado_path' => $vigilado_uri,
+      ];
+
+      $html = (string) \Drupal::service('renderer')->renderPlain($render_array);
+
+      $options = new Options();
+      $options->set('isHtml5ParserEnabled', TRUE);
+      $options->set('isRemoteEnabled', TRUE);
+      $dompdf = new Dompdf($options);
+      $dompdf->loadHtml($html, 'UTF-8');
+      $dompdf->setPaper('letter', 'portrait');
+      $dompdf->render();
+
+      $output = $dompdf->output();
+      $filename = 'reporte_aspu_condiciones_salud_' . date('Ymd_His') . '.pdf';
+
+      $response = new Response($output);
+      $disposition = $response->headers->makeDisposition(
+        ResponseHeaderBag::DISPOSITION_ATTACHMENT,
+        $filename
+      );
+      $response->headers->set('Content-Type', 'application/pdf');
+      $response->headers->set('Content-Disposition', $disposition);
+      $response->headers->set('Pragma', 'no-cache');
+      $response->headers->set('Expires', '0');
+
+      return $response;
+    }
+    catch (\Exception $e) {
+      \Drupal::logger('prodepem_solicitudes_rtm')->error('Error exportando PDF de condiciones de salud: @msg', ['@msg' => $e->getMessage()]);
+      return [
+        '#markup' => $this->t('Error al generar el PDF: @message', ['@message' => $e->getMessage()]),
+      ];
+    }
   }
 
   /**
