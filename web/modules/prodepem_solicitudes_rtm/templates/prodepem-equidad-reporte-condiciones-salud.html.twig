@@ -1,0 +1,370 @@
+{#
+/**
+ * @file
+ * Template for Reporte de Condiciones de Salud - ASPU.
+ *
+ * Variables:
+ * - stats: Array estructurado con conteo_preguntas, conteo_sobrepeso, conteo_obesidad_total, conteo_obesidad_imc30, conteo_hipertension, conteo_sin_condiciones, conteo_con_condiciones, tarifas, total_solicitudes
+ * - total: Cantidad de solicitudes analizadas
+ * - filters: Array con 'search', 'fecha_desde', 'fecha_hasta'
+ * - export_url: Enlace para descarga en formato XLS
+ * - back_url: Enlace para volver al reporte de Seguro de Vida
+ */
+#}
+<div class="reportes-equidad-container">
+  <!-- Encabezado del Reporte -->
+  <div class="reportes-header">
+    <div>
+      <div style="margin-bottom: 0.35rem;">
+        <span class="reportes-badge reportes-badge--aspu">
+          ASPU • ESTADÍSTICAS DE SALUD
+        </span>
+      </div>
+      <h2 class="reportes-header__title">
+        <i class="fa-solid fa-heart-pulse" style="color: #dc2626;"></i>
+        {{ 'Reporte de Condiciones de Salud - ASPU'|t }}
+      </h2>
+      <p class="reportes-header__desc">
+        {{ 'Consolidado estadístico del número de registros presentados por cada condición médica y regla de asegurabilidad declarada en formulario_equidad_seguros.'|t }}
+      </p>
+    </div>
+    <div style="display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap;">
+      <a href="{{ export_url }}" class="btn-reporte btn-reporte--excel" title="{{ 'Descargar reporte estadístico en Excel'|t }}">
+        <i class="fa-solid fa-file-excel"></i> {{ 'Descargar XLS'|t }}
+      </a>
+      <a href="{{ back_url }}" class="btn-reporte btn-reporte--secondary">
+        <i class="fa-solid fa-arrow-left"></i> {{ 'Volver a Seguro de Vida'|t }}
+      </a>
+      <a href="{{ path('prodepem_solicitudes_rtm.reportes_equidad_index') }}" class="btn-reporte btn-reporte--secondary">
+        <i class="fa-solid fa-grip"></i> {{ 'Panel Central'|t }}
+      </a>
+    </div>
+  </div>
+
+  <!-- Barra de Filtros y Búsqueda -->
+  <div class="reportes-toolbar">
+    <form method="get" class="reportes-toolbar__form" action="">
+      <div class="reportes-form-group">
+        <label for="filter-search"><i class="fa-solid fa-magnifying-glass"></i> {{ 'Buscar'|t }}</label>
+        <input type="text" id="filter-search" name="search" value="{{ filters.search }}" class="reportes-input reportes-input--search" placeholder="{{ 'Filtrar por solicitante, documento, condición...'|t }}" />
+      </div>
+
+      <div class="reportes-form-group">
+        <label for="filter-fecha-desde"><i class="fa-regular fa-calendar"></i> {{ 'Fecha Desde'|t }}</label>
+        <input type="date" id="filter-fecha-desde" name="fecha_desde" value="{{ filters.fecha_desde }}" class="reportes-input" />
+      </div>
+
+      <div class="reportes-form-group">
+        <label for="filter-fecha-hasta"><i class="fa-regular fa-calendar"></i> {{ 'Fecha Hasta'|t }}</label>
+        <input type="date" id="filter-fecha-hasta" name="fecha_hasta" value="{{ filters.fecha_hasta }}" class="reportes-input" />
+      </div>
+
+      <div style="display: flex; gap: 0.5rem; margin-top: auto;">
+        <button type="submit" class="btn-reporte btn-reporte--primary">
+          <i class="fa-solid fa-filter"></i> {{ 'Filtrar'|t }}
+        </button>
+
+        {% if filters.search or filters.fecha_desde or filters.fecha_hasta %}
+          <a href="{{ app.request.pathInfo }}" class="btn-reporte btn-reporte--secondary" title="{{ 'Restablecer todos los filtros'|t }}">
+            <i class="fa-solid fa-rotate-left"></i> {{ 'Limpiar'|t }}
+          </a>
+        {% endif %}
+      </div>
+    </form>
+  </div>
+
+  <!-- Tarjetas de Resumen Rápido -->
+  <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1rem; margin-bottom: 2rem;">
+    <!-- Total Evaluadas -->
+    <div style="background: #ffffff; border: 1px solid #e5e7eb; border-radius: 10px; padding: 1.15rem 1.25rem; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
+      <div style="font-size: 0.78rem; font-weight: 700; color: #6b7280; text-transform: uppercase;">{{ 'Total Solicitudes ASPU'|t }}</div>
+      <div style="font-size: 1.9rem; font-weight: 800; color: #111827; margin-top: 0.2rem;">{{ stats.total_solicitudes }}</div>
+      <div style="font-size: 0.8rem; color: #9ca3af; margin-top: 0.35rem;">{{ '100% de la base evaluada'|t }}</div>
+    </div>
+
+    <!-- Con al menos una condición -->
+    <div style="background: #fffbeb; border: 1px solid #fef3c7; border-radius: 10px; padding: 1.15rem 1.25rem;">
+      <div style="font-size: 0.78rem; font-weight: 700; color: #b45309; text-transform: uppercase;">{{ 'Con Condiciones Médicas'|t }}</div>
+      <div style="font-size: 1.9rem; font-weight: 800; color: #92400e; margin-top: 0.2rem;">{{ stats.conteo_con_condiciones }}</div>
+      <div style="font-size: 0.8rem; color: #b45309; margin-top: 0.35rem;">
+        <strong>{{ stats.porcentaje_con_condiciones }}%</strong> {{ 'del total de solicitudes'|t }}
+      </div>
+    </div>
+
+    <!-- Sin condiciones declaradas -->
+    <div style="background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 10px; padding: 1.15rem 1.25rem;">
+      <div style="font-size: 0.78rem; font-weight: 700; color: #15803d; text-transform: uppercase;">{{ 'Sin Condiciones (Sanos)'|t }}</div>
+      <div style="font-size: 1.9rem; font-weight: 800; color: #166534; margin-top: 0.2rem;">{{ stats.conteo_sin_condiciones }}</div>
+      <div style="font-size: 0.8rem; color: #15803d; margin-top: 0.35rem;">
+        <strong>{{ stats.porcentaje_sin_condiciones }}%</strong> {{ 'declararon "Ninguna"'|t }}
+      </div>
+    </div>
+
+    <!-- Tarifa 12000 -->
+    <div style="background: #fef2f2; border: 1px solid #fecaca; border-radius: 10px; padding: 1.15rem 1.25rem;">
+      <div style="font-size: 0.78rem; font-weight: 700; color: #b91c1c; text-transform: uppercase;">{{ 'Tarifa $12.000 (Obesidad > 30)'|t }}</div>
+      <div style="font-size: 1.9rem; font-weight: 800; color: #991b1b; margin-top: 0.2rem;">{{ stats.tarifas[12000].cantidad }}</div>
+      <div style="font-size: 0.8rem; color: #b91c1c; margin-top: 0.35rem;">
+        <strong>{{ stats.tarifas[12000].porcentaje }}%</strong> {{ 'del total evaluado'|t }}
+      </div>
+    </div>
+
+    <!-- Tarifa 10000 -->
+    <div style="background: #fefce8; border: 1px solid #fef08a; border-radius: 10px; padding: 1.15rem 1.25rem;">
+      <div style="font-size: 0.78rem; font-weight: 700; color: #a16207; text-transform: uppercase;">{{ 'Tarifa $10.000 (HTA/Sobrepeso)'|t }}</div>
+      <div style="font-size: 1.9rem; font-weight: 800; color: #854d0e; margin-top: 0.2rem;">{{ stats.tarifas[10000].cantidad }}</div>
+      <div style="font-size: 0.8rem; color: #a16207; margin-top: 0.35rem;">
+        <strong>{{ stats.tarifas[10000].porcentaje }}%</strong> {{ 'del total evaluado'|t }}
+      </div>
+    </div>
+
+    <!-- Tarifa 8000 -->
+    <div style="background: #f0fdf4; border: 1px solid #dcfce7; border-radius: 10px; padding: 1.15rem 1.25rem;">
+      <div style="font-size: 0.78rem; font-weight: 700; color: #16a34a; text-transform: uppercase;">{{ 'Tarifa $8.000 (Base)'|t }}</div>
+      <div style="font-size: 1.9rem; font-weight: 800; color: #15803d; margin-top: 0.2rem;">{{ stats.tarifas[8000].cantidad }}</div>
+      <div style="font-size: 0.8rem; color: #16a34a; margin-top: 0.35rem;">
+        <strong>{{ stats.tarifas[8000].porcentaje }}%</strong> {{ 'del total evaluado'|t }}
+      </div>
+    </div>
+  </div>
+
+  <!-- TABLA 1: Conteo Detallado por Condición de Salud -->
+  <div style="margin-bottom: 2.5rem;">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; border-bottom: 2px solid #ede9fe; padding-bottom: 0.65rem;">
+      <h3 style="font-size: 1.2rem; font-weight: 700; color: #1f2937; margin: 0; display: flex; align-items: center; gap: 0.5rem;">
+        <i class="fa-solid fa-list-ol" style="color: #6366f1;"></i>
+        {{ '1. Conteo de Registros por Cada Condición de Salud'|t }}
+      </h3>
+      <span style="font-size: 0.85rem; color: #6b7280;">
+        {{ 'Total Solicitudes Analizadas:'|t }} <strong>{{ stats.total_solicitudes }}</strong>
+      </span>
+    </div>
+
+    <div class="reportes-table-wrapper">
+      <table class="reportes-table">
+        <thead>
+          <tr>
+            <th style="width: 50px; text-align: center;">{{ '#'|t }}</th>
+            <th>{{ 'Condición de Salud'|t }}</th>
+            <th style="text-align: right; width: 140px;">{{ 'Registros (Cant.)'|t }}</th>
+            <th style="width: 220px;">{{ 'Frecuencia / Porcentaje'|t }}</th>
+            <th style="text-align: center; width: 180px;">{{ 'Tarifa Asociada'|t }}</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% set num = 1 %}
+          {% for key, p in stats.conteo_preguntas %}
+            <tr>
+              <td style="text-align: center; color: #6b7280; font-weight: 600;">{{ num }}</td>
+              <td style="font-weight: 600; color: #1f2937;">
+                {{ p.titulo }}
+                {% if key == 'hipertension_arterial' %}
+                  <span style="margin-left: 6px; font-size: 0.72rem; padding: 2px 6px; background: #fef08a; color: #854d0e; border-radius: 4px; font-weight: 700;">
+                    {{ 'Regla $10.000'|t }}
+                  </span>
+                {% endif %}
+              </td>
+              <td style="text-align: right; font-weight: 700; font-size: 1rem; color: {% if p.cantidad > 0 %}#111827{% else %}#9ca3af{% endif %};">
+                {{ p.cantidad }}
+              </td>
+              <td>
+                <div style="display: flex; align-items: center; gap: 8px;">
+                  <div style="flex: 1; background: #e5e7eb; border-radius: 9999px; height: 8px; overflow: hidden;">
+                    <div style="background: {% if p.cantidad > 0 %}#6366f1{% else %}#d1d5db{% endif %}; height: 100%; width: {{ p.porcentaje }}%;"></div>
+                  </div>
+                  <span style="font-size: 0.8rem; font-weight: 600; color: #4b5563; min-width: 42px; text-align: right;">{{ p.porcentaje }}%</span>
+                </div>
+              </td>
+              <td style="text-align: center;">
+                {% if key == 'hipertension_arterial' %}
+                  <span style="display: inline-block; padding: 3px 8px; background: #fef9c3; color: #854d0e; border-radius: 4px; font-weight: 700; font-size: 0.8rem;">$10.000</span>
+                {% else %}
+                  <span style="color: #6b7280; font-size: 0.8rem;">$8.000 / $10.000</span>
+                {% endif %}
+              </td>
+            </tr>
+            {% set num = num + 1 %}
+          {% endfor %}
+
+          <!-- Condiciones de asegurabilidad específicas -->
+          <tr style="background: #faf5ff;">
+            <td style="text-align: center; color: #7c3aed; font-weight: 700;">{{ num }}</td>
+            <td style="font-weight: 700; color: #5b21b6;">
+              <i class="fa-solid fa-weight-scale" style="margin-right: 4px;"></i>
+              {{ 'Sobrepeso (declarado o registrado)'|t }}
+              <span style="margin-left: 6px; font-size: 0.72rem; padding: 2px 6px; background: #fef08a; color: #854d0e; border-radius: 4px; font-weight: 700;">
+                {{ 'Regla $10.000'|t }}
+              </span>
+            </td>
+            <td style="text-align: right; font-weight: 700; font-size: 1rem; color: #5b21b6;">
+              {{ stats.conteo_sobrepeso.cantidad }}
+            </td>
+            <td>
+              <div style="display: flex; align-items: center; gap: 8px;">
+                <div style="flex: 1; background: #e5e7eb; border-radius: 9999px; height: 8px; overflow: hidden;">
+                  <div style="background: #8b5cf6; height: 100%; width: {{ stats.conteo_sobrepeso.porcentaje }}%;"></div>
+                </div>
+                <span style="font-size: 0.8rem; font-weight: 600; color: #4b5563; min-width: 42px; text-align: right;">{{ stats.conteo_sobrepeso.porcentaje }}%</span>
+              </div>
+            </td>
+            <td style="text-align: center;">
+              <span style="display: inline-block; padding: 3px 8px; background: #fef9c3; color: #854d0e; border-radius: 4px; font-weight: 700; font-size: 0.8rem;">$10.000</span>
+            </td>
+          </tr>
+          {% set num = num + 1 %}
+
+          <tr style="background: #fef2f2;">
+            <td style="text-align: center; color: #b91c1c; font-weight: 700;">{{ num }}</td>
+            <td style="font-weight: 700; color: #991b1b;">
+              <i class="fa-solid fa-person-circle-exclamation" style="margin-right: 4px;"></i>
+              {{ 'Obesidad con IMC > 30'|t }}
+              <span style="margin-left: 6px; font-size: 0.72rem; padding: 2px 6px; background: #fee2e2; color: #991b1b; border-radius: 4px; font-weight: 700;">
+                {{ 'Regla $12.000'|t }}
+              </span>
+            </td>
+            <td style="text-align: right; font-weight: 700; font-size: 1rem; color: #991b1b;">
+              {{ stats.conteo_obesidad_imc30.cantidad }}
+            </td>
+            <td>
+              <div style="display: flex; align-items: center; gap: 8px;">
+                <div style="flex: 1; background: #e5e7eb; border-radius: 9999px; height: 8px; overflow: hidden;">
+                  <div style="background: #ef4444; height: 100%; width: {{ stats.conteo_obesidad_imc30.porcentaje }}%;"></div>
+                </div>
+                <span style="font-size: 0.8rem; font-weight: 600; color: #4b5563; min-width: 42px; text-align: right;">{{ stats.conteo_obesidad_imc30.porcentaje }}%</span>
+              </div>
+            </td>
+            <td style="text-align: center;">
+              <span style="display: inline-block; padding: 3px 8px; background: #fee2e2; color: #991b1b; border-radius: 4px; font-weight: 700; font-size: 0.8rem;">$12.000</span>
+            </td>
+          </tr>
+          {% set num = num + 1 %}
+
+          <tr style="background: #f0fdf4;">
+            <td style="text-align: center; color: #166534; font-weight: 700;">{{ num }}</td>
+            <td style="font-weight: 700; color: #166534;">
+              <i class="fa-solid fa-circle-check" style="margin-right: 4px;"></i>
+              {{ 'Sin condiciones declaradas (Ninguna)'|t }}
+              <span style="margin-left: 6px; font-size: 0.72rem; padding: 2px 6px; background: #dcfce7; color: #15803d; border-radius: 4px; font-weight: 700;">
+                {{ 'Regla $8.000'|t }}
+              </span>
+            </td>
+            <td style="text-align: right; font-weight: 700; font-size: 1rem; color: #166534;">
+              {{ stats.conteo_sin_condiciones }}
+            </td>
+            <td>
+              <div style="display: flex; align-items: center; gap: 8px;">
+                <div style="flex: 1; background: #e5e7eb; border-radius: 9999px; height: 8px; overflow: hidden;">
+                  <div style="background: #22c55e; height: 100%; width: {{ stats.porcentaje_sin_condiciones }}%;"></div>
+                </div>
+                <span style="font-size: 0.8rem; font-weight: 600; color: #4b5563; min-width: 42px; text-align: right;">{{ stats.porcentaje_sin_condiciones }}%</span>
+              </div>
+            </td>
+            <td style="text-align: center;">
+              <span style="display: inline-block; padding: 3px 8px; background: #ecfdf5; color: #047857; border-radius: 4px; font-weight: 700; font-size: 0.8rem;">$8.000</span>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- TABLA 2: Consolidado por Tarifa (Valor Condición Salud) -->
+  <div>
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; border-bottom: 2px solid #ede9fe; padding-bottom: 0.65rem;">
+      <h3 style="font-size: 1.2rem; font-weight: 700; color: #1f2937; margin: 0; display: flex; align-items: center; gap: 0.5rem;">
+        <i class="fa-solid fa-coins" style="color: #eab308;"></i>
+        {{ '2. Consolidado por Tarifa (Valor Condición Salud)'|t }}
+      </h3>
+    </div>
+
+    <div class="reportes-table-wrapper">
+      <table class="reportes-table">
+        <thead>
+          <tr>
+            <th style="width: 140px; text-align: center;">{{ 'Valor ($)'|t }}</th>
+            <th>{{ 'Criterio / Condición de Salud Asignada'|t }}</th>
+            <th style="text-align: right; width: 160px;">{{ 'Registros (Cant.)'|t }}</th>
+            <th style="width: 220px;">{{ 'Porcentaje (%)'|t }}</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td style="text-align: center;">
+              <span style="display: inline-block; padding: 4px 10px; background: #fee2e2; color: #991b1b; border-radius: 6px; font-weight: 800; font-size: 0.95rem;">
+                $12.000
+              </span>
+            </td>
+            <td style="font-weight: 600;">
+              <strong>{{ 'Obesidad con IMC > 30'|t }}</strong>
+              <div style="font-size: 0.8rem; color: #6b7280;">{{ 'Personas que presentan la palabra obesidad y su índice de masa corporal supera 30.0.'|t }}</div>
+            </td>
+            <td style="text-align: right; font-weight: 800; font-size: 1.1rem; color: #991b1b;">
+              {{ stats.tarifas[12000].cantidad }}
+            </td>
+            <td>
+              <div style="display: flex; align-items: center; gap: 8px;">
+                <div style="flex: 1; background: #e5e7eb; border-radius: 9999px; height: 8px; overflow: hidden;">
+                  <div style="background: #ef4444; height: 100%; width: {{ stats.tarifas[12000].porcentaje }}%;"></div>
+                </div>
+                <span style="font-size: 0.85rem; font-weight: 700; color: #111827; min-width: 45px; text-align: right;">{{ stats.tarifas[12000].porcentaje }}%</span>
+              </div>
+            </td>
+          </tr>
+
+          <tr>
+            <td style="text-align: center;">
+              <span style="display: inline-block; padding: 4px 10px; background: #fef9c3; color: #854d0e; border-radius: 6px; font-weight: 800; font-size: 0.95rem;">
+                $10.000
+              </span>
+            </td>
+            <td style="font-weight: 600;">
+              <strong>{{ 'Hipertensión arterial / Presión arterial / Sobrepeso'|t }}</strong>
+              <div style="font-size: 0.8rem; color: #6b7280;">{{ 'Personas que presentan alguna de estas condiciones en su declaración o explicación médica.'|t }}</div>
+            </td>
+            <td style="text-align: right; font-weight: 800; font-size: 1.1rem; color: #854d0e;">
+              {{ stats.tarifas[10000].cantidad }}
+            </td>
+            <td>
+              <div style="display: flex; align-items: center; gap: 8px;">
+                <div style="flex: 1; background: #e5e7eb; border-radius: 9999px; height: 8px; overflow: hidden;">
+                  <div style="background: #eab308; height: 100%; width: {{ stats.tarifas[10000].porcentaje }}%;"></div>
+                </div>
+                <span style="font-size: 0.85rem; font-weight: 700; color: #111827; min-width: 45px; text-align: right;">{{ stats.tarifas[10000].porcentaje }}%</span>
+              </div>
+            </td>
+          </tr>
+
+          <tr>
+            <td style="text-align: center;">
+              <span style="display: inline-block; padding: 4px 10px; background: #ecfdf5; color: #047857; border-radius: 6px; font-weight: 800; font-size: 0.95rem;">
+                $8.000
+              </span>
+            </td>
+            <td style="font-weight: 600;">
+              <strong>{{ 'Tarifa Base'|t }}</strong>
+              <div style="font-size: 0.8rem; color: #6b7280;">{{ 'Personas que no cumplen las condiciones de riesgo anteriores.'|t }}</div>
+            </td>
+            <td style="text-align: right; font-weight: 800; font-size: 1.1rem; color: #047857;">
+              {{ stats.tarifas[8000].cantidad }}
+            </td>
+            <td>
+              <div style="display: flex; align-items: center; gap: 8px;">
+                <div style="flex: 1; background: #e5e7eb; border-radius: 9999px; height: 8px; overflow: hidden;">
+                  <div style="background: #22c55e; height: 100%; width: {{ stats.tarifas[8000].porcentaje }}%;"></div>
+                </div>
+                <span style="font-size: 0.85rem; font-weight: 700; color: #111827; min-width: 45px; text-align: right;">{{ stats.tarifas[8000].porcentaje }}%</span>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+        <tfoot>
+          <tr style="background: #f9fafb; font-weight: 800; border-top: 2px solid #e5e7eb;">
+            <td colspan="2" style="text-align: right; padding: 10px 14px; font-size: 0.95rem;">{{ 'TOTAL SOLICITUDES EVALUADAS:'|t }}</td>
+            <td style="text-align: right; padding: 10px 14px; font-size: 1.1rem; color: #111827;">{{ stats.total_solicitudes }}</td>
+            <td style="padding: 10px 14px; font-size: 0.95rem; text-align: right; color: #111827;">100.0%</td>
+          </tr>
+        </tfoot>
+      </table>
+    </div>
+  </div>
+</div>

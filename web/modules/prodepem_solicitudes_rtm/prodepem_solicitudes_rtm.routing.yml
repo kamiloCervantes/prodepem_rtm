@@ -127,6 +127,14 @@ prodepem_solicitudes_rtm.reporte_aspu:
   requirements:
     _permission: 'administer rtm solicitudes'
 
+prodepem_solicitudes_rtm.reporte_aspu_condiciones_salud:
+  path: '/admin/config/prodepem/rtm-admin/reportes-equidad/aspu-condiciones-salud'
+  defaults:
+    _controller: '\Drupal\prodepem_solicitudes_rtm\Controller\EquidadReportesController::reporteAspuCondicionesSalud'
+    _title: 'Reporte ASPU - Conteo de Condiciones de Salud'
+  requirements:
+    _permission: 'administer rtm solicitudes'
+
 prodepem_solicitudes_rtm.reporte_foneducor:
   path: '/admin/config/prodepem/rtm-admin/reportes-equidad/foneducor'
   defaults:

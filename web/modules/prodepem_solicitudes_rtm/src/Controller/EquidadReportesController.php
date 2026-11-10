@@ -48,6 +48,45 @@ class EquidadReportesController extends ControllerBase {
   }
 
   /**
+   * Reporte ASPU - Conteo y consolidado de condiciones de salud.
+   */
+  public function reporteAspuCondicionesSalud(Request $request) {
+    $search = trim((string) $request->query->get('search', ''));
+    $fecha_desde = trim((string) $request->query->get('fecha_desde', ''));
+    $fecha_hasta = trim((string) $request->query->get('fecha_hasta', ''));
+
+    $items = $this->obtenerRegistrosFiltrados('aspu', 'vida', $search, $fecha_desde, $fecha_hasta);
+    $stats = $this->calcularEstadisticasCondicionesSalud($items);
+
+    $export_params = array_filter([
+      'search' => $search,
+      'fecha_desde' => $fecha_desde,
+      'fecha_hasta' => $fecha_hasta,
+    ]);
+    $export_url = Url::fromRoute('prodepem_solicitudes_rtm.reportes_equidad_exportar', ['reporte' => 'aspu-condiciones-salud'], ['query' => $export_params])->toString();
+    $back_url = Url::fromRoute('prodepem_solicitudes_rtm.reporte_aspu')->toString();
+
+    return [
+      '#theme' => 'prodepem_equidad_reporte_condiciones_salud',
+      '#stats' => $stats,
+      '#total' => $stats['total_solicitudes'],
+      '#filters' => [
+        'search' => $search,
+        'fecha_desde' => $fecha_desde,
+        'fecha_hasta' => $fecha_hasta,
+      ],
+      '#export_url' => $export_url,
+      '#back_url' => $back_url,
+      '#attached' => [
+        'library' => [
+          'prodepem_solicitudes_rtm/reportes_equidad',
+        ],
+      ],
+      '#title' => $this->t('Reporte ASPU - Conteo de Condiciones de Salud'),
+    ];
+  }
+
+  /**
    * Reporte PRODEPEM - Solicitudes de Seguro de Vida.
    */
   public function reporteProdepem(Request $request) {
@@ -252,6 +291,30 @@ class EquidadReportesController extends ControllerBase {
    * Exportación de registros en formato XLS (Excel XML Spreadsheet).
    */
   public function exportarXls($reporte, Request $request) {
+    if ($reporte === 'aspu-condiciones-salud' || $reporte === 'condiciones-salud') {
+      $search = trim((string) $request->query->get('search', ''));
+      $fecha_desde = trim((string) $request->query->get('fecha_desde', ''));
+      $fecha_hasta = trim((string) $request->query->get('fecha_hasta', ''));
+
+      $items = $this->obtenerRegistrosFiltrados('aspu', 'vida', $search, $fecha_desde, $fecha_hasta);
+      $stats = $this->calcularEstadisticasCondicionesSalud($items);
+
+      $filename = 'reporte_aspu_condiciones_salud_' . date('Ymd_His') . '.xls';
+      $xml = $this->construirXmlExcelCondicionesSalud($stats);
+
+      $response = new Response($xml);
+      $response->headers->set('Content-Type', 'application/vnd.ms-excel; charset=UTF-8');
+      $disposition = $response->headers->makeDisposition(
+        ResponseHeaderBag::DISPOSITION_ATTACHMENT,
+        $filename
+      );
+      $response->headers->set('Content-Disposition', $disposition);
+      $response->headers->set('Pragma', 'no-cache');
+      $response->headers->set('Expires', '0');
+
+      return $response;
+    }
+
     if ($reporte === 'rifas' || $reporte === 'aspu-rifas') {
       $tomador = 'aspu';
       $tipo = 'rifas';
@@ -504,6 +567,7 @@ class EquidadReportesController extends ControllerBase {
 
     // Cuestionario de salud (campos marcados con true):
     $condiciones_marcadas_titulos = [];
+    $condiciones_marcadas_keys = [];
     $salud_def = self::getDefinicionCamposSalud();
     $webform = $sub->getWebform();
 
@@ -538,6 +602,7 @@ class EquidadReportesController extends ControllerBase {
 
       if ($is_true) {
         $condiciones_marcadas_titulos[] = $titulo;
+        $condiciones_marcadas_keys[] = $campo_key;
       }
     }
 
@@ -776,6 +841,7 @@ class EquidadReportesController extends ControllerBase {
       'estatura' => $estatura,
       'imc' => $imc,
       'condiciones_marcadas' => $condiciones_marcadas_titulos,
+      'condiciones_marcadas_keys' => $condiciones_marcadas_keys,
       'condiciones_salud_texto' => $condiciones_salud_texto,
       'condiciones_salud_count' => $salud_positivas,
       'explicacion_condiciones' => $explicacion_condiciones,
@@ -1026,7 +1092,7 @@ class EquidadReportesController extends ControllerBase {
         echo '  <td class="text-center">' . htmlspecialchars((string) ($it['estatura'] ?: '-')) . '</td>' . "\n";
         echo '  <td class="text-center">' . htmlspecialchars((string) ($it['imc'] ?: '-')) . '</td>' . "\n";
         echo '  <td>' . htmlspecialchars((string) ($it['condiciones_salud_texto'] ?: 'Ninguna')) . '</td>' . "\n";
-        echo '  <td class="text-right" style="mso-number-format:\'0\';">' . htmlspecialchars((string) ($it['valor_condicion_salud'] ?? 0)) . '</td>' . "\n";
+        echo '  <td class="text-right" style="mso-number-format:\'0\';">' . htmlspecialchars((string) ($it['valor_condicion_salud'] ?? 8000)) . '</td>' . "\n";
         echo '  <td>' . htmlspecialchars((string) ($it['explicacion_condiciones'] ?: '-')) . '</td>' . "\n";
         echo '</tr>' . "\n";
       }
@@ -1227,7 +1293,7 @@ class EquidadReportesController extends ControllerBase {
    * Reglas de negocio:
    * 1. Si en condiciones de salud contiene 'hipertensión', 'presión arterial' o 'sobrepeso' -> 10000.
    * 2. En otro caso, si contiene 'obesidad' y el IMC es mayor a 30 -> 12000.
-   * 3. En cualquier otro caso -> 0.
+   * 3. Para las que no cumplen con las condiciones mencionadas -> 8000.
    *
    * @param string|null $condiciones_salud_texto
    *   Texto de las condiciones de salud declaradas.
@@ -1237,7 +1303,7 @@ class EquidadReportesController extends ControllerBase {
    *   Índice de masa corporal calculado.
    *
    * @return int
-   *   Valor numérico correspondiente (10000, 12000 o 0).
+   *   Valor numérico correspondiente (10000, 12000 u 8000).
    */
   public static function calcularValorCondicionSalud($condiciones_salud_texto, $explicacion_condiciones, $imc): int {
     $texto_completo = self::normalizarTextoParaBusqueda(
@@ -1266,7 +1332,8 @@ class EquidadReportesController extends ControllerBase {
       return 12000;
     }
 
-    return 0;
+    // Regla 3: para las que no cumplen con las condiciones mencionadas -> 8000.
+    return 8000;
   }
 
   /**
@@ -1506,6 +1573,274 @@ class EquidadReportesController extends ControllerBase {
     }
 
     return [];
+  }
+
+  /**
+   * Calcula el consolidado estadístico de condiciones de salud y tarifas.
+   *
+   * @param array $items
+   *   Arreglo de registros normalizados (extraerDatosRegistro).
+   *
+   * @return array
+   *   Arreglo estadístico estructurado para la vista y exportación.
+   */
+  public function calcularEstadisticasCondicionesSalud(array $items): array {
+    $total = count($items);
+    $def = self::getDefinicionCamposSalud();
+
+    $conteo_preguntas = [];
+    foreach ($def as $key => $info) {
+      $conteo_preguntas[$key] = [
+        'titulo' => $info['titulo'],
+        'cantidad' => 0,
+        'porcentaje' => 0.0,
+      ];
+    }
+
+    $conteo_sobrepeso = 0;
+    $conteo_obesidad_total = 0;
+    $conteo_obesidad_imc30 = 0;
+    $conteo_hipertension = 0;
+    $conteo_sin_condiciones = 0;
+    $conteo_con_condiciones = 0;
+
+    $tarifas = [
+      12000 => ['cantidad' => 0, 'porcentaje' => 0.0],
+      10000 => ['cantidad' => 0, 'porcentaje' => 0.0],
+      8000  => ['cantidad' => 0, 'porcentaje' => 0.0],
+    ];
+
+    foreach ($items as $item) {
+      $keys_marcadas = $item['condiciones_marcadas_keys'] ?? [];
+      $titulos_marcados = $item['condiciones_marcadas'] ?? [];
+
+      // Conteo de las 14 preguntas individuales del cuestionario.
+      foreach ($def as $key => $info) {
+        if (in_array($key, $keys_marcadas, TRUE) || in_array($info['titulo'], $titulos_marcados, TRUE)) {
+          $conteo_preguntas[$key]['cantidad']++;
+        }
+      }
+
+      // Conteo con o sin condiciones generales declaradas.
+      $texto_salud = $item['condiciones_salud_texto'] ?? 'Ninguna';
+      $explicacion = $item['explicacion_condiciones'] ?? '';
+      $texto_busqueda = self::normalizarTextoParaBusqueda($texto_salud . ' ' . $explicacion);
+
+      if (empty($titulos_marcados) || $texto_salud === 'Ninguna') {
+        $conteo_sin_condiciones++;
+      }
+      else {
+        $conteo_con_condiciones++;
+      }
+
+      // Reglas específicas:
+      // Sobrepeso.
+      if (strpos($texto_busqueda, 'sobrepeso') !== FALSE) {
+        $conteo_sobrepeso++;
+      }
+
+      // Hipertensión arterial / Presión arterial.
+      if (
+        strpos($texto_busqueda, 'hipertension') !== FALSE ||
+        strpos($texto_busqueda, 'presion arterial') !== FALSE ||
+        in_array('hipertension_arterial', $keys_marcadas, TRUE)
+      ) {
+        $conteo_hipertension++;
+      }
+
+      // Obesidad.
+      $imc_num = 0.0;
+      if (!empty($item['imc'])) {
+        $imc_clean = str_replace(',', '.', trim((string) $item['imc']));
+        if (is_numeric($imc_clean)) {
+          $imc_num = (float) $imc_clean;
+        }
+      }
+
+      if (strpos($texto_busqueda, 'obesidad') !== FALSE) {
+        $conteo_obesidad_total++;
+        if ($imc_num > 30.0) {
+          $conteo_obesidad_imc30++;
+        }
+      }
+
+      // Consolidado por tarifa (12000, 10000 u 8000).
+      $tarifa_val = (int) ($item['valor_condicion_salud'] ?? 8000);
+      if (!isset($tarifas[$tarifa_val])) {
+        $tarifa_val = 8000;
+      }
+      $tarifas[$tarifa_val]['cantidad']++;
+    }
+
+    $calc_pct = function($cant) use ($total) {
+      return $total > 0 ? round(($cant / $total) * 100, 1) : 0.0;
+    };
+
+    foreach ($conteo_preguntas as $key => &$p) {
+      $p['porcentaje'] = $calc_pct($p['cantidad']);
+    }
+    unset($p);
+
+    foreach ($tarifas as $val => &$t) {
+      $t['porcentaje'] = $calc_pct($t['cantidad']);
+    }
+    unset($t);
+
+    return [
+      'total_solicitudes' => $total,
+      'conteo_preguntas' => $conteo_preguntas,
+      'conteo_con_condiciones' => $conteo_con_condiciones,
+      'porcentaje_con_condiciones' => $calc_pct($conteo_con_condiciones),
+      'conteo_sin_condiciones' => $conteo_sin_condiciones,
+      'porcentaje_sin_condiciones' => $calc_pct($conteo_sin_condiciones),
+      'conteo_sobrepeso' => [
+        'cantidad' => $conteo_sobrepeso,
+        'porcentaje' => $calc_pct($conteo_sobrepeso),
+      ],
+      'conteo_obesidad_total' => [
+        'cantidad' => $conteo_obesidad_total,
+        'porcentaje' => $calc_pct($conteo_obesidad_total),
+      ],
+      'conteo_obesidad_imc30' => [
+        'cantidad' => $conteo_obesidad_imc30,
+        'porcentaje' => $calc_pct($conteo_obesidad_imc30),
+      ],
+      'conteo_hipertension' => [
+        'cantidad' => $conteo_hipertension,
+        'porcentaje' => $calc_pct($conteo_hipertension),
+      ],
+      'tarifas' => $tarifas,
+    ];
+  }
+
+  /**
+   * Construye el documento Excel XML para el reporte estadístico de condiciones de salud.
+   */
+  protected function construirXmlExcelCondicionesSalud(array $stats): string {
+    ob_start();
+    echo '<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40">' . "\n";
+    echo '<head>' . "\n";
+    echo '<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />' . "\n";
+    echo '<!--[if gte mso 9]><xml><x:ExcelWorkbook><x:ExcelWorksheets><x:ExcelWorksheet><x:Name>Condiciones de Salud</x:Name><x:WorksheetOptions><x:DisplayGridlines/></x:WorksheetOptions></x:ExcelWorksheet></x:ExcelWorksheets></x:ExcelWorkbook></xml><![endif]-->' . "\n";
+    echo '<style>' . "\n";
+    echo '  .header-title { font-size: 14pt; font-weight: bold; background-color: #991b1b; color: #ffffff; text-align: center; }' . "\n";
+    echo '  .header-subtitle { font-size: 11pt; font-weight: bold; background-color: #4338ca; color: #ffffff; }' . "\n";
+    echo '  .header-meta { font-size: 10pt; color: #555555; background-color: #fef2f2; }' . "\n";
+    echo '  th { background-color: #374151; color: #ffffff; font-weight: bold; padding: 6px; border: 0.5pt solid #cccccc; text-align: center; font-size: 9.5pt; }' . "\n";
+    echo '  td { padding: 5px; border: 0.5pt solid #cccccc; font-size: 9pt; }' . "\n";
+    echo '  .text-center { text-align: center; }' . "\n";
+    echo '  .text-right { text-align: right; }' . "\n";
+    echo '  .total-row { font-weight: bold; background-color: #f3f4f6; }' . "\n";
+    echo '  .badge-12000 { background-color: #fee2e2; color: #991b1b; font-weight: bold; }' . "\n";
+    echo '  .badge-10000 { background-color: #fef9c3; color: #854d0e; font-weight: bold; }' . "\n";
+    echo '  .badge-8000 { background-color: #ecfdf5; color: #047857; font-weight: bold; }' . "\n";
+    echo '</style>' . "\n";
+    echo '</head>' . "\n";
+    echo '<body>' . "\n";
+
+    echo '<table border="1">' . "\n";
+    echo '<tr><td colspan="5" class="header-title">REPORTE ESTADÍSTICO DE CONDICIONES DE SALUD - ASPU</td></tr>' . "\n";
+    echo '<tr><td colspan="5" class="header-meta">Generado el: ' . date('d/m/Y H:i:s') . ' | Total Solicitudes Evaluadas: ' . $stats['total_solicitudes'] . ' | Con Condiciones: ' . $stats['conteo_con_condiciones'] . ' (' . $stats['porcentaje_con_condiciones'] . '%) | Sin Condiciones: ' . $stats['conteo_sin_condiciones'] . ' (' . $stats['porcentaje_sin_condiciones'] . '%)</td></tr>' . "\n";
+    echo '<tr></tr>' . "\n";
+
+    // TABLA 1: CONTEO POR CONDICIÓN
+    echo '<tr><td colspan="5" class="header-subtitle">1. CONTEO DE REGISTROS POR CADA CONDICIÓN DE SALUD</td></tr>' . "\n";
+    echo '<tr>' . "\n";
+    echo '  <th style="width: 40px;">#</th>' . "\n";
+    echo '  <th style="width: 380px;">CONDICIÓN DE SALUD / CUESTIONARIO</th>' . "\n";
+    echo '  <th style="width: 130px;">REGISTROS (CANTIDAD)</th>' . "\n";
+    echo '  <th style="width: 120px;">PORCENTAJE (%)</th>' . "\n";
+    echo '  <th style="width: 140px;">TARIFA ASOCIADA</th>' . "\n";
+    echo '</tr>' . "\n";
+
+    $i = 1;
+    foreach ($stats['conteo_preguntas'] as $key => $p) {
+      $tarifa_label = ($key === 'hipertension_arterial') ? '$10.000' : '$8.000 / $10.000';
+      $tarifa_class = ($key === 'hipertension_arterial') ? 'badge-10000' : '';
+      echo '<tr>' . "\n";
+      echo '  <td class="text-center">' . $i . '</td>' . "\n";
+      echo '  <td>' . htmlspecialchars($p['titulo']) . '</td>' . "\n";
+      echo '  <td class="text-right" style="mso-number-format:\'0\';">' . $p['cantidad'] . '</td>' . "\n";
+      echo '  <td class="text-right">' . $p['porcentaje'] . '%</td>' . "\n";
+      echo '  <td class="text-center ' . $tarifa_class . '">' . $tarifa_label . '</td>' . "\n";
+      echo '</tr>' . "\n";
+      $i++;
+    }
+
+    // Sobrepeso
+    echo '<tr>' . "\n";
+    echo '  <td class="text-center">' . $i++ . '</td>' . "\n";
+    echo '  <td>Sobrepeso (declarado o registrado)</td>' . "\n";
+    echo '  <td class="text-right" style="mso-number-format:\'0\';">' . $stats['conteo_sobrepeso']['cantidad'] . '</td>' . "\n";
+    echo '  <td class="text-right">' . $stats['conteo_sobrepeso']['porcentaje'] . '%</td>' . "\n";
+    echo '  <td class="text-center badge-10000">$10.000</td>' . "\n";
+    echo '</tr>' . "\n";
+
+    // Obesidad IMC > 30
+    echo '<tr>' . "\n";
+    echo '  <td class="text-center">' . $i++ . '</td>' . "\n";
+    echo '  <td>Obesidad con IMC > 30</td>' . "\n";
+    echo '  <td class="text-right" style="mso-number-format:\'0\';">' . $stats['conteo_obesidad_imc30']['cantidad'] . '</td>' . "\n";
+    echo '  <td class="text-right">' . $stats['conteo_obesidad_imc30']['porcentaje'] . '%</td>' . "\n";
+    echo '  <td class="text-center badge-12000">$12.000</td>' . "\n";
+    echo '</tr>' . "\n";
+
+    // Sin condiciones
+    echo '<tr>' . "\n";
+    echo '  <td class="text-center">' . $i++ . '</td>' . "\n";
+    echo '  <td>Sin condiciones declaradas (Ninguna)</td>' . "\n";
+    echo '  <td class="text-right" style="mso-number-format:\'0\';">' . $stats['conteo_sin_condiciones'] . '</td>' . "\n";
+    echo '  <td class="text-right">' . $stats['porcentaje_sin_condiciones'] . '%</td>' . "\n";
+    echo '  <td class="text-center badge-8000">$8.000</td>' . "\n";
+    echo '</tr>' . "\n";
+
+    echo '<tr></tr>' . "\n";
+
+    // TABLA 2: CONSOLIDADO POR TARIFA
+    echo '<tr><td colspan="4" class="header-subtitle">2. CONSOLIDADO POR TARIFA (VALOR CONDICIÓN SALUD)</td></tr>' . "\n";
+    echo '<tr>' . "\n";
+    echo '  <th style="width: 140px;">VALOR ($)</th>' . "\n";
+    echo '  <th style="width: 380px;">CRITERIO / CONDICIÓN DE SALUD ASIGNADA</th>' . "\n";
+    echo '  <th style="width: 130px;">REGISTROS (CANTIDAD)</th>' . "\n";
+    echo '  <th style="width: 120px;">PORCENTAJE (%)</th>' . "\n";
+    echo '</tr>' . "\n";
+
+    // Tarifa 12000
+    echo '<tr>' . "\n";
+    echo '  <td class="text-center badge-12000">$12.000</td>' . "\n";
+    echo '  <td>Obesidad con IMC > 30</td>' . "\n";
+    echo '  <td class="text-right" style="mso-number-format:\'0\';">' . $stats['tarifas'][12000]['cantidad'] . '</td>' . "\n";
+    echo '  <td class="text-right">' . $stats['tarifas'][12000]['porcentaje'] . '%</td>' . "\n";
+    echo '</tr>' . "\n";
+
+    // Tarifa 10000
+    echo '<tr>' . "\n";
+    echo '  <td class="text-center badge-10000">$10.000</td>' . "\n";
+    echo '  <td>Hipertensión arterial / Presión arterial / Sobrepeso</td>' . "\n";
+    echo '  <td class="text-right" style="mso-number-format:\'0\';">' . $stats['tarifas'][10000]['cantidad'] . '</td>' . "\n";
+    echo '  <td class="text-right">' . $stats['tarifas'][10000]['porcentaje'] . '%</td>' . "\n";
+    echo '</tr>' . "\n";
+
+    // Tarifa 8000
+    echo '<tr>' . "\n";
+    echo '  <td class="text-center badge-8000">$8.000</td>' . "\n";
+    echo '  <td>Tarifa Base (No cumplen condiciones anteriores / Sanos)</td>' . "\n";
+    echo '  <td class="text-right" style="mso-number-format:\'0\';">' . $stats['tarifas'][8000]['cantidad'] . '</td>' . "\n";
+    echo '  <td class="text-right">' . $stats['tarifas'][8000]['porcentaje'] . '%</td>' . "\n";
+    echo '</tr>' . "\n";
+
+    // Total
+    echo '<tr class="total-row">' . "\n";
+    echo '  <td colspan="2" class="text-right">TOTAL SOLICITUDES EVALUADAS:</td>' . "\n";
+    echo '  <td class="text-right" style="mso-number-format:\'0\';">' . $stats['total_solicitudes'] . '</td>' . "\n";
+    echo '  <td class="text-right">100.0%</td>' . "\n";
+    echo '</tr>' . "\n";
+
+    echo '</table>' . "\n";
+    echo '</body>' . "\n";
+    echo '</html>' . "\n";
+
+    return ob_get_clean();
   }
 
   protected function obtenerEstadisticas() {

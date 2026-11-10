@@ -111,6 +111,13 @@ prodepem_solicitudes_rtm.menu_reporte_aspu_rifas:
   route_name: prodepem_solicitudes_rtm.reporte_aspu_rifas
   weight: 30
 
+prodepem_solicitudes_rtm.menu_reporte_aspu_condiciones_salud:
+  title: 'Reporte ASPU (Condiciones de Salud)'
+  description: 'Conteo y consolidado de solicitudes por cada condición de salud declarada.'
+  parent: prodepem_solicitudes_rtm.reportes_equidad_section
+  route_name: prodepem_solicitudes_rtm.reporte_aspu_condiciones_salud
+  weight: 35
+
 prodepem_solicitudes_rtm.menu_reporte_prodepem:
   title: 'Reporte PRODEPEM (Seguro de Vida)'
   description: 'Solicitudes de seguro de vida (formulario_equidad_seguros_prode).'

@@ -28,6 +28,11 @@
       <p class="reportes-header__desc">{{ reporte_desc }}</p>
     </div>
     <div style="display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap;">
+      {% if 'aspu' in reporte_key and tipo_reporte == 'vida' %}
+        <a href="{{ path('prodepem_solicitudes_rtm.reporte_aspu_condiciones_salud') }}" class="btn-reporte" style="background: #dc2626; color: #ffffff; border-color: #dc2626;" title="{{ 'Ver reporte y estadísticas de conteo por condición de salud'|t }}">
+          <i class="fa-solid fa-heart-pulse"></i> {{ 'Conteo Condiciones Salud'|t }}
+        </a>
+      {% endif %}
       <a href="{{ export_url }}" class="btn-reporte btn-reporte--excel" id="btn-exportar-xls" title="{{ 'Descargar estos registros filtrados en Excel'|t }}">
         <i class="fa-solid fa-file-excel"></i> {{ 'Descargar XLS'|t }}
       </a>
@@ -222,12 +227,22 @@
                   {% endif %}
                 </td>
                 <td style="text-align: right; white-space: nowrap; font-weight: 600;">
-                  {% if item.valor_condicion_salud > 0 %}
-                    <span style="color: #047857; background: #ecfdf5; padding: 2px 7px; border-radius: 4px;">
-                      ${{ item.valor_condicion_salud|number_format(0, ',', '.') }}
+                  {% if item.valor_condicion_salud == 12000 %}
+                    <span style="color: #991b1b; background: #fee2e2; padding: 2px 7px; border-radius: 4px; font-weight: 700;">
+                      $12.000
+                    </span>
+                  {% elseif item.valor_condicion_salud == 10000 %}
+                    <span style="color: #854d0e; background: #fef9c3; padding: 2px 7px; border-radius: 4px; font-weight: 700;">
+                      $10.000
+                    </span>
+                  {% elseif item.valor_condicion_salud == 8000 %}
+                    <span style="color: #047857; background: #ecfdf5; padding: 2px 7px; border-radius: 4px; font-weight: 700;">
+                      $8.000
                     </span>
                   {% else %}
-                    <span style="color: #9ca3af;">0</span>
+                    <span style="color: #047857; background: #ecfdf5; padding: 2px 7px; border-radius: 4px;">
+                      ${{ item.valor_condicion_salud|default(8000)|number_format(0, ',', '.') }}
+                    </span>
                   {% endif %}
                 </td>
                 <td style="min-width: 200px; max-width: 320px;">

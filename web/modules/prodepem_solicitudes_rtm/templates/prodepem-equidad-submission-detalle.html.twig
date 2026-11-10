@@ -292,9 +292,17 @@
           <div>
             <span class="detalle-item__label">Valor Condición Salud:</span>
             <span class="detalle-item__value">
-              <strong style="color: {% if salud_data.valor_condicion_salud > 0 %}#047857{% else %}#6b7280{% endif %};">
-                ${{ salud_data.valor_condicion_salud|default(0)|number_format(0, ',', '.') }}
-              </strong>
+              {% if salud_data.valor_condicion_salud == 12000 %}
+                <strong style="color: #991b1b; background: #fee2e2; padding: 2px 7px; border-radius: 4px;">$12.000</strong>
+              {% elseif salud_data.valor_condicion_salud == 10000 %}
+                <strong style="color: #854d0e; background: #fef9c3; padding: 2px 7px; border-radius: 4px;">$10.000</strong>
+              {% elseif salud_data.valor_condicion_salud == 8000 %}
+                <strong style="color: #047857; background: #ecfdf5; padding: 2px 7px; border-radius: 4px;">$8.000</strong>
+              {% else %}
+                <strong style="color: #047857; background: #ecfdf5; padding: 2px 7px; border-radius: 4px;">
+                  ${{ salud_data.valor_condicion_salud|default(8000)|number_format(0, ',', '.') }}
+                </strong>
+              {% endif %}
             </span>
           </div>
         {% endif %}
