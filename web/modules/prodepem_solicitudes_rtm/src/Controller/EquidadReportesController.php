@@ -383,6 +383,7 @@ class EquidadReportesController extends ControllerBase {
           $item['cargo'],
           $item['condiciones_salud_texto'] ?? '',
           $item['explicacion_condiciones'] ?? '',
+          $item['valor_condicion_salud'] ?? '',
           $item['esta_interesado_en_ampliar_el_amparo_de_vida'],
           $item['por_que'],
           $item['interesado_soat'],
@@ -594,6 +595,9 @@ class EquidadReportesController extends ControllerBase {
       ?? ''
     ));
 
+    // Valor numérico según condiciones de salud e IMC:
+    $valor_condicion_salud = self::calcularValorCondicionSalud($condiciones_salud_texto, $explicacion_condiciones, $imc);
+
     // Helper para normalizar respuestas Si/No/Valores booleanos:
     $normalizar_sino = function ($val) {
       if (is_null($val) || $val === '') {
@@ -707,7 +711,7 @@ class EquidadReportesController extends ControllerBase {
       'ocupacion', 'cargo', 'fecha_de_nacimiento', 'fecha_nacimiento', 'f_nacimiento', 'nacimiento', 'estado_civil',
       'valor_asegurado_solicitado', 'total_valor_asegurado', 'valor_asegurado', 'plan',
       'beneficiarios', 'tabla_beneficiarios', 'tabla_de_beneficiarios', 'tabla_de_beneficiarios_2', 'beneficiario', 'beneficiarios_tabla', 'datos_beneficiarios', 'designacion_beneficiarios', 'designacion_de_beneficiarios', 'beneficiarios_del_seguro', 'datos_de_los_beneficiarios', 'escriba_el_nombre_de_los_beneficiarios_de_este_seguro_y_su_respectivo_porcentaje', 'escriba_el_nombre_de_los_beneficiarios',
-      'peso', 'peso_kg', 'estatura', 'estatura_cm', 'altura', 'edad', 'imc', 'explicacion_salud', 'explicacion_condiciones_salud', 'en_caso_de_haber_marcado_alguna_de_las_condiciones_anteriores_o', 'favor_explicar_detalladamente',
+      'peso', 'peso_kg', 'estatura', 'estatura_cm', 'altura', 'edad', 'imc', 'valor_condicion_salud', 'explicacion_salud', 'explicacion_condiciones_salud', 'en_caso_de_haber_marcado_alguna_de_las_condiciones_anteriores_o', 'favor_explicar_detalladamente',
       'esta_interesado_en_ampliar_el_amparo_de_vida', 'por_que', 'interesado_soat', 'interesado_todo_riesgo', 'interesado_hogar',
       'seguros_adicionales', 'placa', 'numero_de_rifa_1', 'numero_de_rifa_2', 'numero_de_rifa', 'numero_rifa', 'rifa', 'boleta',
     ];
@@ -775,6 +779,7 @@ class EquidadReportesController extends ControllerBase {
       'condiciones_salud_texto' => $condiciones_salud_texto,
       'condiciones_salud_count' => $salud_positivas,
       'explicacion_condiciones' => $explicacion_condiciones,
+      'valor_condicion_salud' => $valor_condicion_salud,
       // Datos complementarios:
       'esta_interesado_en_ampliar_el_amparo_de_vida' => $esta_interesado_ampliar_vida,
       'por_que' => $por_que,
@@ -914,6 +919,7 @@ class EquidadReportesController extends ControllerBase {
         'peso' => $item['peso'],
         'estatura' => $item['estatura'],
         'imc' => $item['imc'],
+        'valor_condicion_salud' => $item['valor_condicion_salud'],
         'respuestas' => $salud_respuestas,
         'explicacion' => !empty($item['explicacion_condiciones']) ? $item['explicacion_condiciones'] : 'Ninguna condición declarada.',
       ],
@@ -951,7 +957,7 @@ class EquidadReportesController extends ControllerBase {
     echo '</head>' . "\n";
     echo '<body>' . "\n";
 
-    $colspan_total = ($tipo === 'vida') ? '17' : ($tipo === 'rifas' ? '3' : '14');
+    $colspan_total = ($tipo === 'vida') ? '18' : ($tipo === 'rifas' ? '3' : '14');
 
     echo '<table border="1">' . "\n";
     echo '<tr><td colspan="' . $colspan_total . '" class="header-title">REPORTE DE SOLICITUDES DE EQUIDAD SEGUROS - ' . htmlspecialchars($nombre_tomador) . ' (' . ($tipo === 'adicionales' ? 'DATOS COMPLEMENTARIOS' : 'SEGURO VIDA') . ')</td></tr>' . "\n";
@@ -998,6 +1004,7 @@ class EquidadReportesController extends ControllerBase {
       echo '  <th>ESTATURA</th>' . "\n";
       echo '  <th>ÍNDICE DE MASA CORPORAL (IMC)</th>' . "\n";
       echo '  <th>CONDICIONES DE SALUD (MARCADAS)</th>' . "\n";
+      echo '  <th>VALOR CONDICIÓN SALUD</th>' . "\n";
       echo '  <th>EXPLICACIÓN CONDICIONES</th>' . "\n";
       echo '</tr>' . "\n";
 
@@ -1019,6 +1026,7 @@ class EquidadReportesController extends ControllerBase {
         echo '  <td class="text-center">' . htmlspecialchars((string) ($it['estatura'] ?: '-')) . '</td>' . "\n";
         echo '  <td class="text-center">' . htmlspecialchars((string) ($it['imc'] ?: '-')) . '</td>' . "\n";
         echo '  <td>' . htmlspecialchars((string) ($it['condiciones_salud_texto'] ?: 'Ninguna')) . '</td>' . "\n";
+        echo '  <td class="text-right" style="mso-number-format:\'0\';">' . htmlspecialchars((string) ($it['valor_condicion_salud'] ?? 0)) . '</td>' . "\n";
         echo '  <td>' . htmlspecialchars((string) ($it['explicacion_condiciones'] ?: '-')) . '</td>' . "\n";
         echo '</tr>' . "\n";
       }
@@ -1188,6 +1196,77 @@ class EquidadReportesController extends ControllerBase {
     $imc = $peso / ($estatura * $estatura);
 
     return number_format($imc, 2, '.', '');
+  }
+
+  /**
+   * Normaliza una cadena de texto para comparaciones (minúsculas, sin tildes).
+   *
+   * @param string|null $texto
+   *   Cadena de texto.
+   *
+   * @return string
+   *   Cadena normalizada.
+   */
+  public static function normalizarTextoParaBusqueda($texto): string {
+    if (empty($texto)) {
+      return '';
+    }
+    $texto = function_exists('mb_strtolower') ? mb_strtolower(trim((string) $texto), 'UTF-8') : strtolower(trim((string) $texto));
+    $tildes = [
+      'á' => 'a', 'é' => 'e', 'í' => 'i', 'ó' => 'o', 'ú' => 'u',
+      'Á' => 'a', 'É' => 'e', 'Í' => 'i', 'Ó' => 'o', 'Ú' => 'u',
+      'ä' => 'a', 'ë' => 'e', 'ï' => 'i', 'ö' => 'o', 'ü' => 'u',
+      'ñ' => 'n', 'Ñ' => 'n',
+    ];
+    return strtr($texto, $tildes);
+  }
+
+  /**
+   * Calcula el valor numérico según condiciones de salud e índice de masa corporal (IMC).
+   *
+   * Reglas de negocio:
+   * 1. Si en condiciones de salud contiene 'hipertensión', 'presión arterial' o 'sobrepeso' -> 10000.
+   * 2. En otro caso, si contiene 'obesidad' y el IMC es mayor a 30 -> 12000.
+   * 3. En cualquier otro caso -> 0.
+   *
+   * @param string|null $condiciones_salud_texto
+   *   Texto de las condiciones de salud declaradas.
+   * @param string|null $explicacion_condiciones
+   *   Texto explicativo de condiciones de salud.
+   * @param mixed $imc
+   *   Índice de masa corporal calculado.
+   *
+   * @return int
+   *   Valor numérico correspondiente (10000, 12000 o 0).
+   */
+  public static function calcularValorCondicionSalud($condiciones_salud_texto, $explicacion_condiciones, $imc): int {
+    $texto_completo = self::normalizarTextoParaBusqueda(
+      ($condiciones_salud_texto ?? '') . ' ' . ($explicacion_condiciones ?? '')
+    );
+
+    // Regla 1: contiene 'hipertensión', 'presion arterial' o 'sobrepeso' -> 10000.
+    if (
+      strpos($texto_completo, 'hipertension') !== FALSE ||
+      strpos($texto_completo, 'presion arterial') !== FALSE ||
+      strpos($texto_completo, 'sobrepeso') !== FALSE
+    ) {
+      return 10000;
+    }
+
+    // Regla 2: en otro caso, contiene 'obesidad' y el IMC está por encima de 30 -> 12000.
+    $imc_num = 0.0;
+    if (!empty($imc)) {
+      $imc_clean = str_replace(',', '.', trim((string) $imc));
+      if (is_numeric($imc_clean)) {
+        $imc_num = (float) $imc_clean;
+      }
+    }
+
+    if (strpos($texto_completo, 'obesidad') !== FALSE && $imc_num > 30.0) {
+      return 12000;
+    }
+
+    return 0;
   }
 
   /**

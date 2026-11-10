@@ -288,6 +288,16 @@
             <span class="detalle-item__value"><strong style="color: #047857;">{{ salud_data.imc }}</strong></span>
           </div>
         {% endif %}
+        {% if salud_data.valor_condicion_salud is defined %}
+          <div>
+            <span class="detalle-item__label">Valor Condición Salud:</span>
+            <span class="detalle-item__value">
+              <strong style="color: {% if salud_data.valor_condicion_salud > 0 %}#047857{% else %}#6b7280{% endif %};">
+                ${{ salud_data.valor_condicion_salud|default(0)|number_format(0, ',', '.') }}
+              </strong>
+            </span>
+          </div>
+        {% endif %}
       </div>
 
       <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 0.65rem; margin-bottom: 1.25rem;">

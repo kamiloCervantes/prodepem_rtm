@@ -113,6 +113,7 @@
               <th style="text-align: center;">{{ 'Estatura'|t }}</th>
               <th style="text-align: center;">{{ 'IMC'|t }}</th>
               <th style="min-width: 220px;">{{ 'Condiciones de Salud'|t }}</th>
+              <th style="text-align: right; min-width: 140px;">{{ 'Valor Condición Salud'|t }}</th>
               <th style="min-width: 200px;">{{ 'Explicación Condiciones'|t }}</th>
               <th style="text-align: right;">{{ 'Acciones'|t }}</th>
             </tr>
@@ -218,6 +219,15 @@
                     <span style="color: #059669; font-weight: 600; font-size: 0.825rem; display: inline-flex; align-items: center; gap: 4px;">
                       <i class="fa-solid fa-circle-check"></i> {{ 'Ninguna'|t }}
                     </span>
+                  {% endif %}
+                </td>
+                <td style="text-align: right; white-space: nowrap; font-weight: 600;">
+                  {% if item.valor_condicion_salud > 0 %}
+                    <span style="color: #047857; background: #ecfdf5; padding: 2px 7px; border-radius: 4px;">
+                      ${{ item.valor_condicion_salud|number_format(0, ',', '.') }}
+                    </span>
+                  {% else %}
+                    <span style="color: #9ca3af;">0</span>
                   {% endif %}
                 </td>
                 <td style="min-width: 200px; max-width: 320px;">
