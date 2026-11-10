@@ -66,6 +66,41 @@ class EquidadReportesController extends ControllerBase {
     $export_url = Url::fromRoute('prodepem_solicitudes_rtm.reportes_equidad_exportar', ['reporte' => 'aspu-condiciones-salud'], ['query' => $export_params])->toString();
     $back_url = Url::fromRoute('prodepem_solicitudes_rtm.reporte_aspu')->toString();
 
+    // URLs para redirección a listados filtrados y exportación XLS directa por card:
+    $base_query = array_filter([
+      'search' => $search,
+      'fecha_desde' => $fecha_desde,
+      'fecha_hasta' => $fecha_hasta,
+    ]);
+
+    $card_urls = [
+      'total' => Url::fromRoute('prodepem_solicitudes_rtm.reporte_aspu', [], ['query' => $base_query])->toString(),
+      'con_condiciones' => Url::fromRoute('prodepem_solicitudes_rtm.reporte_aspu', [], ['query' => array_merge($base_query, ['filtro_salud' => 'con_condiciones'])])->toString(),
+      'sin_condiciones' => Url::fromRoute('prodepem_solicitudes_rtm.reporte_aspu', [], ['query' => array_merge($base_query, ['filtro_salud' => 'sin_condiciones'])])->toString(),
+      'tarifa_12000' => Url::fromRoute('prodepem_solicitudes_rtm.reporte_aspu', [], ['query' => array_merge($base_query, ['tarifa' => '12000'])])->toString(),
+      'tarifa_10000' => Url::fromRoute('prodepem_solicitudes_rtm.reporte_aspu', [], ['query' => array_merge($base_query, ['tarifa' => '10000'])])->toString(),
+      'tarifa_8000' => Url::fromRoute('prodepem_solicitudes_rtm.reporte_aspu', [], ['query' => array_merge($base_query, ['tarifa' => '8000'])])->toString(),
+      'sobrepeso' => Url::fromRoute('prodepem_solicitudes_rtm.reporte_aspu', [], ['query' => array_merge($base_query, ['condicion' => 'sobrepeso'])])->toString(),
+      'obesidad_imc30' => Url::fromRoute('prodepem_solicitudes_rtm.reporte_aspu', [], ['query' => array_merge($base_query, ['tarifa' => '12000'])])->toString(),
+    ];
+
+    $card_export_urls = [
+      'total' => Url::fromRoute('prodepem_solicitudes_rtm.reportes_equidad_exportar', ['reporte' => 'aspu'], ['query' => $base_query])->toString(),
+      'con_condiciones' => Url::fromRoute('prodepem_solicitudes_rtm.reportes_equidad_exportar', ['reporte' => 'aspu'], ['query' => array_merge($base_query, ['filtro_salud' => 'con_condiciones'])])->toString(),
+      'sin_condiciones' => Url::fromRoute('prodepem_solicitudes_rtm.reportes_equidad_exportar', ['reporte' => 'aspu'], ['query' => array_merge($base_query, ['filtro_salud' => 'sin_condiciones'])])->toString(),
+      'tarifa_12000' => Url::fromRoute('prodepem_solicitudes_rtm.reportes_equidad_exportar', ['reporte' => 'aspu'], ['query' => array_merge($base_query, ['tarifa' => '12000'])])->toString(),
+      'tarifa_10000' => Url::fromRoute('prodepem_solicitudes_rtm.reportes_equidad_exportar', ['reporte' => 'aspu'], ['query' => array_merge($base_query, ['tarifa' => '10000'])])->toString(),
+      'tarifa_8000' => Url::fromRoute('prodepem_solicitudes_rtm.reportes_equidad_exportar', ['reporte' => 'aspu'], ['query' => array_merge($base_query, ['tarifa' => '8000'])])->toString(),
+      'sobrepeso' => Url::fromRoute('prodepem_solicitudes_rtm.reportes_equidad_exportar', ['reporte' => 'aspu'], ['query' => array_merge($base_query, ['condicion' => 'sobrepeso'])])->toString(),
+      'obesidad_imc30' => Url::fromRoute('prodepem_solicitudes_rtm.reportes_equidad_exportar', ['reporte' => 'aspu'], ['query' => array_merge($base_query, ['tarifa' => '12000'])])->toString(),
+    ];
+
+    foreach ($stats['conteo_preguntas'] as $key => &$p) {
+      $p['url_listado'] = Url::fromRoute('prodepem_solicitudes_rtm.reporte_aspu', [], ['query' => array_merge($base_query, ['condicion' => $key])])->toString();
+      $p['url_export'] = Url::fromRoute('prodepem_solicitudes_rtm.reportes_equidad_exportar', ['reporte' => 'aspu'], ['query' => array_merge($base_query, ['condicion' => $key])])->toString();
+    }
+    unset($p);
+
     return [
       '#theme' => 'prodepem_equidad_reporte_condiciones_salud',
       '#stats' => $stats,
@@ -77,6 +112,8 @@ class EquidadReportesController extends ControllerBase {
       ],
       '#export_url' => $export_url,
       '#back_url' => $back_url,
+      '#card_urls' => $card_urls,
+      '#card_export_urls' => $card_export_urls,
       '#attached' => [
         'library' => [
           'prodepem_solicitudes_rtm/reportes_equidad',
@@ -142,8 +179,17 @@ class EquidadReportesController extends ControllerBase {
     $search = trim((string) $request->query->get('search', ''));
     $fecha_desde = trim((string) $request->query->get('fecha_desde', ''));
     $fecha_hasta = trim((string) $request->query->get('fecha_hasta', ''));
+    $tarifa = trim((string) $request->query->get('tarifa', ''));
+    $filtro_salud = trim((string) $request->query->get('filtro_salud', ''));
+    $condicion = trim((string) $request->query->get('condicion', ''));
 
-    $items = $this->obtenerRegistrosFiltrados($tomador, $tipo, $search, $fecha_desde, $fecha_hasta);
+    $filtros_extra = array_filter([
+      'tarifa' => $tarifa,
+      'filtro_salud' => $filtro_salud,
+      'condicion' => $condicion,
+    ]);
+
+    $items = $this->obtenerRegistrosFiltrados($tomador, $tipo, $search, $fecha_desde, $fecha_hasta, $filtros_extra);
 
     $titles = [
       'aspu_vida' => [
@@ -195,6 +241,24 @@ class EquidadReportesController extends ControllerBase {
       'badge' => strtoupper($tomador),
     ];
 
+    // Label descriptivo para el filtro de condición específico:
+    $filtro_condicion_label = '';
+    if (!empty($condicion)) {
+      if ($condicion === 'sobrepeso') {
+        $filtro_condicion_label = 'Sobrepeso (declarado o registrado)';
+      }
+      elseif ($condicion === 'obesidad_imc30') {
+        $filtro_condicion_label = 'Obesidad con IMC > 30';
+      }
+      elseif ($condicion === 'hipertension_arterial') {
+        $filtro_condicion_label = 'Hipertensión arterial';
+      }
+      else {
+        $def_salud = self::getDefinicionCamposSalud();
+        $filtro_condicion_label = $def_salud[$condicion]['titulo'] ?? $condicion;
+      }
+    }
+
     // URL para descarga XLS conservando los filtros activos.
     if ($tipo === 'rifas') {
       $export_key = ($tomador === 'prodepem') ? 'prodepem-rifas' : 'aspu-rifas';
@@ -207,6 +271,9 @@ class EquidadReportesController extends ControllerBase {
       'search' => $search,
       'fecha_desde' => $fecha_desde,
       'fecha_hasta' => $fecha_hasta,
+      'tarifa' => $tarifa,
+      'filtro_salud' => $filtro_salud,
+      'condicion' => $condicion,
     ]);
     $export_url = Url::fromRoute('prodepem_solicitudes_rtm.reportes_equidad_exportar', ['reporte' => $export_key], ['query' => $export_params])->toString();
 
@@ -223,7 +290,11 @@ class EquidadReportesController extends ControllerBase {
         'search' => $search,
         'fecha_desde' => $fecha_desde,
         'fecha_hasta' => $fecha_hasta,
+        'tarifa' => $tarifa,
+        'filtro_salud' => $filtro_salud,
+        'condicion' => $condicion,
       ],
+      '#filtro_condicion_label' => $filtro_condicion_label,
       '#export_url' => $export_url,
       '#attached' => [
         'library' => [
@@ -339,8 +410,17 @@ class EquidadReportesController extends ControllerBase {
     $search = trim((string) $request->query->get('search', ''));
     $fecha_desde = trim((string) $request->query->get('fecha_desde', ''));
     $fecha_hasta = trim((string) $request->query->get('fecha_hasta', ''));
+    $tarifa = trim((string) $request->query->get('tarifa', ''));
+    $filtro_salud = trim((string) $request->query->get('filtro_salud', ''));
+    $condicion = trim((string) $request->query->get('condicion', ''));
 
-    $items = $this->obtenerRegistrosFiltrados($tomador, $tipo, $search, $fecha_desde, $fecha_hasta);
+    $filtros_extra = array_filter([
+      'tarifa' => $tarifa,
+      'filtro_salud' => $filtro_salud,
+      'condicion' => $condicion,
+    ]);
+
+    $items = $this->obtenerRegistrosFiltrados($tomador, $tipo, $search, $fecha_desde, $fecha_hasta, $filtros_extra);
 
     if ($tipo === 'rifas') {
       $filename = 'reporte_' . $tomador . '_boletas_rifa_' . date('Ymd_His') . '.xls';
@@ -348,10 +428,22 @@ class EquidadReportesController extends ControllerBase {
     else {
       $nombre_tomador = ($tomador === 'prodepem') ? 'PRODEPEM' : (($tomador === 'aspu') ? 'ASPU' : 'FONEDUCOR');
       $tipo_nombre = ($tipo === 'adicionales') ? 'Datos_Complementarios' : 'Seguro_Vida';
-      $filename = 'reporte_' . strtolower($nombre_tomador) . '_' . $tipo_nombre . '_' . date('Ymd_His') . '.xls';
+
+      $sufijo_filtro = '';
+      if (!empty($tarifa)) {
+        $sufijo_filtro = '_tarifa_' . $tarifa;
+      }
+      elseif (!empty($filtro_salud)) {
+        $sufijo_filtro = '_' . $filtro_salud;
+      }
+      elseif (!empty($condicion)) {
+        $sufijo_filtro = '_' . preg_replace('/[^a-zA-Z0-9_-]/', '_', $condicion);
+      }
+
+      $filename = 'reporte_' . strtolower($nombre_tomador) . '_' . $tipo_nombre . $sufijo_filtro . '_' . date('Ymd_His') . '.xls';
     }
 
-    $xml = $this->construirXmlExcel($items, $tomador, $tipo);
+    $xml = $this->construirXmlExcel($items, $tomador, $tipo, $filtros_extra);
 
     $response = new Response($xml);
     $response->headers->set('Content-Type', 'application/vnd.ms-excel; charset=UTF-8');
@@ -369,7 +461,7 @@ class EquidadReportesController extends ControllerBase {
   /**
    * Obtiene y normaliza los registros aplicando filtros.
    */
-  protected function obtenerRegistrosFiltrados($tomador, $tipo, $search = '', $fecha_desde = '', $fecha_hasta = '') {
+  protected function obtenerRegistrosFiltrados($tomador, $tipo, $search = '', $fecha_desde = '', $fecha_hasta = '', array $filtros_extra = []) {
     $webform_id = ($tomador === 'prodepem') ? 'formulario_equidad_seguros_prode' : 'formulario_equidad_seguros';
     $storage = \Drupal::entityTypeManager()->getStorage('webform_submission');
     $query = $storage->getQuery()
@@ -460,6 +552,67 @@ class EquidadReportesController extends ControllerBase {
 
         if (strpos($corpus, $search_lower) === FALSE) {
           continue;
+        }
+      }
+
+      // Filtros específicos adicionales (Tarifa, Salud, Condición):
+      if (!empty($filtros_extra['tarifa'])) {
+        $tarifa_filtro = (int) $filtros_extra['tarifa'];
+        if ((int) ($item['valor_condicion_salud'] ?? 8000) !== $tarifa_filtro) {
+          continue;
+        }
+      }
+
+      if (!empty($filtros_extra['filtro_salud'])) {
+        $tiene_condiciones = (!empty($item['condiciones_marcadas']) && ($item['condiciones_salud_texto'] ?? '') !== 'Ninguna');
+        if ($filtros_extra['filtro_salud'] === 'con_condiciones' && !$tiene_condiciones) {
+          continue;
+        }
+        if ($filtros_extra['filtro_salud'] === 'sin_condiciones' && $tiene_condiciones) {
+          continue;
+        }
+      }
+
+      if (!empty($filtros_extra['condicion'])) {
+        $cond_req = $filtros_extra['condicion'];
+        $texto_salud = ($item['condiciones_salud_texto'] ?? '') . ' ' . ($item['explicacion_condiciones'] ?? '');
+        $texto_norm = self::normalizarTextoParaBusqueda($texto_salud);
+        $keys_marcadas = $item['condiciones_marcadas_keys'] ?? [];
+
+        if ($cond_req === 'sobrepeso') {
+          if (strpos($texto_norm, 'sobrepeso') === FALSE) {
+            continue;
+          }
+        }
+        elseif ($cond_req === 'obesidad_imc30') {
+          $imc_num = 0.0;
+          if (!empty($item['imc'])) {
+            $imc_clean = str_replace(',', '.', trim((string) $item['imc']));
+            if (is_numeric($imc_clean)) {
+              $imc_num = (float) $imc_clean;
+            }
+          }
+          if (strpos($texto_norm, 'obesidad') === FALSE || $imc_num <= 30.0) {
+            continue;
+          }
+        }
+        elseif ($cond_req === 'hipertension_arterial') {
+          if (
+            strpos($texto_norm, 'hipertension') === FALSE &&
+            strpos($texto_norm, 'presion arterial') === FALSE &&
+            !in_array('hipertension_arterial', $keys_marcadas, TRUE)
+          ) {
+            continue;
+          }
+        }
+        else {
+          $def_salud = self::getDefinicionCamposSalud();
+          $titulo_def = $def_salud[$cond_req]['titulo'] ?? '';
+          $titulos_marcados = $item['condiciones_marcadas'] ?? [];
+
+          if (!in_array($cond_req, $keys_marcadas, TRUE) && !in_array($titulo_def, $titulos_marcados, TRUE)) {
+            continue;
+          }
         }
       }
 
@@ -995,7 +1148,7 @@ class EquidadReportesController extends ControllerBase {
   /**
    * Construye el documento Excel XML Spreadsheet para descarga.
    */
-  protected function construirXmlExcel(array $items, $tomador, $tipo) {
+  protected function construirXmlExcel(array $items, $tomador, $tipo, array $filtros_extra = []) {
     $nombre_tomador = ($tomador === 'prodepem') ? 'PRODEPEM' : (($tomador === 'aspu') ? 'ASPU' : 'FONEDUCOR');
     if ($tipo === 'rifas') {
       $titulo_hoja = 'Boletas Rifa ' . $nombre_tomador;
@@ -1025,9 +1178,22 @@ class EquidadReportesController extends ControllerBase {
 
     $colspan_total = ($tipo === 'vida') ? '18' : ($tipo === 'rifas' ? '3' : '14');
 
+    $meta_filtro = '';
+    if (!empty($filtros_extra['tarifa'])) {
+      $meta_filtro = ' | Filtro Tarifa: $' . number_format((int) $filtros_extra['tarifa'], 0, ',', '.');
+    }
+    elseif (!empty($filtros_extra['filtro_salud'])) {
+      $meta_filtro = ' | Filtro Salud: ' . ($filtros_extra['filtro_salud'] === 'con_condiciones' ? 'Con Condiciones Médicas' : 'Sin Condiciones (Sanos)');
+    }
+    elseif (!empty($filtros_extra['condicion'])) {
+      $def_salud = self::getDefinicionCamposSalud();
+      $nom_cond = $def_salud[$filtros_extra['condicion']]['titulo'] ?? $filtros_extra['condicion'];
+      $meta_filtro = ' | Filtro Condición: ' . $nom_cond;
+    }
+
     echo '<table border="1">' . "\n";
     echo '<tr><td colspan="' . $colspan_total . '" class="header-title">REPORTE DE SOLICITUDES DE EQUIDAD SEGUROS - ' . htmlspecialchars($nombre_tomador) . ' (' . ($tipo === 'adicionales' ? 'DATOS COMPLEMENTARIOS' : 'SEGURO VIDA') . ')</td></tr>' . "\n";
-    echo '<tr><td colspan="' . $colspan_total . '" class="header-meta">Generado el: ' . date('d/m/Y H:i:s') . ' | Total Registros: ' . count($items) . '</td></tr>' . "\n";
+    echo '<tr><td colspan="' . $colspan_total . '" class="header-meta">Generado el: ' . date('d/m/Y H:i:s') . ' | Total Registros: ' . count($items) . htmlspecialchars($meta_filtro) . '</td></tr>' . "\n";
     echo '<tr></tr>' . "\n";
 
     if ($tipo === 'rifas') {

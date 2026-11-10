@@ -60,12 +60,31 @@
         <input type="date" id="filter-fecha-hasta" name="fecha_hasta" value="{{ filters.fecha_hasta }}" class="reportes-input" />
       </div>
 
+      {% if 'aspu' in reporte_key and tipo_reporte == 'vida' %}
+        <div class="reportes-form-group">
+          <label for="filter-tarifa"><i class="fa-solid fa-coins"></i> {{ 'Tarifa / Condición'|t }}</label>
+          <select id="filter-tarifa" name="tarifa" class="reportes-input">
+            <option value="">{{ '-- Todas las tarifas --'|t }}</option>
+            <option value="12000" {% if filters.tarifa == '12000' %}selected{% endif %}>{{ 'Tarifa $12.000 (Obesidad > 30)'|t }}</option>
+            <option value="10000" {% if filters.tarifa == '10000' %}selected{% endif %}>{{ 'Tarifa $10.000 (HTA/Sobrepeso)'|t }}</option>
+            <option value="8000" {% if filters.tarifa == '8000' %}selected{% endif %}>{{ 'Tarifa $8.000 (Tarifa Base)'|t }}</option>
+          </select>
+        </div>
+      {% endif %}
+
+      {% if filters.filtro_salud %}
+        <input type="hidden" name="filtro_salud" value="{{ filters.filtro_salud }}" />
+      {% endif %}
+      {% if filters.condicion %}
+        <input type="hidden" name="condicion" value="{{ filters.condicion }}" />
+      {% endif %}
+
       <div style="display: flex; gap: 0.5rem; margin-top: auto;">
         <button type="submit" class="btn-reporte btn-reporte--primary">
           <i class="fa-solid fa-filter"></i> {{ 'Filtrar'|t }}
         </button>
 
-        {% if filters.search or filters.fecha_desde or filters.fecha_hasta %}
+        {% if filters.search or filters.fecha_desde or filters.fecha_hasta or filters.tarifa or filters.filtro_salud or filters.condicion %}
           <a href="{{ app.request.pathInfo }}" class="btn-reporte btn-reporte--secondary" title="{{ 'Restablecer todos los filtros'|t }}">
             <i class="fa-solid fa-rotate-left"></i> {{ 'Limpiar'|t }}
           </a>
@@ -73,6 +92,51 @@
       </div>
     </form>
   </div>
+
+  <!-- Banner de Filtro Activo Proveniente de Estadísticas de Salud -->
+  {% if filters.tarifa or filters.filtro_salud or filters.condicion %}
+    <div style="background: #f8fafc; border: 1.5px solid #cbd5e1; border-left: 5px solid {% if filters.tarifa == '12000' %}#dc2626{% elseif filters.tarifa == '10000' %}#d97706{% elseif filters.tarifa == '8000' %}#16a34a{% else %}#4f46e5{% endif %}; border-radius: 8px; padding: 0.9rem 1.25rem; margin-bottom: 1.25rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.85rem; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
+      <div style="display: flex; align-items: center; gap: 0.75rem;">
+        <span style="background: {% if filters.tarifa == '12000' %}#fee2e2; color: #991b1b;{% elseif filters.tarifa == '10000' %}#fef9c3; color: #854d0e;{% elseif filters.tarifa == '8000' %}#dcfce7; color: #166534;{% else %}#ede9fe; color: #5b21b6;{% endif %} width: 34px; height: 34px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.95rem;">
+          <i class="fa-solid fa-filter"></i>
+        </span>
+        <div>
+          <div style="font-size: 0.76rem; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 0.03em;">
+            {{ 'Filtro Activo Seleccionado'|t }}
+          </div>
+          <div style="font-size: 1rem; font-weight: 700; color: #1e293b; margin-top: 2px;">
+            {% if filters.tarifa == '12000' %}
+              <span style="color: #991b1b;"><i class="fa-solid fa-circle-exclamation"></i> {{ 'Tarifa $12.000 (Obesidad con IMC > 30)'|t }}</span>
+            {% elseif filters.tarifa == '10000' %}
+              <span style="color: #854d0e;"><i class="fa-solid fa-heart-pulse"></i> {{ 'Tarifa $10.000 (Hipertensión arterial / Presión arterial / Sobrepeso)'|t }}</span>
+            {% elseif filters.tarifa == '8000' %}
+              <span style="color: #166534;"><i class="fa-solid fa-circle-check"></i> {{ 'Tarifa $8.000 (Tarifa Base / Sanos)'|t }}</span>
+            {% elseif filters.filtro_salud == 'con_condiciones' %}
+              <span style="color: #854d0e;"><i class="fa-solid fa-notes-medical"></i> {{ 'Solicitudes con Condiciones Médicas Declaradas'|t }}</span>
+            {% elseif filters.filtro_salud == 'sin_condiciones' %}
+              <span style="color: #166534;"><i class="fa-solid fa-circle-check"></i> {{ 'Solicitudes Sin Condiciones (Sanos / "Ninguna")'|t }}</span>
+            {% elseif filters.condicion %}
+              <span style="color: #4338ca;"><i class="fa-solid fa-stethoscope"></i> {{ 'Condición Médica:'|t }} {{ filtro_condicion_label|default(filters.condicion) }}</span>
+            {% endif %}
+            <span style="margin-left: 8px; font-size: 0.85rem; font-weight: 600; color: #64748b;">
+              ({{ total }} {{ 'registro(s) filtrado(s)'|t }})
+            </span>
+          </div>
+        </div>
+      </div>
+      <div style="display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap;">
+        <a href="{{ export_url }}" class="btn-reporte btn-reporte--excel btn-reporte--sm" title="{{ 'Descargar en Excel estos registros filtrados'|t }}">
+          <i class="fa-solid fa-file-excel"></i> {{ 'Exportar Registros Filtrados (XLS)'|t }}
+        </a>
+        <a href="{{ path('prodepem_solicitudes_rtm.reporte_aspu_condiciones_salud') }}" class="btn-reporte btn-reporte--secondary btn-reporte--sm">
+          <i class="fa-solid fa-heart-pulse"></i> {{ 'Volver a Estadísticas'|t }}
+        </a>
+        <a href="{{ app.request.pathInfo }}" class="btn-reporte btn-reporte--secondary btn-reporte--sm" title="{{ 'Ver todos los registros sin este filtro'|t }}">
+          <i class="fa-solid fa-xmark"></i> {{ 'Quitar filtro'|t }}
+        </a>
+      </div>
+    </div>
+  {% endif %}
 
   <!-- Contador de Resultados -->
   <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem; font-size: 0.885rem; color: #4b5563;">

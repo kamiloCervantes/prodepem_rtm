@@ -7,10 +7,34 @@
  * - stats: Array estructurado con conteo_preguntas, conteo_sobrepeso, conteo_obesidad_total, conteo_obesidad_imc30, conteo_hipertension, conteo_sin_condiciones, conteo_con_condiciones, tarifas, total_solicitudes
  * - total: Cantidad de solicitudes analizadas
  * - filters: Array con 'search', 'fecha_desde', 'fecha_hasta'
- * - export_url: Enlace para descarga en formato XLS
+ * - export_url: Enlace para descarga del consolidado en formato XLS
  * - back_url: Enlace para volver al reporte de Seguro de Vida
+ * - card_urls: Array con URLs a listados filtrados por card
+ * - card_export_urls: Array con URLs para descarga directa en XLS de cada filtro
  */
 #}
+<style>
+  .reportes-stat-card {
+    transition: transform 0.18s ease, box-shadow 0.18s ease;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+  }
+  .reportes-stat-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 18px rgba(0, 0, 0, 0.08) !important;
+  }
+  .reportes-stat-card a.card-main-link {
+    text-decoration: none !important;
+    color: inherit;
+    display: block;
+    flex: 1;
+  }
+  .reportes-stat-card a.card-main-link:hover {
+    text-decoration: none !important;
+  }
+</style>
+
 <div class="reportes-equidad-container">
   <!-- Encabezado del Reporte -->
   <div class="reportes-header">
@@ -29,8 +53,8 @@
       </p>
     </div>
     <div style="display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap;">
-      <a href="{{ export_url }}" class="btn-reporte btn-reporte--excel" title="{{ 'Descargar reporte estadístico en Excel'|t }}">
-        <i class="fa-solid fa-file-excel"></i> {{ 'Descargar XLS'|t }}
+      <a href="{{ export_url }}" class="btn-reporte btn-reporte--excel" title="{{ 'Descargar reporte estadístico consolidado en Excel'|t }}">
+        <i class="fa-solid fa-file-excel"></i> {{ 'Descargar Consolidado XLS'|t }}
       </a>
       <a href="{{ back_url }}" class="btn-reporte btn-reporte--secondary">
         <i class="fa-solid fa-arrow-left"></i> {{ 'Volver a Seguro de Vida'|t }}
@@ -73,57 +97,123 @@
     </form>
   </div>
 
-  <!-- Tarjetas de Resumen Rápido -->
+  <!-- Tarjetas de Resumen Rápido (Clickable Cards) -->
   <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1rem; margin-bottom: 2rem;">
-    <!-- Total Evaluadas -->
-    <div style="background: #ffffff; border: 1px solid #e5e7eb; border-radius: 10px; padding: 1.15rem 1.25rem; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
-      <div style="font-size: 0.78rem; font-weight: 700; color: #6b7280; text-transform: uppercase;">{{ 'Total Solicitudes ASPU'|t }}</div>
-      <div style="font-size: 1.9rem; font-weight: 800; color: #111827; margin-top: 0.2rem;">{{ stats.total_solicitudes }}</div>
-      <div style="font-size: 0.8rem; color: #9ca3af; margin-top: 0.35rem;">{{ '100% de la base evaluada'|t }}</div>
-    </div>
-
-    <!-- Con al menos una condición -->
-    <div style="background: #fffbeb; border: 1px solid #fef3c7; border-radius: 10px; padding: 1.15rem 1.25rem;">
-      <div style="font-size: 0.78rem; font-weight: 700; color: #b45309; text-transform: uppercase;">{{ 'Con Condiciones Médicas'|t }}</div>
-      <div style="font-size: 1.9rem; font-weight: 800; color: #92400e; margin-top: 0.2rem;">{{ stats.conteo_con_condiciones }}</div>
-      <div style="font-size: 0.8rem; color: #b45309; margin-top: 0.35rem;">
-        <strong>{{ stats.porcentaje_con_condiciones }}%</strong> {{ 'del total de solicitudes'|t }}
+    <!-- 1. Total Evaluadas -->
+    <div class="reportes-stat-card" style="background: #ffffff; border: 1px solid #e5e7eb; border-radius: 10px; padding: 1.15rem 1.25rem; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
+      <a href="{{ card_urls.total }}" class="card-main-link" title="{{ 'Ver listado completo de solicitudes ASPU'|t }}">
+        <div style="font-size: 0.78rem; font-weight: 700; color: #6b7280; text-transform: uppercase;">{{ 'Total Solicitudes ASPU'|t }}</div>
+        <div style="font-size: 1.9rem; font-weight: 800; color: #111827; margin-top: 0.2rem;">{{ stats.total_solicitudes }}</div>
+        <div style="font-size: 0.8rem; color: #9ca3af; margin-top: 0.35rem;">{{ '100% de la base evaluada'|t }}</div>
+      </a>
+      <div style="margin-top: 0.85rem; padding-top: 0.65rem; border-top: 1px dashed #e5e7eb; display: flex; justify-content: space-between; align-items: center; gap: 0.5rem;">
+        <a href="{{ card_urls.total }}" style="font-size: 0.78rem; font-weight: 700; color: #4b5563; text-decoration: none; display: flex; align-items: center; gap: 4px;">
+          <span>{{ 'Ver registros'|t }}</span>
+          <i class="fa-solid fa-arrow-right"></i>
+        </a>
+        <a href="{{ card_export_urls.total }}" class="btn-reporte btn-reporte--excel btn-reporte--sm" style="padding: 2px 7px; font-size: 0.72rem; border-radius: 4px;" title="{{ 'Descargar todas las solicitudes en Excel'|t }}">
+          <i class="fa-solid fa-file-excel"></i> XLS
+        </a>
       </div>
     </div>
 
-    <!-- Sin condiciones declaradas -->
-    <div style="background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 10px; padding: 1.15rem 1.25rem;">
-      <div style="font-size: 0.78rem; font-weight: 700; color: #15803d; text-transform: uppercase;">{{ 'Sin Condiciones (Sanos)'|t }}</div>
-      <div style="font-size: 1.9rem; font-weight: 800; color: #166534; margin-top: 0.2rem;">{{ stats.conteo_sin_condiciones }}</div>
-      <div style="font-size: 0.8rem; color: #15803d; margin-top: 0.35rem;">
-        <strong>{{ stats.porcentaje_sin_condiciones }}%</strong> {{ 'declararon "Ninguna"'|t }}
+    <!-- 2. Con al menos una condición -->
+    <div class="reportes-stat-card" style="background: #fffbeb; border: 1px solid #fef3c7; border-radius: 10px; padding: 1.15rem 1.25rem;">
+      <a href="{{ card_urls.con_condiciones }}" class="card-main-link" title="{{ 'Ver registros con condiciones de salud declaradas'|t }}">
+        <div style="font-size: 0.78rem; font-weight: 700; color: #b45309; text-transform: uppercase;">{{ 'Con Condiciones Médicas'|t }}</div>
+        <div style="font-size: 1.9rem; font-weight: 800; color: #92400e; margin-top: 0.2rem;">{{ stats.conteo_con_condiciones }}</div>
+        <div style="font-size: 0.8rem; color: #b45309; margin-top: 0.35rem;">
+          <strong>{{ stats.porcentaje_con_condiciones }}%</strong> {{ 'del total de solicitudes'|t }}
+        </div>
+      </a>
+      <div style="margin-top: 0.85rem; padding-top: 0.65rem; border-top: 1px dashed #fde68a; display: flex; justify-content: space-between; align-items: center; gap: 0.5rem;">
+        <a href="{{ card_urls.con_condiciones }}" style="font-size: 0.78rem; font-weight: 700; color: #b45309; text-decoration: none; display: flex; align-items: center; gap: 4px;">
+          <span>{{ 'Ver registros'|t }}</span>
+          <i class="fa-solid fa-arrow-right"></i>
+        </a>
+        <a href="{{ card_export_urls.con_condiciones }}" class="btn-reporte btn-reporte--excel btn-reporte--sm" style="padding: 2px 7px; font-size: 0.72rem; border-radius: 4px;" title="{{ 'Descargar solicitudes con condiciones en Excel'|t }}">
+          <i class="fa-solid fa-file-excel"></i> XLS
+        </a>
       </div>
     </div>
 
-    <!-- Tarifa 12000 -->
-    <div style="background: #fef2f2; border: 1px solid #fecaca; border-radius: 10px; padding: 1.15rem 1.25rem;">
-      <div style="font-size: 0.78rem; font-weight: 700; color: #b91c1c; text-transform: uppercase;">{{ 'Tarifa $12.000 (Obesidad > 30)'|t }}</div>
-      <div style="font-size: 1.9rem; font-weight: 800; color: #991b1b; margin-top: 0.2rem;">{{ stats.tarifas[12000].cantidad }}</div>
-      <div style="font-size: 0.8rem; color: #b91c1c; margin-top: 0.35rem;">
-        <strong>{{ stats.tarifas[12000].porcentaje }}%</strong> {{ 'del total evaluado'|t }}
+    <!-- 3. Sin condiciones declaradas (Sanos) -->
+    <div class="reportes-stat-card" style="background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 10px; padding: 1.15rem 1.25rem;">
+      <a href="{{ card_urls.sin_condiciones }}" class="card-main-link" title="{{ 'Ver registros sin condiciones declaradas (sanos)'|t }}">
+        <div style="font-size: 0.78rem; font-weight: 700; color: #15803d; text-transform: uppercase;">{{ 'Sin Condiciones (Sanos)'|t }}</div>
+        <div style="font-size: 1.9rem; font-weight: 800; color: #166534; margin-top: 0.2rem;">{{ stats.conteo_sin_condiciones }}</div>
+        <div style="font-size: 0.8rem; color: #15803d; margin-top: 0.35rem;">
+          <strong>{{ stats.porcentaje_sin_condiciones }}%</strong> {{ 'declararon "Ninguna"'|t }}
+        </div>
+      </a>
+      <div style="margin-top: 0.85rem; padding-top: 0.65rem; border-top: 1px dashed #bbf7d0; display: flex; justify-content: space-between; align-items: center; gap: 0.5rem;">
+        <a href="{{ card_urls.sin_condiciones }}" style="font-size: 0.78rem; font-weight: 700; color: #15803d; text-decoration: none; display: flex; align-items: center; gap: 4px;">
+          <span>{{ 'Ver registros'|t }}</span>
+          <i class="fa-solid fa-arrow-right"></i>
+        </a>
+        <a href="{{ card_export_urls.sin_condiciones }}" class="btn-reporte btn-reporte--excel btn-reporte--sm" style="padding: 2px 7px; font-size: 0.72rem; border-radius: 4px;" title="{{ 'Descargar solicitudes sanas en Excel'|t }}">
+          <i class="fa-solid fa-file-excel"></i> XLS
+        </a>
       </div>
     </div>
 
-    <!-- Tarifa 10000 -->
-    <div style="background: #fefce8; border: 1px solid #fef08a; border-radius: 10px; padding: 1.15rem 1.25rem;">
-      <div style="font-size: 0.78rem; font-weight: 700; color: #a16207; text-transform: uppercase;">{{ 'Tarifa $10.000 (HTA/Sobrepeso)'|t }}</div>
-      <div style="font-size: 1.9rem; font-weight: 800; color: #854d0e; margin-top: 0.2rem;">{{ stats.tarifas[10000].cantidad }}</div>
-      <div style="font-size: 0.8rem; color: #a16207; margin-top: 0.35rem;">
-        <strong>{{ stats.tarifas[10000].porcentaje }}%</strong> {{ 'del total evaluado'|t }}
+    <!-- 4. Tarifa 12000 -->
+    <div class="reportes-stat-card" style="background: #fef2f2; border: 1px solid #fecaca; border-radius: 10px; padding: 1.15rem 1.25rem;">
+      <a href="{{ card_urls.tarifa_12000 }}" class="card-main-link" title="{{ 'Ver registros con tarifa $12.000 (Obesidad > 30)'|t }}">
+        <div style="font-size: 0.78rem; font-weight: 700; color: #b91c1c; text-transform: uppercase;">{{ 'Tarifa $12.000 (Obesidad > 30)'|t }}</div>
+        <div style="font-size: 1.9rem; font-weight: 800; color: #991b1b; margin-top: 0.2rem;">{{ stats.tarifas[12000].cantidad }}</div>
+        <div style="font-size: 0.8rem; color: #b91c1c; margin-top: 0.35rem;">
+          <strong>{{ stats.tarifas[12000].porcentaje }}%</strong> {{ 'del total evaluado'|t }}
+        </div>
+      </a>
+      <div style="margin-top: 0.85rem; padding-top: 0.65rem; border-top: 1px dashed #fecaca; display: flex; justify-content: space-between; align-items: center; gap: 0.5rem;">
+        <a href="{{ card_urls.tarifa_12000 }}" style="font-size: 0.78rem; font-weight: 700; color: #b91c1c; text-decoration: none; display: flex; align-items: center; gap: 4px;">
+          <span>{{ 'Ver registros'|t }}</span>
+          <i class="fa-solid fa-arrow-right"></i>
+        </a>
+        <a href="{{ card_export_urls.tarifa_12000 }}" class="btn-reporte btn-reporte--excel btn-reporte--sm" style="padding: 2px 7px; font-size: 0.72rem; border-radius: 4px;" title="{{ 'Descargar registros tarifa $12.000 en Excel'|t }}">
+          <i class="fa-solid fa-file-excel"></i> XLS
+        </a>
       </div>
     </div>
 
-    <!-- Tarifa 8000 -->
-    <div style="background: #f0fdf4; border: 1px solid #dcfce7; border-radius: 10px; padding: 1.15rem 1.25rem;">
-      <div style="font-size: 0.78rem; font-weight: 700; color: #16a34a; text-transform: uppercase;">{{ 'Tarifa $8.000 (Base)'|t }}</div>
-      <div style="font-size: 1.9rem; font-weight: 800; color: #15803d; margin-top: 0.2rem;">{{ stats.tarifas[8000].cantidad }}</div>
-      <div style="font-size: 0.8rem; color: #16a34a; margin-top: 0.35rem;">
-        <strong>{{ stats.tarifas[8000].porcentaje }}%</strong> {{ 'del total evaluado'|t }}
+    <!-- 5. Tarifa 10000 -->
+    <div class="reportes-stat-card" style="background: #fefce8; border: 1px solid #fef08a; border-radius: 10px; padding: 1.15rem 1.25rem;">
+      <a href="{{ card_urls.tarifa_10000 }}" class="card-main-link" title="{{ 'Ver registros con tarifa $10.000 (HTA / Sobrepeso)'|t }}">
+        <div style="font-size: 0.78rem; font-weight: 700; color: #a16207; text-transform: uppercase;">{{ 'Tarifa $10.000 (HTA/Sobrepeso)'|t }}</div>
+        <div style="font-size: 1.9rem; font-weight: 800; color: #854d0e; margin-top: 0.2rem;">{{ stats.tarifas[10000].cantidad }}</div>
+        <div style="font-size: 0.8rem; color: #a16207; margin-top: 0.35rem;">
+          <strong>{{ stats.tarifas[10000].porcentaje }}%</strong> {{ 'del total evaluado'|t }}
+        </div>
+      </a>
+      <div style="margin-top: 0.85rem; padding-top: 0.65rem; border-top: 1px dashed #fef08a; display: flex; justify-content: space-between; align-items: center; gap: 0.5rem;">
+        <a href="{{ card_urls.tarifa_10000 }}" style="font-size: 0.78rem; font-weight: 700; color: #a16207; text-decoration: none; display: flex; align-items: center; gap: 4px;">
+          <span>{{ 'Ver registros'|t }}</span>
+          <i class="fa-solid fa-arrow-right"></i>
+        </a>
+        <a href="{{ card_export_urls.tarifa_10000 }}" class="btn-reporte btn-reporte--excel btn-reporte--sm" style="padding: 2px 7px; font-size: 0.72rem; border-radius: 4px;" title="{{ 'Descargar registros tarifa $10.000 en Excel'|t }}">
+          <i class="fa-solid fa-file-excel"></i> XLS
+        </a>
+      </div>
+    </div>
+
+    <!-- 6. Tarifa 8000 -->
+    <div class="reportes-stat-card" style="background: #f0fdf4; border: 1px solid #dcfce7; border-radius: 10px; padding: 1.15rem 1.25rem;">
+      <a href="{{ card_urls.tarifa_8000 }}" class="card-main-link" title="{{ 'Ver registros con tarifa $8.000 (Tarifa Base / Sanos)'|t }}">
+        <div style="font-size: 0.78rem; font-weight: 700; color: #16a34a; text-transform: uppercase;">{{ 'Tarifa $8.000 (Base)'|t }}</div>
+        <div style="font-size: 1.9rem; font-weight: 800; color: #15803d; margin-top: 0.2rem;">{{ stats.tarifas[8000].cantidad }}</div>
+        <div style="font-size: 0.8rem; color: #16a34a; margin-top: 0.35rem;">
+          <strong>{{ stats.tarifas[8000].porcentaje }}%</strong> {{ 'del total evaluado'|t }}
+        </div>
+      </a>
+      <div style="margin-top: 0.85rem; padding-top: 0.65rem; border-top: 1px dashed #bbf7d0; display: flex; justify-content: space-between; align-items: center; gap: 0.5rem;">
+        <a href="{{ card_urls.tarifa_8000 }}" style="font-size: 0.78rem; font-weight: 700; color: #15803d; text-decoration: none; display: flex; align-items: center; gap: 4px;">
+          <span>{{ 'Ver registros'|t }}</span>
+          <i class="fa-solid fa-arrow-right"></i>
+        </a>
+        <a href="{{ card_export_urls.tarifa_8000 }}" class="btn-reporte btn-reporte--excel btn-reporte--sm" style="padding: 2px 7px; font-size: 0.72rem; border-radius: 4px;" title="{{ 'Descargar registros tarifa $8.000 en Excel'|t }}">
+          <i class="fa-solid fa-file-excel"></i> XLS
+        </a>
       </div>
     </div>
   </div>
@@ -146,9 +236,10 @@
           <tr>
             <th style="width: 50px; text-align: center;">{{ '#'|t }}</th>
             <th>{{ 'Condición de Salud'|t }}</th>
-            <th style="text-align: right; width: 140px;">{{ 'Registros (Cant.)'|t }}</th>
-            <th style="width: 220px;">{{ 'Frecuencia / Porcentaje'|t }}</th>
-            <th style="text-align: center; width: 180px;">{{ 'Tarifa Asociada'|t }}</th>
+            <th style="text-align: right; width: 130px;">{{ 'Registros (Cant.)'|t }}</th>
+            <th style="width: 200px;">{{ 'Frecuencia / Porcentaje'|t }}</th>
+            <th style="text-align: center; width: 140px;">{{ 'Tarifa Asociada'|t }}</th>
+            <th style="text-align: center; width: 160px;">{{ 'Acciones'|t }}</th>
           </tr>
         </thead>
         <tbody>
@@ -157,7 +248,9 @@
             <tr>
               <td style="text-align: center; color: #6b7280; font-weight: 600;">{{ num }}</td>
               <td style="font-weight: 600; color: #1f2937;">
-                {{ p.titulo }}
+                <a href="{{ p.url_listado }}" style="color: #1f2937; text-decoration: none;" title="{{ 'Filtrar registros por'|t }} {{ p.titulo }}">
+                  {{ p.titulo }}
+                </a>
                 {% if key == 'hipertension_arterial' %}
                   <span style="margin-left: 6px; font-size: 0.72rem; padding: 2px 6px; background: #fef08a; color: #854d0e; border-radius: 4px; font-weight: 700;">
                     {{ 'Regla $10.000'|t }}
@@ -182,6 +275,14 @@
                   <span style="color: #6b7280; font-size: 0.8rem;">$8.000 / $10.000</span>
                 {% endif %}
               </td>
+              <td style="text-align: center; white-space: nowrap;">
+                <a href="{{ p.url_listado }}" class="btn-reporte btn-reporte--sm btn-reporte--secondary" style="padding: 3px 8px; font-size: 0.75rem;" title="{{ 'Ver registros filtrados'|t }}">
+                  <i class="fa-solid fa-list-check"></i> {{ 'Ver'|t }}
+                </a>
+                <a href="{{ p.url_export }}" class="btn-reporte btn-reporte--sm btn-reporte--excel" style="padding: 3px 8px; font-size: 0.75rem;" title="{{ 'Descargar en Excel estos registros'|t }}">
+                  <i class="fa-solid fa-file-excel"></i> XLS
+                </a>
+              </td>
             </tr>
             {% set num = num + 1 %}
           {% endfor %}
@@ -190,8 +291,10 @@
           <tr style="background: #faf5ff;">
             <td style="text-align: center; color: #7c3aed; font-weight: 700;">{{ num }}</td>
             <td style="font-weight: 700; color: #5b21b6;">
-              <i class="fa-solid fa-weight-scale" style="margin-right: 4px;"></i>
-              {{ 'Sobrepeso (declarado o registrado)'|t }}
+              <a href="{{ card_urls.sobrepeso }}" style="color: #5b21b6; text-decoration: none;">
+                <i class="fa-solid fa-weight-scale" style="margin-right: 4px;"></i>
+                {{ 'Sobrepeso (declarado o registrado)'|t }}
+              </a>
               <span style="margin-left: 6px; font-size: 0.72rem; padding: 2px 6px; background: #fef08a; color: #854d0e; border-radius: 4px; font-weight: 700;">
                 {{ 'Regla $10.000'|t }}
               </span>
@@ -210,14 +313,24 @@
             <td style="text-align: center;">
               <span style="display: inline-block; padding: 3px 8px; background: #fef9c3; color: #854d0e; border-radius: 4px; font-weight: 700; font-size: 0.8rem;">$10.000</span>
             </td>
+            <td style="text-align: center; white-space: nowrap;">
+              <a href="{{ card_urls.sobrepeso }}" class="btn-reporte btn-reporte--sm btn-reporte--secondary" style="padding: 3px 8px; font-size: 0.75rem;" title="{{ 'Ver registros con sobrepeso'|t }}">
+                <i class="fa-solid fa-list-check"></i> {{ 'Ver'|t }}
+              </a>
+              <a href="{{ card_export_urls.sobrepeso }}" class="btn-reporte btn-reporte--sm btn-reporte--excel" style="padding: 3px 8px; font-size: 0.75rem;" title="{{ 'Descargar registros con sobrepeso en Excel'|t }}">
+                <i class="fa-solid fa-file-excel"></i> XLS
+              </a>
+            </td>
           </tr>
           {% set num = num + 1 %}
 
           <tr style="background: #fef2f2;">
             <td style="text-align: center; color: #b91c1c; font-weight: 700;">{{ num }}</td>
             <td style="font-weight: 700; color: #991b1b;">
-              <i class="fa-solid fa-person-circle-exclamation" style="margin-right: 4px;"></i>
-              {{ 'Obesidad con IMC > 30'|t }}
+              <a href="{{ card_urls.tarifa_12000 }}" style="color: #991b1b; text-decoration: none;">
+                <i class="fa-solid fa-person-circle-exclamation" style="margin-right: 4px;"></i>
+                {{ 'Obesidad con IMC > 30'|t }}
+              </a>
               <span style="margin-left: 6px; font-size: 0.72rem; padding: 2px 6px; background: #fee2e2; color: #991b1b; border-radius: 4px; font-weight: 700;">
                 {{ 'Regla $12.000'|t }}
               </span>
@@ -236,14 +349,24 @@
             <td style="text-align: center;">
               <span style="display: inline-block; padding: 3px 8px; background: #fee2e2; color: #991b1b; border-radius: 4px; font-weight: 700; font-size: 0.8rem;">$12.000</span>
             </td>
+            <td style="text-align: center; white-space: nowrap;">
+              <a href="{{ card_urls.tarifa_12000 }}" class="btn-reporte btn-reporte--sm btn-reporte--secondary" style="padding: 3px 8px; font-size: 0.75rem;" title="{{ 'Ver registros con obesidad e IMC > 30'|t }}">
+                <i class="fa-solid fa-list-check"></i> {{ 'Ver'|t }}
+              </a>
+              <a href="{{ card_export_urls.tarifa_12000 }}" class="btn-reporte btn-reporte--sm btn-reporte--excel" style="padding: 3px 8px; font-size: 0.75rem;" title="{{ 'Descargar en Excel registros con obesidad e IMC > 30'|t }}">
+                <i class="fa-solid fa-file-excel"></i> XLS
+              </a>
+            </td>
           </tr>
           {% set num = num + 1 %}
 
           <tr style="background: #f0fdf4;">
             <td style="text-align: center; color: #166534; font-weight: 700;">{{ num }}</td>
             <td style="font-weight: 700; color: #166534;">
-              <i class="fa-solid fa-circle-check" style="margin-right: 4px;"></i>
-              {{ 'Sin condiciones declaradas (Ninguna)'|t }}
+              <a href="{{ card_urls.sin_condiciones }}" style="color: #166534; text-decoration: none;">
+                <i class="fa-solid fa-circle-check" style="margin-right: 4px;"></i>
+                {{ 'Sin condiciones declaradas (Ninguna)'|t }}
+              </a>
               <span style="margin-left: 6px; font-size: 0.72rem; padding: 2px 6px; background: #dcfce7; color: #15803d; border-radius: 4px; font-weight: 700;">
                 {{ 'Regla $8.000'|t }}
               </span>
@@ -261,6 +384,14 @@
             </td>
             <td style="text-align: center;">
               <span style="display: inline-block; padding: 3px 8px; background: #ecfdf5; color: #047857; border-radius: 4px; font-weight: 700; font-size: 0.8rem;">$8.000</span>
+            </td>
+            <td style="text-align: center; white-space: nowrap;">
+              <a href="{{ card_urls.sin_condiciones }}" class="btn-reporte btn-reporte--sm btn-reporte--secondary" style="padding: 3px 8px; font-size: 0.75rem;" title="{{ 'Ver registros sin condiciones declaradas'|t }}">
+                <i class="fa-solid fa-list-check"></i> {{ 'Ver'|t }}
+              </a>
+              <a href="{{ card_export_urls.sin_condiciones }}" class="btn-reporte btn-reporte--sm btn-reporte--excel" style="padding: 3px 8px; font-size: 0.75rem;" title="{{ 'Descargar registros sanos en Excel'|t }}">
+                <i class="fa-solid fa-file-excel"></i> XLS
+              </a>
             </td>
           </tr>
         </tbody>
@@ -283,8 +414,9 @@
           <tr>
             <th style="width: 140px; text-align: center;">{{ 'Valor ($)'|t }}</th>
             <th>{{ 'Criterio / Condición de Salud Asignada'|t }}</th>
-            <th style="text-align: right; width: 160px;">{{ 'Registros (Cant.)'|t }}</th>
-            <th style="width: 220px;">{{ 'Porcentaje (%)'|t }}</th>
+            <th style="text-align: right; width: 150px;">{{ 'Registros (Cant.)'|t }}</th>
+            <th style="width: 200px;">{{ 'Porcentaje (%)'|t }}</th>
+            <th style="text-align: center; width: 170px;">{{ 'Acciones'|t }}</th>
           </tr>
         </thead>
         <tbody>
@@ -309,6 +441,14 @@
                 <span style="font-size: 0.85rem; font-weight: 700; color: #111827; min-width: 45px; text-align: right;">{{ stats.tarifas[12000].porcentaje }}%</span>
               </div>
             </td>
+            <td style="text-align: center; white-space: nowrap;">
+              <a href="{{ card_urls.tarifa_12000 }}" class="btn-reporte btn-reporte--sm btn-reporte--secondary" style="padding: 3px 8px; font-size: 0.75rem;" title="{{ 'Ver registros con tarifa $12.000'|t }}">
+                <i class="fa-solid fa-list-check"></i> {{ 'Ver'|t }}
+              </a>
+              <a href="{{ card_export_urls.tarifa_12000 }}" class="btn-reporte btn-reporte--sm btn-reporte--excel" style="padding: 3px 8px; font-size: 0.75rem;" title="{{ 'Descargar registros con tarifa $12.000 en Excel'|t }}">
+                <i class="fa-solid fa-file-excel"></i> XLS
+              </a>
+            </td>
           </tr>
 
           <tr>
@@ -331,6 +471,14 @@
                 </div>
                 <span style="font-size: 0.85rem; font-weight: 700; color: #111827; min-width: 45px; text-align: right;">{{ stats.tarifas[10000].porcentaje }}%</span>
               </div>
+            </td>
+            <td style="text-align: center; white-space: nowrap;">
+              <a href="{{ card_urls.tarifa_10000 }}" class="btn-reporte btn-reporte--sm btn-reporte--secondary" style="padding: 3px 8px; font-size: 0.75rem;" title="{{ 'Ver registros con tarifa $10.000'|t }}">
+                <i class="fa-solid fa-list-check"></i> {{ 'Ver'|t }}
+              </a>
+              <a href="{{ card_export_urls.tarifa_10000 }}" class="btn-reporte btn-reporte--sm btn-reporte--excel" style="padding: 3px 8px; font-size: 0.75rem;" title="{{ 'Descargar registros con tarifa $10.000 en Excel'|t }}">
+                <i class="fa-solid fa-file-excel"></i> XLS
+              </a>
             </td>
           </tr>
 
@@ -355,6 +503,14 @@
                 <span style="font-size: 0.85rem; font-weight: 700; color: #111827; min-width: 45px; text-align: right;">{{ stats.tarifas[8000].porcentaje }}%</span>
               </div>
             </td>
+            <td style="text-align: center; white-space: nowrap;">
+              <a href="{{ card_urls.tarifa_8000 }}" class="btn-reporte btn-reporte--sm btn-reporte--secondary" style="padding: 3px 8px; font-size: 0.75rem;" title="{{ 'Ver registros con tarifa $8.000'|t }}">
+                <i class="fa-solid fa-list-check"></i> {{ 'Ver'|t }}
+              </a>
+              <a href="{{ card_export_urls.tarifa_8000 }}" class="btn-reporte btn-reporte--sm btn-reporte--excel" style="padding: 3px 8px; font-size: 0.75rem;" title="{{ 'Descargar registros con tarifa $8.000 en Excel'|t }}">
+                <i class="fa-solid fa-file-excel"></i> XLS
+              </a>
+            </td>
           </tr>
         </tbody>
         <tfoot>
@@ -362,10 +518,14 @@
             <td colspan="2" style="text-align: right; padding: 10px 14px; font-size: 0.95rem;">{{ 'TOTAL SOLICITUDES EVALUADAS:'|t }}</td>
             <td style="text-align: right; padding: 10px 14px; font-size: 1.1rem; color: #111827;">{{ stats.total_solicitudes }}</td>
             <td style="padding: 10px 14px; font-size: 0.95rem; text-align: right; color: #111827;">100.0%</td>
+            <td style="text-align: center; padding: 10px 14px;">
+              <a href="{{ card_urls.total }}" class="btn-reporte btn-reporte--sm btn-reporte--secondary" style="padding: 3px 8px; font-size: 0.75rem;" title="{{ 'Ver todas las solicitudes'|t }}">
+                <i class="fa-solid fa-table-list"></i> {{ 'Todas'|t }}
+              </a>
+            </td>
           </tr>
         </tfoot>
       </table>
     </div>
   </div>
 </div>
-
