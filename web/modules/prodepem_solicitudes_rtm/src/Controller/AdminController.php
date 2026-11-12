@@ -220,6 +220,8 @@ class AdminController extends ControllerBase {
       $data['telefono'] = $data['telefono_tomador'];
 
       // B. Datos del Asegurado.
+      $apellido = trim((string) ($raw_data['apellido_asegurado_principal'] ?? ''));
+
       $nombre_completo = $raw_data['nombre_completo']
         ?? $raw_data['asegurado_principal']
         ?? $raw_data['nombre_del_asegurado']
@@ -234,18 +236,26 @@ class AdminController extends ControllerBase {
         ?? $raw_data['cliente']
         ?? '';
 
-      if (empty($nombre_completo)) {
+      if (!empty($nombre_completo)) {
+        if (!empty($apellido)) {
+          $nombre_completo = trim($nombre_completo . ' ' . $apellido);
+        }
+      }
+      else {
         $nombres = $raw_data['nombres'] ?? $raw_data['nombre'] ?? trim(($raw_data['primer_nombre'] ?? '') . ' ' . ($raw_data['segundo_nombre'] ?? ''));
-        $apellidos = $raw_data['apellidos'] ?? $raw_data['primer_apellido'] ?? trim(($raw_data['primer_apellido'] ?? '') . ' ' . ($raw_data['segundo_apellido'] ?? ''));
+        $apellidos = !empty($apellido) ? $apellido : ($raw_data['apellidos'] ?? $raw_data['primer_apellido'] ?? trim(($raw_data['primer_apellido'] ?? '') . ' ' . ($raw_data['segundo_apellido'] ?? '')));
         $nombre_completo = trim($nombres . ' ' . $apellidos);
       }
 
       // Búsqueda heurística en raw_data por si el campo tiene otra clave que contenga 'nombre' o 'asegurad'.
       if (empty($nombre_completo)) {
         foreach ($raw_data as $k => $v) {
-          if (is_string($v) && !empty(trim($v)) && !in_array($k, ['tomador', 'empresa', 'direccion_empresa', 'email', 'correo_electronico']) && stripos($k, 'beneficiar') === FALSE && stripos($k, 'tomador') === FALSE) {
+          if (is_string($v) && !empty(trim($v)) && !in_array($k, ['tomador', 'empresa', 'direccion_empresa', 'email', 'correo_electronico']) && stripos($k, 'beneficiar') === FALSE && stripos($k, 'tomador') === FALSE && stripos($k, 'apellido') === FALSE) {
             if (stripos($k, 'nombre') !== FALSE || stripos($k, 'asegurad') !== FALSE) {
               $nombre_completo = trim($v);
+              if (!empty($apellido)) {
+                $nombre_completo = trim($nombre_completo . ' ' . $apellido);
+              }
               break;
             }
           }

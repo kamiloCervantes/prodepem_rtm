@@ -715,6 +715,9 @@ class EquidadReportesController extends ControllerBase {
     $serial = $sub->serial->value ?? $sid;
     $fecha = date('d/m/Y H:i', $sub->getCreatedTime());
 
+    // Apellido asegurado principal:
+    $apellido = trim((string) ($raw['apellido_asegurado_principal'] ?? ''));
+
     // Nombre del Asegurado:
     $nombre = $raw['nombre_completo']
       ?? $raw['asegurado_principal']
@@ -724,16 +727,24 @@ class EquidadReportesController extends ControllerBase {
       ?? $raw['nombres_y_apellidos']
       ?? $raw['nombre_y_apellidos']
       ?? '';
-    if (empty($nombre)) {
+    if (!empty($nombre)) {
+      if (!empty($apellido)) {
+        $nombre = trim($nombre . ' ' . $apellido);
+      }
+    }
+    else {
       $nombres = $raw['nombres'] ?? $raw['nombre'] ?? trim(($raw['primer_nombre'] ?? '') . ' ' . ($raw['segundo_nombre'] ?? ''));
-      $apellidos = $raw['apellidos'] ?? $raw['primer_apellido'] ?? trim(($raw['primer_apellido'] ?? '') . ' ' . ($raw['segundo_apellido'] ?? ''));
+      $apellidos = !empty($apellido) ? $apellido : ($raw['apellidos'] ?? $raw['primer_apellido'] ?? trim(($raw['primer_apellido'] ?? '') . ' ' . ($raw['segundo_apellido'] ?? '')));
       $nombre = trim($nombres . ' ' . $apellidos);
     }
     if (empty($nombre)) {
       foreach ($raw as $k => $v) {
-        if (is_string($v) && !empty(trim($v)) && !in_array($k, ['tomador', 'empresa', 'direccion_empresa', 'email', 'correo_electronico']) && stripos($k, 'beneficiar') === FALSE && stripos($k, 'tomador') === FALSE) {
+        if (is_string($v) && !empty(trim($v)) && !in_array($k, ['tomador', 'empresa', 'direccion_empresa', 'email', 'correo_electronico']) && stripos($k, 'beneficiar') === FALSE && stripos($k, 'tomador') === FALSE && stripos($k, 'apellido') === FALSE) {
           if (stripos($k, 'nombre') !== FALSE || stripos($k, 'asegurad') !== FALSE) {
             $nombre = trim($v);
+            if (!empty($apellido)) {
+              $nombre = trim($nombre . ' ' . $apellido);
+            }
             break;
           }
         }
@@ -1007,7 +1018,7 @@ class EquidadReportesController extends ControllerBase {
     $keys_originales = [
       'tomador', 'nit_tomador', 'c_c_nit', 'direccion_tomador', 'direccion', 'ciudad_tomador', 'ciudad', 'telefono_tomador', 'telefono',
       'selector_tomador', 'nombre_completo', 'nombre', 'nombres', 'apellidos', 'primer_apellido', 'segundo_apellido', 'primer_nombre', 'segundo_nombre',
-      'asegurado_principal', 'nombre_del_asegurado', 'nombre_asegurado', 'asegurado', 'nombres_y_apellidos', 'nombre_y_apellidos',
+      'asegurado_principal', 'apellido_asegurado_principal', 'nombre_del_asegurado', 'nombre_asegurado', 'asegurado', 'nombres_y_apellidos', 'nombre_y_apellidos',
       'tipo_de_documento', 'tipo_documento', 'numero_de_documento', 'numero_documento', 'documento', 'c_c', 'cedula', 'identificacion', 'numero_de_identificacion', 'numero_identificacion',
       'email', 'correo_electronico', 'correo', 'telefono_asegurado', 'celular', 'numero_contacto',
       'direccion_residencia', 'lugar_residencia', 'trabaja_actualmente', 'trabaja_usted_actualmente',
