@@ -655,6 +655,12 @@ function prodepem_solicitudes_rtm_webform_submission_presave(WebformSubmissionIn
         $data['email_cda'] = $email;
         $webform_submission->setData($data);
       }
+      if ($term && $term->hasField('field_email_seguidores') && !$term->get('field_email_seguidores')->isEmpty()) {
+        // Set 'email_seguidores_cda' value.
+        $email_seguidores = $term->get('field_email_seguidores')->value;
+        $data['email_seguidores_cda'] = $email_seguidores;
+        $webform_submission->setData($data);
+      }
     }
   }
 }
