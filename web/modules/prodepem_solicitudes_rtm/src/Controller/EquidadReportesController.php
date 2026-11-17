@@ -281,6 +281,118 @@ class EquidadReportesController extends ControllerBase {
     ]);
     $export_url = Url::fromRoute('prodepem_solicitudes_rtm.reportes_equidad_exportar', ['reporte' => $export_key], ['query' => $export_params])->toString();
 
+    // Paginación: 10 registros por página.
+    $limit = 10;
+    $total = count($items);
+    $total_pages = max(1, (int) ceil($total / $limit));
+    $page = max(1, (int) $request->query->get('page', 1));
+    if ($page > $total_pages) {
+      $page = $total_pages;
+    }
+    $offset = ($page - 1) * $limit;
+    $paged_items = array_slice($items, $offset, $limit);
+    $item_from = $total > 0 ? $offset + 1 : 0;
+    $item_to = min($offset + $limit, $total);
+
+    $base_query = array_filter([
+      'search' => $search,
+      'fecha_desde' => $fecha_desde,
+      'fecha_hasta' => $fecha_hasta,
+      'tarifa' => $tarifa,
+      'filtro_salud' => $filtro_salud,
+      'condicion' => $condicion,
+    ]);
+
+    $build_page_url = function ($p) use ($base_query) {
+      $q = $base_query;
+      if ($p > 1) {
+        $q['page'] = $p;
+      }
+      return Url::fromRoute('<current>', [], ['query' => $q])->toString();
+    };
+
+    $page_items = [];
+    if ($total_pages <= 7) {
+      for ($i = 1; $i <= $total_pages; $i++) {
+        $page_items[] = [
+          'number' => $i,
+          'url' => $build_page_url($i),
+          'is_active' => ($i === $page),
+          'is_ellipsis' => FALSE,
+        ];
+      }
+    }
+    else {
+      // Página 1 siempre visible.
+      $page_items[] = [
+        'number' => 1,
+        'url' => $build_page_url(1),
+        'is_active' => (1 === $page),
+        'is_ellipsis' => FALSE,
+      ];
+
+      $start = max(2, $page - 2);
+      $end = min($total_pages - 1, $page + 2);
+
+      if ($page <= 4) {
+        $start = 2;
+        $end = 5;
+      }
+      if ($page >= $total_pages - 3) {
+        $start = $total_pages - 4;
+        $end = $total_pages - 1;
+      }
+
+      if ($start > 2) {
+        $page_items[] = [
+          'number' => '...',
+          'url' => '',
+          'is_active' => FALSE,
+          'is_ellipsis' => TRUE,
+        ];
+      }
+
+      for ($i = $start; $i <= $end; $i++) {
+        $page_items[] = [
+          'number' => $i,
+          'url' => $build_page_url($i),
+          'is_active' => ($i === $page),
+          'is_ellipsis' => FALSE,
+        ];
+      }
+
+      if ($end < $total_pages - 1) {
+        $page_items[] = [
+          'number' => '...',
+          'url' => '',
+          'is_active' => FALSE,
+          'is_ellipsis' => TRUE,
+        ];
+      }
+
+      // Última página siempre visible.
+      $page_items[] = [
+        'number' => $total_pages,
+        'url' => $build_page_url($total_pages),
+        'is_active' => ($total_pages === $page),
+        'is_ellipsis' => FALSE,
+      ];
+    }
+
+    $pagination = [
+      'current_page' => $page,
+      'total_pages' => $total_pages,
+      'total_items' => $total,
+      'limit' => $limit,
+      'from' => $item_from,
+      'to' => $item_to,
+      'first_url' => $page > 1 ? $build_page_url(1) : NULL,
+      'prev_url' => $page > 1 ? $build_page_url($page - 1) : NULL,
+      'next_url' => $page < $total_pages ? $build_page_url($page + 1) : NULL,
+      'last_url' => $page < $total_pages ? $build_page_url($total_pages) : NULL,
+      'pages' => $page_items,
+    ];
+
     return [
       '#theme' => 'prodepem_equidad_reporte',
       '#reporte_key' => $export_key,
@@ -288,8 +400,9 @@ class EquidadReportesController extends ControllerBase {
       '#reporte_desc' => $info['desc'],
       '#tomador_badge' => $info['badge'],
       '#tipo_reporte' => $tipo,
-      '#items' => $items,
-      '#total' => count($items),
+      '#items' => $paged_items,
+      '#total' => $total,
+      '#pagination' => $pagination,
       '#filters' => [
         'search' => $search,
         'fecha_desde' => $fecha_desde,

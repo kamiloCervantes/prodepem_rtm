@@ -46,6 +46,7 @@ function prodepem_solicitudes_rtm_theme($existing, $type, $theme, $path) {
         'filters' => NULL,
         'export_url' => NULL,
         'filtro_condicion_label' => NULL,
+        'pagination' => NULL,
       ],
     ],
     'prodepem_equidad_submission_detalle' => [

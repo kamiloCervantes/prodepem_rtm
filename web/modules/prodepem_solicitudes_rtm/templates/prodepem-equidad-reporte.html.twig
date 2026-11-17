@@ -141,7 +141,14 @@
   <!-- Contador de Resultados -->
   <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem; font-size: 0.885rem; color: #4b5563;">
     <div>
-      {{ 'Mostrando'|t }} <strong>{{ total }}</strong> {{ 'registro(s)'|t }}
+      {% if total > 0 %}
+        {{ 'Mostrando'|t }} <strong>{{ pagination.from }} - {{ pagination.to }}</strong> {{ 'de'|t }} <strong>{{ total }}</strong> {{ 'registro(s)'|t }}
+        {% if pagination.total_pages > 1 %}
+          <span style="color: #6b7280; margin-left: 0.35rem;">({{ 'Página'|t }} {{ pagination.current_page }} {{ 'de'|t }} {{ pagination.total_pages }})</span>
+        {% endif %}
+      {% else %}
+        {{ 'Mostrando'|t }} <strong>0</strong> {{ 'registro(s)'|t }}
+      {% endif %}
       {% if filters.search %} • {{ 'Filtro de búsqueda:'|t }} "<em>{{ filters.search }}</em>"{% endif %}
       {% if filters.fecha_desde %} • {{ 'Desde:'|t }} {{ filters.fecha_desde }}{% endif %}
       {% if filters.fecha_hasta %} • {{ 'Hasta:'|t }} {{ filters.fecha_hasta }}{% endif %}
@@ -433,4 +440,93 @@
       </table>
     {% endif %}
   </div>
+
+  {# Paginación inferior #}
+  {% if pagination and pagination.total_pages > 1 %}
+    <div class="reportes-pagination-wrapper">
+      <div class="reportes-pagination-info">
+        {{ 'Mostrando registros del'|t }} <strong>{{ pagination.from }}</strong> {{ 'al'|t }} <strong>{{ pagination.to }}</strong> {{ 'de un total de'|t }} <strong>{{ total }}</strong>
+      </div>
+      <nav class="reportes-pagination" aria-label="{{ 'Navegación de páginas del reporte'|t }}">
+        <ul class="reportes-pagination__list">
+          {# Botón Primera Página #}
+          {% if pagination.first_url %}
+            <li class="reportes-pagination__item">
+              <a href="{{ pagination.first_url }}" class="reportes-pagination__link" title="{{ 'Primera página'|t }}" aria-label="{{ 'Primera página'|t }}">
+                <i class="fa-solid fa-angles-left"></i>
+              </a>
+            </li>
+          {% else %}
+            <li class="reportes-pagination__item is-disabled">
+              <span class="reportes-pagination__link" aria-disabled="true">
+                <i class="fa-solid fa-angles-left"></i>
+              </span>
+            </li>
+          {% endif %}
+
+          {# Botón Anterior #}
+          {% if pagination.prev_url %}
+            <li class="reportes-pagination__item">
+              <a href="{{ pagination.prev_url }}" class="reportes-pagination__link" title="{{ 'Página anterior'|t }}" aria-label="{{ 'Página anterior'|t }}">
+                <i class="fa-solid fa-chevron-left"></i> {{ 'Anterior'|t }}
+              </a>
+            </li>
+          {% else %}
+            <li class="reportes-pagination__item is-disabled">
+              <span class="reportes-pagination__link" aria-disabled="true">
+                <i class="fa-solid fa-chevron-left"></i> {{ 'Anterior'|t }}
+              </span>
+            </li>
+          {% endif %}
+
+          {# Números de página #}
+          {% for p in pagination.pages %}
+            {% if p.is_ellipsis %}
+              <li class="reportes-pagination__item reportes-pagination__item--ellipsis">
+                <span class="reportes-pagination__link">…</span>
+              </li>
+            {% elseif p.is_active %}
+              <li class="reportes-pagination__item is-active">
+                <span class="reportes-pagination__link" aria-current="page">{{ p.number }}</span>
+              </li>
+            {% else %}
+              <li class="reportes-pagination__item">
+                <a href="{{ p.url }}" class="reportes-pagination__link">{{ p.number }}</a>
+              </li>
+            {% endif %}
+          {% endfor %}
+
+          {# Botón Siguiente #}
+          {% if pagination.next_url %}
+            <li class="reportes-pagination__item">
+              <a href="{{ pagination.next_url }}" class="reportes-pagination__link" title="{{ 'Página siguiente'|t }}" aria-label="{{ 'Página siguiente'|t }}">
+                {{ 'Siguiente'|t }} <i class="fa-solid fa-chevron-right"></i>
+              </a>
+            </li>
+          {% else %}
+            <li class="reportes-pagination__item is-disabled">
+              <span class="reportes-pagination__link" aria-disabled="true">
+                {{ 'Siguiente'|t }} <i class="fa-solid fa-chevron-right"></i>
+              </span>
+            </li>
+          {% endif %}
+
+          {# Botón Última Página #}
+          {% if pagination.last_url %}
+            <li class="reportes-pagination__item">
+              <a href="{{ pagination.last_url }}" class="reportes-pagination__link" title="{{ 'Última página'|t }}" aria-label="{{ 'Última página'|t }}">
+                <i class="fa-solid fa-angles-right"></i>
+              </a>
+            </li>
+          {% else %}
+            <li class="reportes-pagination__item is-disabled">
+              <span class="reportes-pagination__link" aria-disabled="true">
+                <i class="fa-solid fa-angles-right"></i>
+              </span>
+            </li>
+          {% endif %}
+        </ul>
+      </nav>
+    </div>
+  {% endif %}
 </div>
