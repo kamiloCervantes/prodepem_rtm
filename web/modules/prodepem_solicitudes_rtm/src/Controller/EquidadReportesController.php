@@ -1027,23 +1027,53 @@ class EquidadReportesController extends ControllerBase {
 
     // Helper para normalizar respuestas Si/No/Valores booleanos:
     $normalizar_sino = function ($val) {
-      if (is_null($val) || $val === '') {
+      if (is_null($val) || $val === '' || (is_array($val) && empty($val))) {
         return '';
       }
       if (is_bool($val)) {
         return $val ? 'SÍ' : 'NO';
       }
+      if (is_array($val)) {
+        $has_yes = FALSE;
+        $has_no = FALSE;
+        foreach ($val as $sub_k => $sub_v) {
+          if ($sub_v && $sub_v !== '0') {
+            $has_yes = TRUE;
+          }
+          elseif ($sub_v === '0' || $sub_v === FALSE) {
+            $has_no = TRUE;
+          }
+        }
+        if ($has_yes) {
+          return 'SÍ';
+        }
+        if ($has_no) {
+          return 'NO';
+        }
+        return '';
+      }
       $s = mb_strtolower(trim((string) $val));
-      if (in_array($s, ['1', 'si', 'sí', 'true', 'yes', 'on'])) {
+      if (in_array($s, ['1', 'si', 'sí', 'true', 'yes', 'on', 'checked'])) {
         return 'SÍ';
       }
-      if (in_array($s, ['0', 'no', 'false', 'off'])) {
+      if (in_array($s, ['0', 'no', 'false', 'off', 'unchecked'])) {
         return 'NO';
       }
       return (string) $val;
     };
 
     // DATOS COMPLEMENTARIOS:
+    // Placa del vehículo (necesaria para heurística de seguros vehiculares):
+    $placa = strtoupper(trim((string) ($raw['placa'] ?? $raw['placas'] ?? $raw['numero_placa'] ?? $raw['placa_vehiculo'] ?? '')));
+    if (empty($placa)) {
+      foreach ($raw as $k => $v) {
+        if (is_string($v) && !empty(trim($v)) && stripos($k, 'placa') !== FALSE) {
+          $placa = strtoupper(trim($v));
+          break;
+        }
+      }
+    }
+
     // 1. esta_interesado_en_ampliar_el_amparo_de_vida y por_que:
     $ampliar_amparo_val = $raw['esta_interesado_en_ampliar_el_amparo_de_vida']
       ?? $raw['ampliar_el_amparo_de_vida']
@@ -1054,25 +1084,183 @@ class EquidadReportesController extends ControllerBase {
     $por_que = trim((string) ($raw['por_que'] ?? $raw['porque'] ?? ''));
 
     // 2. interesado_soat:
-    $interesado_soat_val = $raw['interesado_soat']
-      ?? $raw['interes_soat']
-      ?? $raw['soat']
-      ?? '';
+    $candidatos_soat = [
+      'esta_interesado_en_soat',
+      'esta_interesado_en_el_soat',
+      'esta_interesado_soat',
+      'interesado_en_soat',
+      'interesado_en_el_soat',
+      'interesado_soat',
+      'interes_soat',
+      'interes_en_soat',
+      'interes_en_el_soat',
+      'desea_soat',
+      'desea_adquirir_soat',
+      'esta_interesado_en_adquirir_soat',
+      'esta_interesado_en_adquirir_el_soat',
+      'adquirir_soat',
+      'seguro_soat',
+      'seguros_soat',
+      'poliza_soat',
+      'soat_vehiculo',
+      'vehiculo_soat',
+      'soat_interes',
+      'soat',
+      'SOAT',
+    ];
+
+    $interesado_soat_val = NULL;
+    foreach ($candidatos_soat as $cand) {
+      if (isset($raw[$cand]) && $raw[$cand] !== '' && $raw[$cand] !== NULL) {
+        $interesado_soat_val = $raw[$cand];
+        break;
+      }
+    }
+
+    // Si aún no se encontró, buscar dinámicamente en los elementos del Webform por título o clave que contenga 'soat':
+    if (($interesado_soat_val === NULL || $interesado_soat_val === '') && $webform) {
+      $elementos_webform = $webform->getElementsDecodedAndFlattened();
+      if (is_array($elementos_webform)) {
+        foreach ($elementos_webform as $elem_k => $elem_def) {
+          $k_low = mb_strtolower((string) $elem_k);
+          $titulo_low = mb_strtolower((string) ($elem_def['#title'] ?? ''));
+          if (strpos($k_low, 'soat') !== FALSE || strpos($titulo_low, 'soat') !== FALSE) {
+            if (strpos($k_low, 'tipo') !== FALSE || strpos($k_low, 'clase') !== FALSE) {
+              continue;
+            }
+            if (isset($raw[$elem_k]) && $raw[$elem_k] !== '' && $raw[$elem_k] !== NULL) {
+              $interesado_soat_val = $raw[$elem_k];
+              break;
+            }
+          }
+        }
+      }
+    }
+
+    // Si aún no se encontró, buscar en cualquier clave de $raw que contenga 'soat':
+    if ($interesado_soat_val === NULL || $interesado_soat_val === '') {
+      foreach ($raw as $k => $v) {
+        $k_lower = mb_strtolower(trim((string) $k));
+        if (strpos($k_lower, 'soat') !== FALSE) {
+          if (strpos($k_lower, 'tipo') !== FALSE || strpos($k_lower, 'clase') !== FALSE) {
+            continue;
+          }
+          if ($v !== '' && $v !== NULL) {
+            $interesado_soat_val = $v;
+            break;
+          }
+        }
+      }
+    }
+
+    // Revisar si en campos tipo array/checkboxes se seleccionó SOAT:
+    if ($interesado_soat_val === NULL || $interesado_soat_val === '') {
+      foreach ($raw as $k => $v) {
+        if (is_array($v)) {
+          foreach ($v as $sub_k => $sub_v) {
+            $sub_k_lower = mb_strtolower((string) $sub_k);
+            $sub_v_lower = mb_strtolower((string) (is_string($sub_v) ? $sub_v : ''));
+            if (strpos($sub_k_lower, 'soat') !== FALSE || strpos($sub_v_lower, 'soat') !== FALSE) {
+              if ($sub_v && $sub_v !== '0') {
+                $interesado_soat_val = 'SÍ';
+                break 2;
+              }
+              elseif ($sub_v === '0' || $sub_v === FALSE) {
+                $interesado_soat_val = 'NO';
+              }
+            }
+          }
+        }
+        elseif (is_string($v) && stripos($v, 'soat') !== FALSE) {
+          $interesado_soat_val = 'SÍ';
+          break;
+        }
+      }
+    }
+
     $interesado_soat = $normalizar_sino($interesado_soat_val);
 
     // 3. interesado_todo_riesgo:
-    $interesado_todo_riesgo_val = $raw['interesado_todo_riesgo']
-      ?? $raw['interes_todo_riesgo']
-      ?? $raw['todo_riesgo']
-      ?? '';
+    $candidatos_todo_riesgo = [
+      'esta_interesado_en_todo_riesgo',
+      'esta_interesado_en_el_todo_riesgo',
+      'esta_interesado_todo_riesgo',
+      'interesado_en_todo_riesgo',
+      'interesado_en_el_todo_riesgo',
+      'interesado_todo_riesgo',
+      'interes_todo_riesgo',
+      'interes_en_todo_riesgo',
+      'seguro_todo_riesgo',
+      'seguros_todo_riesgo',
+      'poliza_todo_riesgo',
+      'todo_riesgo',
+    ];
+    $interesado_todo_riesgo_val = NULL;
+    foreach ($candidatos_todo_riesgo as $cand) {
+      if (isset($raw[$cand]) && $raw[$cand] !== '' && $raw[$cand] !== NULL) {
+        $interesado_todo_riesgo_val = $raw[$cand];
+        break;
+      }
+    }
+    if ($interesado_todo_riesgo_val === NULL || $interesado_todo_riesgo_val === '') {
+      foreach ($raw as $k => $v) {
+        $k_lower = mb_strtolower(trim((string) $k));
+        if (strpos($k_lower, 'todo_riesgo') !== FALSE || strpos($k_lower, 'todo riesgo') !== FALSE) {
+          if ($v !== '' && $v !== NULL) {
+            $interesado_todo_riesgo_val = $v;
+            break;
+          }
+        }
+      }
+    }
     $interesado_todo_riesgo = $normalizar_sino($interesado_todo_riesgo_val);
 
     // 4. interesado_hogar:
-    $interesado_hogar_val = $raw['interesado_hogar']
-      ?? $raw['interes_hogar']
-      ?? $raw['hogar']
-      ?? '';
+    $candidatos_hogar = [
+      'esta_interesado_en_hogar',
+      'esta_interesado_en_el_hogar',
+      'esta_interesado_hogar',
+      'interesado_en_hogar',
+      'interesado_en_el_hogar',
+      'interesado_hogar',
+      'interes_hogar',
+      'interes_en_hogar',
+      'seguro_hogar',
+      'seguros_hogar',
+      'poliza_hogar',
+      'hogar',
+    ];
+    $interesado_hogar_val = NULL;
+    foreach ($candidatos_hogar as $cand) {
+      if (isset($raw[$cand]) && $raw[$cand] !== '' && $raw[$cand] !== NULL) {
+        $interesado_hogar_val = $raw[$cand];
+        break;
+      }
+    }
+    if ($interesado_hogar_val === NULL || $interesado_hogar_val === '') {
+      foreach ($raw as $k => $v) {
+        $k_lower = mb_strtolower(trim((string) $k));
+        if (strpos($k_lower, 'hogar') !== FALSE) {
+          if ($v !== '' && $v !== NULL) {
+            $interesado_hogar_val = $v;
+            break;
+          }
+        }
+      }
+    }
     $interesado_hogar = $normalizar_sino($interesado_hogar_val);
+
+    // Heurística de respaldo para SOAT:
+    // 1. Si no hay valor explícito pero el solicitante registró placa de vehículo,
+    //    indica interés en seguro vehicular (SOAT):
+    if (empty($interesado_soat) && !empty($placa)) {
+      $interesado_soat = 'SÍ';
+    }
+    // 2. Si el solicitante completó la sección de complementarios (respondió ampliar amparo, todo riesgo u hogar)
+    //    y no se registró interés en SOAT ni placa, normalizar a 'NO' en lugar de dejarlo vacío '-':
+    elseif (empty($interesado_soat) && (!empty($interesado_todo_riesgo) || !empty($interesado_hogar) || !empty($esta_interesado_ampliar_vida))) {
+      $interesado_soat = 'NO';
+    }
 
     // 5. seguros_adicionales:
     $seguros_adicionales = '';
@@ -1081,20 +1269,39 @@ class EquidadReportesController extends ControllerBase {
       $seg_list = [];
       foreach ($raw_seg_adic as $sub_k => $sub_v) {
         if ($sub_v && $sub_v !== '0') {
-          $seg_list[] = is_string($sub_k) && !is_numeric($sub_k) ? $sub_k : $sub_v;
+          $val_to_add = is_string($sub_k) && !is_numeric($sub_k) ? $sub_k : $sub_v;
+          if (is_string($val_to_add)) {
+            $val_low = mb_strtolower(trim($val_to_add));
+            if (!in_array($val_low, ['soat', 'todo_riesgo', 'hogar', 'no', '0', 'ninguno', 'ninguna'])) {
+              $seg_list[] = $val_to_add;
+            }
+          }
         }
       }
       $seguros_adicionales = implode(', ', array_unique($seg_list));
     }
     elseif (is_string($raw_seg_adic)) {
-      $seguros_adicionales = trim($raw_seg_adic);
+      $s_trim = trim($raw_seg_adic);
+      if (!in_array(mb_strtolower($s_trim), ['no', '0', 'ninguno', 'ninguna', 'ningun', 'n/a', 'none', 'false', 'off'])) {
+        $seguros_adicionales = $s_trim;
+      }
     }
 
     if (empty($seguros_adicionales)) {
       $seg_list = [];
       foreach ($raw as $k => $v) {
         $k_lower = mb_strtolower($k);
-        if (in_array($k_lower, ['esta_interesado_en_ampliar_el_amparo_de_vida', 'por_que', 'interesado_soat', 'interesado_todo_riesgo', 'interesado_hogar', 'placa', 'numero_de_rifa_1', 'numero_de_rifa_2'])) {
+        if (
+          in_array($k_lower, [
+            'esta_interesado_en_ampliar_el_amparo_de_vida', 'por_que', 'porque',
+            'interesado_soat', 'esta_interesado_en_soat', 'esta_interesado_en_el_soat', 'esta_interesado_soat', 'interesado_en_soat', 'interesado_en_el_soat', 'interes_soat', 'desea_soat', 'seguro_soat', 'soat',
+            'interesado_todo_riesgo', 'esta_interesado_en_todo_riesgo', 'interesado_en_todo_riesgo', 'interes_todo_riesgo', 'seguro_todo_riesgo', 'todo_riesgo',
+            'interesado_hogar', 'esta_interesado_en_hogar', 'interesado_en_hogar', 'interes_hogar', 'seguro_hogar', 'hogar',
+            'placa', 'placas', 'numero_placa', 'placa_vehiculo',
+            'numero_de_rifa_1', 'numero_de_rifa_2', 'numero_de_rifa', 'numero_rifa', 'rifa', 'boleta'
+          ], TRUE) ||
+          strpos($k_lower, 'soat') !== FALSE
+        ) {
           continue;
         }
         if (strpos($k_lower, 'interes') !== FALSE || strpos($k_lower, 'adicional') !== FALSE) {
@@ -1105,16 +1312,13 @@ class EquidadReportesController extends ControllerBase {
               }
             }
           }
-          elseif (is_string($v) && !empty($v) && !in_array(mb_strtolower(trim($v)), ['si', '1', 'no', '0', 'sí'])) {
+          elseif (is_string($v) && !empty($v) && !in_array(mb_strtolower(trim($v)), ['si', '1', 'no', '0', 'sí', 'ninguno', 'ninguna'])) {
             $seg_list[] = $v;
           }
         }
       }
       $seguros_adicionales = implode(', ', array_unique($seg_list));
     }
-
-    // 6. placa:
-    $placa = strtoupper(trim((string) ($raw['placa'] ?? $raw['placas'] ?? $raw['numero_placa'] ?? '')));
 
     // 7. numero_de_rifa_1 y numero_de_rifa_2:
     $numero_de_rifa_1 = trim((string) ($raw['numero_de_rifa_1'] ?? $raw['numero_rifa_1'] ?? $raw['rifa_1'] ?? $raw['boleta_1'] ?? ''));
@@ -1139,8 +1343,11 @@ class EquidadReportesController extends ControllerBase {
       'valor_asegurado_solicitado', 'total_valor_asegurado', 'valor_asegurado', 'plan',
       'beneficiarios', 'tabla_beneficiarios', 'tabla_de_beneficiarios', 'tabla_de_beneficiarios_2', 'beneficiario', 'beneficiarios_tabla', 'datos_beneficiarios', 'designacion_beneficiarios', 'designacion_de_beneficiarios', 'beneficiarios_del_seguro', 'datos_de_los_beneficiarios', 'escriba_el_nombre_de_los_beneficiarios_de_este_seguro_y_su_respectivo_porcentaje', 'escriba_el_nombre_de_los_beneficiarios',
       'peso', 'peso_kg', 'estatura', 'estatura_cm', 'altura', 'edad', 'imc', 'valor_condicion_salud', 'explicacion_salud', 'explicacion_condiciones_salud', 'en_caso_de_haber_marcado_alguna_de_las_condiciones_anteriores_o', 'favor_explicar_detalladamente',
-      'esta_interesado_en_ampliar_el_amparo_de_vida', 'por_que', 'interesado_soat', 'interesado_todo_riesgo', 'interesado_hogar',
-      'seguros_adicionales', 'placa', 'numero_de_rifa_1', 'numero_de_rifa_2', 'numero_de_rifa', 'numero_rifa', 'rifa', 'boleta',
+      'esta_interesado_en_ampliar_el_amparo_de_vida', 'por_que', 'porque',
+      'interesado_soat', 'esta_interesado_en_soat', 'esta_interesado_en_el_soat', 'esta_interesado_soat', 'interesado_en_soat', 'interesado_en_el_soat', 'interes_soat', 'interes_en_soat', 'desea_soat', 'seguro_soat', 'soat', 'SOAT',
+      'interesado_todo_riesgo', 'esta_interesado_en_todo_riesgo', 'interesado_en_todo_riesgo', 'interes_todo_riesgo', 'seguro_todo_riesgo', 'todo_riesgo',
+      'interesado_hogar', 'esta_interesado_en_hogar', 'interesado_en_hogar', 'interes_hogar', 'seguro_hogar', 'hogar',
+      'seguros_adicionales', 'placa', 'placas', 'numero_placa', 'placa_vehiculo', 'numero_de_rifa_1', 'numero_de_rifa_2', 'numero_de_rifa', 'numero_rifa', 'rifa', 'boleta',
     ];
     for ($i = 1; $i <= 14; $i++) {
       $keys_originales[] = 'salud_' . $i;
