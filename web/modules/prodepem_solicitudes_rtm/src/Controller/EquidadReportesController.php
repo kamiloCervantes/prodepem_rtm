@@ -742,6 +742,8 @@ class EquidadReportesController extends ControllerBase {
           $item['interesado_soat'],
           $item['interesado_todo_riesgo'],
           $item['interesado_hogar'],
+          $item['interesado_tecnicomecanica'] ?? '',
+          $item['recibir_mensajes_vencimiento'] ?? '',
           $item['seguros_adicionales'],
           $item['placa'],
           $item['numero_de_rifa_1'],
@@ -1181,27 +1183,29 @@ class EquidadReportesController extends ControllerBase {
 
     $interesado_soat = $normalizar_sino($interesado_soat_val);
 
-    // 3. interesado_todo_riesgo:
-    $candidatos_todo_riesgo = [
-      'interesado_prodepem_todo_riesgo',
-      'esta_interesado_en_todo_riesgo',
-      'esta_interesado_en_el_todo_riesgo',
-      'esta_interesado_todo_riesgo',
-      'interesado_en_todo_riesgo',
-      'interesado_en_el_todo_riesgo',
-      'interesado_todo_riesgo',
-      'interes_todo_riesgo',
-      'interes_en_todo_riesgo',
-      'seguro_todo_riesgo',
-      'seguros_todo_riesgo',
-      'poliza_todo_riesgo',
-      'todo_riesgo',
-    ];
-    $interesado_todo_riesgo_val = NULL;
-    foreach ($candidatos_todo_riesgo as $cand) {
-      if (isset($raw[$cand]) && $raw[$cand] !== '' && $raw[$cand] !== NULL) {
-        $interesado_todo_riesgo_val = $raw[$cand];
-        break;
+    // 3. interesado_todo_riesgo (validar que se utilice prioritariamente interesado_todo_riesgo):
+    $interesado_todo_riesgo_val = $raw['interesado_todo_riesgo'] ?? NULL;
+    if ($interesado_todo_riesgo_val === NULL || $interesado_todo_riesgo_val === '') {
+      $candidatos_todo_riesgo = [
+        'interesado_todo_riesgo',
+        'interesado_prodepem_todo_riesgo',
+        'esta_interesado_en_todo_riesgo',
+        'esta_interesado_en_el_todo_riesgo',
+        'esta_interesado_todo_riesgo',
+        'interesado_en_todo_riesgo',
+        'interesado_en_el_todo_riesgo',
+        'interes_todo_riesgo',
+        'interes_en_todo_riesgo',
+        'seguro_todo_riesgo',
+        'seguros_todo_riesgo',
+        'poliza_todo_riesgo',
+        'todo_riesgo',
+      ];
+      foreach ($candidatos_todo_riesgo as $cand) {
+        if (isset($raw[$cand]) && $raw[$cand] !== '' && $raw[$cand] !== NULL) {
+          $interesado_todo_riesgo_val = $raw[$cand];
+          break;
+        }
       }
     }
     if ($interesado_todo_riesgo_val === NULL || $interesado_todo_riesgo_val === '') {
@@ -1218,26 +1222,28 @@ class EquidadReportesController extends ControllerBase {
     $interesado_todo_riesgo = $normalizar_sino($interesado_todo_riesgo_val);
 
     // 4. interesado_hogar:
-    $candidatos_hogar = [
-      'interesado_prodepem_hogar',
-      'esta_interesado_en_hogar',
-      'esta_interesado_en_el_hogar',
-      'esta_interesado_hogar',
-      'interesado_en_hogar',
-      'interesado_en_el_hogar',
-      'interesado_hogar',
-      'interes_hogar',
-      'interes_en_hogar',
-      'seguro_hogar',
-      'seguros_hogar',
-      'poliza_hogar',
-      'hogar',
-    ];
-    $interesado_hogar_val = NULL;
-    foreach ($candidatos_hogar as $cand) {
-      if (isset($raw[$cand]) && $raw[$cand] !== '' && $raw[$cand] !== NULL) {
-        $interesado_hogar_val = $raw[$cand];
-        break;
+    $interesado_hogar_val = $raw['interesado_hogar'] ?? NULL;
+    if ($interesado_hogar_val === NULL || $interesado_hogar_val === '') {
+      $candidatos_hogar = [
+        'interesado_hogar',
+        'interesado_prodepem_hogar',
+        'esta_interesado_en_hogar',
+        'esta_interesado_en_el_hogar',
+        'esta_interesado_hogar',
+        'interesado_en_hogar',
+        'interesado_en_el_hogar',
+        'interes_hogar',
+        'interes_en_hogar',
+        'seguro_hogar',
+        'seguros_hogar',
+        'poliza_hogar',
+        'hogar',
+      ];
+      foreach ($candidatos_hogar as $cand) {
+        if (isset($raw[$cand]) && $raw[$cand] !== '' && $raw[$cand] !== NULL) {
+          $interesado_hogar_val = $raw[$cand];
+          break;
+        }
       }
     }
     if ($interesado_hogar_val === NULL || $interesado_hogar_val === '') {
@@ -1253,6 +1259,110 @@ class EquidadReportesController extends ControllerBase {
     }
     $interesado_hogar = $normalizar_sino($interesado_hogar_val);
 
+    // 5. interesado_tecnicomecanica (campo: interesado_prodepem_tecnicomecanica):
+    $candidatos_tecnicomecanica = [
+      'interesado_prodepem_tecnicomecanica',
+      'interesado_tecnicomecanica',
+      'esta_interesado_en_tecnicomecanica',
+      'esta_interesado_en_la_tecnicomecanica',
+      'interesado_en_tecnicomecanica',
+      'interes_tecnicomecanica',
+      'tecnicomecanica',
+      'tecnomecanica',
+      'revision_tecnicomecanica',
+      'rtm',
+    ];
+    $interesado_tecnicomecanica_val = $raw['interesado_prodepem_tecnicomecanica'] ?? NULL;
+    if ($interesado_tecnicomecanica_val === NULL || $interesado_tecnicomecanica_val === '') {
+      foreach ($candidatos_tecnicomecanica as $cand) {
+        if (isset($raw[$cand]) && $raw[$cand] !== '' && $raw[$cand] !== NULL) {
+          $interesado_tecnicomecanica_val = $raw[$cand];
+          break;
+        }
+      }
+    }
+    if (($interesado_tecnicomecanica_val === NULL || $interesado_tecnicomecanica_val === '') && $webform) {
+      $elementos_webform = $webform->getElementsDecodedAndFlattened();
+      if (is_array($elementos_webform)) {
+        foreach ($elementos_webform as $elem_k => $elem_def) {
+          $k_low = mb_strtolower((string) $elem_k);
+          $titulo_low = mb_strtolower((string) ($elem_def['#title'] ?? ''));
+          if (strpos($k_low, 'tecnicomecanica') !== FALSE || strpos($k_low, 'tecnomecanica') !== FALSE || strpos($titulo_low, 'tecnicomecanica') !== FALSE || strpos($titulo_low, 'tecnomecanica') !== FALSE) {
+            if (isset($raw[$elem_k]) && $raw[$elem_k] !== '' && $raw[$elem_k] !== NULL) {
+              $interesado_tecnicomecanica_val = $raw[$elem_k];
+              break;
+            }
+          }
+        }
+      }
+    }
+    if ($interesado_tecnicomecanica_val === NULL || $interesado_tecnicomecanica_val === '') {
+      foreach ($raw as $k => $v) {
+        $k_lower = mb_strtolower(trim((string) $k));
+        if (strpos($k_lower, 'tecnicomecanica') !== FALSE || strpos($k_lower, 'tecnomecanica') !== FALSE) {
+          if ($v !== '' && $v !== NULL) {
+            $interesado_tecnicomecanica_val = $v;
+            break;
+          }
+        }
+      }
+    }
+    $interesado_tecnicomecanica = $normalizar_sino($interesado_tecnicomecanica_val);
+    if (empty($interesado_tecnicomecanica) && (!empty($interesado_soat) || !empty($interesado_todo_riesgo) || !empty($interesado_hogar) || !empty($esta_interesado_ampliar_vida))) {
+      $interesado_tecnicomecanica = 'NO';
+    }
+
+    // 6. recibir_mensajes_vencimiento (campo: le_interesaria_recibir_mensaje_de_vencimiento_de_soat_y_tecnome):
+    $candidatos_mensajes = [
+      'le_interesaria_recibir_mensaje_de_vencimiento_de_soat_y_tecnome',
+      'recibir_mensaje_de_vencimiento_de_soat_y_tecnome',
+      'le_interesaria_recibir_mensaje_de_vencimiento',
+      'recibir_mensaje_de_vencimiento',
+      'recibir_mensajes_vencimiento',
+      'mensaje_vencimiento_soat_tecnome',
+      'mensajes_vencimiento',
+      'recibir_mensajes',
+    ];
+    $recibir_mensajes_val = $raw['le_interesaria_recibir_mensaje_de_vencimiento_de_soat_y_tecnome'] ?? NULL;
+    if ($recibir_mensajes_val === NULL || $recibir_mensajes_val === '') {
+      foreach ($candidatos_mensajes as $cand) {
+        if (isset($raw[$cand]) && $raw[$cand] !== '' && $raw[$cand] !== NULL) {
+          $recibir_mensajes_val = $raw[$cand];
+          break;
+        }
+      }
+    }
+    if (($recibir_mensajes_val === NULL || $recibir_mensajes_val === '') && $webform) {
+      $elementos_webform = $webform->getElementsDecodedAndFlattened();
+      if (is_array($elementos_webform)) {
+        foreach ($elementos_webform as $elem_k => $elem_def) {
+          $k_low = mb_strtolower((string) $elem_k);
+          $titulo_low = mb_strtolower((string) ($elem_def['#title'] ?? ''));
+          if (strpos($k_low, 'vencimiento') !== FALSE || strpos($titulo_low, 'vencimiento') !== FALSE) {
+            if (isset($raw[$elem_k]) && $raw[$elem_k] !== '' && $raw[$elem_k] !== NULL) {
+              $recibir_mensajes_val = $raw[$elem_k];
+              break;
+            }
+          }
+        }
+      }
+    }
+    if ($recibir_mensajes_val === NULL || $recibir_mensajes_val === '') {
+      foreach ($raw as $k => $v) {
+        $k_lower = mb_strtolower(trim((string) $k));
+        if (strpos($k_lower, 'vencimiento') !== FALSE || (strpos($k_lower, 'mensaje') !== FALSE && strpos($k_lower, 'soat') !== FALSE)) {
+          if ($v !== '' && $v !== NULL) {
+            $recibir_mensajes_val = $v;
+            break;
+          }
+        }
+      }
+    }
+    $recibir_mensajes_vencimiento = $normalizar_sino($recibir_mensajes_val);
+    if (empty($recibir_mensajes_vencimiento) && (!empty($interesado_soat) || !empty($interesado_todo_riesgo) || !empty($interesado_hogar) || !empty($esta_interesado_ampliar_vida))) {
+      $recibir_mensajes_vencimiento = 'NO';
+    }
+
     // Heurística de respaldo para SOAT:
     // 1. Si no hay valor explícito pero el solicitante registró placa de vehículo,
     //    indica interés en seguro vehicular (SOAT):
@@ -1265,7 +1375,7 @@ class EquidadReportesController extends ControllerBase {
       $interesado_soat = 'NO';
     }
 
-    // 5. seguros_adicionales:
+    // 7. seguros_adicionales:
     $seguros_adicionales = '';
     $raw_seg_adic = $raw['seguros_adicionales'] ?? $raw['seguros_de_interes'] ?? [];
     if (is_array($raw_seg_adic)) {
@@ -1275,7 +1385,7 @@ class EquidadReportesController extends ControllerBase {
           $val_to_add = is_string($sub_k) && !is_numeric($sub_k) ? $sub_k : $sub_v;
           if (is_string($val_to_add)) {
             $val_low = mb_strtolower(trim($val_to_add));
-            if (!in_array($val_low, ['soat', 'todo_riesgo', 'hogar', 'no', '0', 'ninguno', 'ninguna'])) {
+            if (!in_array($val_low, ['soat', 'todo_riesgo', 'hogar', 'tecnicomecanica', 'tecnomecanica', 'vencimiento', 'no', '0', 'ninguno', 'ninguna'])) {
               $seg_list[] = $val_to_add;
             }
           }
@@ -1298,12 +1408,17 @@ class EquidadReportesController extends ControllerBase {
           in_array($k_lower, [
             'esta_interesado_en_ampliar_el_amparo_de_vida', 'por_que', 'porque',
             'interesado_prodepem_soat', 'interesado_soat', 'esta_interesado_en_soat', 'esta_interesado_en_el_soat', 'esta_interesado_soat', 'interesado_en_soat', 'interesado_en_el_soat', 'interes_soat', 'desea_soat', 'seguro_soat', 'soat',
-            'interesado_prodepem_todo_riesgo', 'interesado_todo_riesgo', 'esta_interesado_en_todo_riesgo', 'interesado_en_todo_riesgo', 'interes_todo_riesgo', 'seguro_todo_riesgo', 'todo_riesgo',
+            'interesado_todo_riesgo', 'interesado_prodepem_todo_riesgo', 'esta_interesado_en_todo_riesgo', 'interesado_en_todo_riesgo', 'interes_todo_riesgo', 'seguro_todo_riesgo', 'todo_riesgo',
             'interesado_prodepem_hogar', 'interesado_hogar', 'esta_interesado_en_hogar', 'interesado_en_hogar', 'interes_hogar', 'seguro_hogar', 'hogar',
+            'interesado_prodepem_tecnicomecanica', 'interesado_tecnicomecanica', 'esta_interesado_en_tecnicomecanica', 'tecnicomecanica', 'tecnomecanica',
+            'le_interesaria_recibir_mensaje_de_vencimiento_de_soat_y_tecnome', 'recibir_mensaje_de_vencimiento_de_soat_y_tecnome', 'recibir_mensajes_vencimiento',
             'placa', 'placas', 'numero_placa', 'placa_vehiculo',
             'numero_de_rifa_1', 'numero_de_rifa_2', 'numero_de_rifa', 'numero_rifa', 'rifa', 'boleta'
           ], TRUE) ||
-          strpos($k_lower, 'soat') !== FALSE
+          strpos($k_lower, 'soat') !== FALSE ||
+          strpos($k_lower, 'tecnicomecanica') !== FALSE ||
+          strpos($k_lower, 'tecnomecanica') !== FALSE ||
+          strpos($k_lower, 'vencimiento') !== FALSE
         ) {
           continue;
         }
@@ -1323,7 +1438,7 @@ class EquidadReportesController extends ControllerBase {
       $seguros_adicionales = implode(', ', array_unique($seg_list));
     }
 
-    // 7. numero_de_rifa_1 y numero_de_rifa_2:
+    // 8. numero_de_rifa_1 y numero_de_rifa_2:
     $numero_de_rifa_1 = trim((string) ($raw['numero_de_rifa_1'] ?? $raw['numero_rifa_1'] ?? $raw['rifa_1'] ?? $raw['boleta_1'] ?? ''));
     $numero_de_rifa_2 = trim((string) ($raw['numero_de_rifa_2'] ?? $raw['numero_rifa_2'] ?? $raw['rifa_2'] ?? $raw['boleta_2'] ?? ''));
     if (empty($numero_de_rifa_1)) {
@@ -1348,8 +1463,10 @@ class EquidadReportesController extends ControllerBase {
       'peso', 'peso_kg', 'estatura', 'estatura_cm', 'altura', 'edad', 'imc', 'valor_condicion_salud', 'explicacion_salud', 'explicacion_condiciones_salud', 'en_caso_de_haber_marcado_alguna_de_las_condiciones_anteriores_o', 'favor_explicar_detalladamente',
       'esta_interesado_en_ampliar_el_amparo_de_vida', 'por_que', 'porque',
       'interesado_prodepem_soat', 'interesado_soat', 'esta_interesado_en_soat', 'esta_interesado_en_el_soat', 'esta_interesado_soat', 'interesado_en_soat', 'interesado_en_el_soat', 'interes_soat', 'interes_en_soat', 'desea_soat', 'seguro_soat', 'soat', 'SOAT',
-      'interesado_prodepem_todo_riesgo', 'interesado_todo_riesgo', 'esta_interesado_en_todo_riesgo', 'interesado_en_todo_riesgo', 'interes_todo_riesgo', 'seguro_todo_riesgo', 'todo_riesgo',
+      'interesado_todo_riesgo', 'interesado_prodepem_todo_riesgo', 'esta_interesado_en_todo_riesgo', 'interesado_en_todo_riesgo', 'interes_todo_riesgo', 'seguro_todo_riesgo', 'todo_riesgo',
       'interesado_prodepem_hogar', 'interesado_hogar', 'esta_interesado_en_hogar', 'interesado_en_hogar', 'interes_hogar', 'seguro_hogar', 'hogar',
+      'interesado_prodepem_tecnicomecanica', 'interesado_tecnicomecanica', 'esta_interesado_en_tecnicomecanica', 'tecnicomecanica', 'tecnomecanica',
+      'le_interesaria_recibir_mensaje_de_vencimiento_de_soat_y_tecnome', 'recibir_mensaje_de_vencimiento_de_soat_y_tecnome', 'recibir_mensajes_vencimiento',
       'seguros_adicionales', 'placa', 'placas', 'numero_placa', 'placa_vehiculo', 'numero_de_rifa_1', 'numero_de_rifa_2', 'numero_de_rifa', 'numero_rifa', 'rifa', 'boleta',
     ];
     for ($i = 1; $i <= 14; $i++) {
@@ -1424,12 +1541,14 @@ class EquidadReportesController extends ControllerBase {
       'interesado_soat' => $interesado_soat,
       'interesado_todo_riesgo' => $interesado_todo_riesgo,
       'interesado_hogar' => $interesado_hogar,
+      'interesado_tecnicomecanica' => $interesado_tecnicomecanica,
+      'recibir_mensajes_vencimiento' => $recibir_mensajes_vencimiento,
       'seguros_adicionales' => $seguros_adicionales,
       'seguros_adicionales_texto' => $seguros_adicionales,
       'placa' => $placa,
       'numero_de_rifa_1' => $numero_de_rifa_1,
       'numero_de_rifa_2' => $numero_de_rifa_2,
-      'interes_otros' => (!empty($seguros_adicionales) || $interesado_soat === 'SÍ' || $interesado_todo_riesgo === 'SÍ' || $interesado_hogar === 'SÍ') ? 'SÍ' : 'NO',
+      'interes_otros' => (!empty($seguros_adicionales) || $interesado_soat === 'SÍ' || $interesado_todo_riesgo === 'SÍ' || $interesado_hogar === 'SÍ' || $interesado_tecnicomecanica === 'SÍ' || $recibir_mensajes_vencimiento === 'SÍ') ? 'SÍ' : 'NO',
       'participa_rifa' => (!empty($numero_de_rifa_1) || !empty($numero_de_rifa_2)) ? 'SÍ' : 'NO',
       'rifa_texto' => trim($numero_de_rifa_1 . (!empty($numero_de_rifa_2) ? ' / ' . $numero_de_rifa_2 : '')),
       'otros_adicionales' => $otros_adicionales_texto,
@@ -1542,6 +1661,8 @@ class EquidadReportesController extends ControllerBase {
         'interesado_soat' => $item['interesado_soat'],
         'interesado_todo_riesgo' => $item['interesado_todo_riesgo'],
         'interesado_hogar' => $item['interesado_hogar'],
+        'interesado_tecnicomecanica' => $item['interesado_tecnicomecanica'],
+        'recibir_mensajes_vencimiento' => $item['recibir_mensajes_vencimiento'],
         'seguros_adicionales' => $item['seguros_adicionales'],
         'placa' => $item['placa'],
         'numero_de_rifa_1' => $item['numero_de_rifa_1'],
@@ -1595,7 +1716,7 @@ class EquidadReportesController extends ControllerBase {
     echo '</head>' . "\n";
     echo '<body>' . "\n";
 
-    $colspan_total = ($tipo === 'vida') ? '18' : ($tipo === 'rifas' ? '3' : '14');
+    $colspan_total = ($tipo === 'vida') ? '18' : ($tipo === 'rifas' ? '3' : '16');
 
     $meta_filtro = '';
     if (!empty($filtros_extra['tarifa'])) {
@@ -1695,6 +1816,8 @@ class EquidadReportesController extends ControllerBase {
       echo '  <th>INTERESADO SOAT</th>' . "\n";
       echo '  <th>INTERESADO TODO RIESGO</th>' . "\n";
       echo '  <th>INTERESADO HOGAR</th>' . "\n";
+      echo '  <th>INTERESADO TÉCNICO MECÁNICA</th>' . "\n";
+      echo '  <th>MENSAJES VENCIMIENTO SOAT/RTM</th>' . "\n";
       echo '  <th>SEGUROS ADICIONALES</th>' . "\n";
       echo '  <th>PLACA</th>' . "\n";
       echo '  <th>NÚMERO DE RIFA 1</th>' . "\n";
@@ -1718,6 +1841,8 @@ class EquidadReportesController extends ControllerBase {
         echo '  <td class="text-center">' . htmlspecialchars((string) ($it['interesado_soat'] ?: '-')) . '</td>' . "\n";
         echo '  <td class="text-center">' . htmlspecialchars((string) ($it['interesado_todo_riesgo'] ?: '-')) . '</td>' . "\n";
         echo '  <td class="text-center">' . htmlspecialchars((string) ($it['interesado_hogar'] ?: '-')) . '</td>' . "\n";
+        echo '  <td class="text-center">' . htmlspecialchars((string) ($it['interesado_tecnicomecanica'] ?: '-')) . '</td>' . "\n";
+        echo '  <td class="text-center">' . htmlspecialchars((string) ($it['recibir_mensajes_vencimiento'] ?: '-')) . '</td>' . "\n";
         echo '  <td>' . htmlspecialchars((string) ($it['seguros_adicionales'] ?: '-')) . '</td>' . "\n";
         echo '  <td class="text-center">' . htmlspecialchars((string) ($it['placa'] ?: '-')) . '</td>' . "\n";
         echo '  <td class="text-center">' . htmlspecialchars((string) ($it['numero_de_rifa_1'] ?: '-')) . '</td>' . "\n";

@@ -204,6 +204,8 @@
               <th style="text-align: center;">{{ 'SOAT'|t }}</th>
               <th style="text-align: center;">{{ 'Todo Riesgo'|t }}</th>
               <th style="text-align: center;">{{ 'Hogar'|t }}</th>
+              <th style="text-align: center;">{{ 'Téc. Mecánica'|t }}</th>
+              <th style="text-align: center;">{{ 'Avisos Vencimiento'|t }}</th>
               <th>{{ 'Seguros Adicionales'|t }}</th>
               <th style="text-align: center;">{{ 'Placa'|t }}</th>
               <th style="text-align: center;">{{ 'Rifa 1'|t }}</th>
@@ -381,6 +383,32 @@
                     <span class="reportes-tag reportes-tag--no">NO</span>
                   {% elseif item.interesado_hogar %}
                     <span class="reportes-tag">{{ item.interesado_hogar }}</span>
+                  {% else %}
+                    <span style="color: #9ca3af; font-size: 0.8rem;">-</span>
+                  {% endif %}
+                </td>
+
+                <!-- Columna independiente: interesado_tecnicomecanica -->
+                <td style="text-align: center; white-space: nowrap;">
+                  {% if item.interesado_tecnicomecanica == 'SÍ' %}
+                    <span class="reportes-tag reportes-tag--yes">SÍ</span>
+                  {% elseif item.interesado_tecnicomecanica == 'NO' %}
+                    <span class="reportes-tag reportes-tag--no">NO</span>
+                  {% elseif item.interesado_tecnicomecanica %}
+                    <span class="reportes-tag">{{ item.interesado_tecnicomecanica }}</span>
+                  {% else %}
+                    <span style="color: #9ca3af; font-size: 0.8rem;">-</span>
+                  {% endif %}
+                </td>
+
+                <!-- Columna independiente: recibir_mensajes_vencimiento -->
+                <td style="text-align: center; white-space: nowrap;">
+                  {% if item.recibir_mensajes_vencimiento == 'SÍ' %}
+                    <span class="reportes-tag reportes-tag--yes">SÍ</span>
+                  {% elseif item.recibir_mensajes_vencimiento == 'NO' %}
+                    <span class="reportes-tag reportes-tag--no">NO</span>
+                  {% elseif item.recibir_mensajes_vencimiento %}
+                    <span class="reportes-tag">{{ item.recibir_mensajes_vencimiento }}</span>
                   {% else %}
                     <span style="color: #9ca3af; font-size: 0.8rem;">-</span>
                   {% endif %}

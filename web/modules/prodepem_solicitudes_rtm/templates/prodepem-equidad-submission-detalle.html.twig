@@ -192,6 +192,30 @@
           </span>
         </div>
         <div class="detalle-item">
+          <span class="detalle-item__label">Interesado Técnico Mecánica</span>
+          <span class="detalle-item__value">
+            {% if adicionales_data.interesado_tecnicomecanica == 'SÍ' %}
+              <span class="detalle-badge-yes" style="background-color: #ecfdf5; color: #065f46;">SÍ</span>
+            {% elseif adicionales_data.interesado_tecnicomecanica == 'NO' %}
+              <span class="detalle-badge-no">NO</span>
+            {% else %}
+              {{ adicionales_data.interesado_tecnicomecanica|default('-') }}
+            {% endif %}
+          </span>
+        </div>
+        <div class="detalle-item">
+          <span class="detalle-item__label">Avisos Vencimiento SOAT/RTM</span>
+          <span class="detalle-item__value">
+            {% if adicionales_data.recibir_mensajes_vencimiento == 'SÍ' %}
+              <span class="detalle-badge-yes" style="background-color: #ecfdf5; color: #065f46;">SÍ</span>
+            {% elseif adicionales_data.recibir_mensajes_vencimiento == 'NO' %}
+              <span class="detalle-badge-no">NO</span>
+            {% else %}
+              {{ adicionales_data.recibir_mensajes_vencimiento|default('-') }}
+            {% endif %}
+          </span>
+        </div>
+        <div class="detalle-item">
           <span class="detalle-item__label">Placa</span>
           <span class="detalle-item__value"><strong>{{ adicionales_data.placa|default('-') }}</strong></span>
         </div>
