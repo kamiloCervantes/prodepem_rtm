@@ -1085,6 +1085,7 @@ class EquidadReportesController extends ControllerBase {
 
     // 2. interesado_soat:
     $candidatos_soat = [
+      'interesado_prodepem_soat',
       'esta_interesado_en_soat',
       'esta_interesado_en_el_soat',
       'esta_interesado_soat',
@@ -1182,6 +1183,7 @@ class EquidadReportesController extends ControllerBase {
 
     // 3. interesado_todo_riesgo:
     $candidatos_todo_riesgo = [
+      'interesado_prodepem_todo_riesgo',
       'esta_interesado_en_todo_riesgo',
       'esta_interesado_en_el_todo_riesgo',
       'esta_interesado_todo_riesgo',
@@ -1217,6 +1219,7 @@ class EquidadReportesController extends ControllerBase {
 
     // 4. interesado_hogar:
     $candidatos_hogar = [
+      'interesado_prodepem_hogar',
       'esta_interesado_en_hogar',
       'esta_interesado_en_el_hogar',
       'esta_interesado_hogar',
@@ -1294,9 +1297,9 @@ class EquidadReportesController extends ControllerBase {
         if (
           in_array($k_lower, [
             'esta_interesado_en_ampliar_el_amparo_de_vida', 'por_que', 'porque',
-            'interesado_soat', 'esta_interesado_en_soat', 'esta_interesado_en_el_soat', 'esta_interesado_soat', 'interesado_en_soat', 'interesado_en_el_soat', 'interes_soat', 'desea_soat', 'seguro_soat', 'soat',
-            'interesado_todo_riesgo', 'esta_interesado_en_todo_riesgo', 'interesado_en_todo_riesgo', 'interes_todo_riesgo', 'seguro_todo_riesgo', 'todo_riesgo',
-            'interesado_hogar', 'esta_interesado_en_hogar', 'interesado_en_hogar', 'interes_hogar', 'seguro_hogar', 'hogar',
+            'interesado_prodepem_soat', 'interesado_soat', 'esta_interesado_en_soat', 'esta_interesado_en_el_soat', 'esta_interesado_soat', 'interesado_en_soat', 'interesado_en_el_soat', 'interes_soat', 'desea_soat', 'seguro_soat', 'soat',
+            'interesado_prodepem_todo_riesgo', 'interesado_todo_riesgo', 'esta_interesado_en_todo_riesgo', 'interesado_en_todo_riesgo', 'interes_todo_riesgo', 'seguro_todo_riesgo', 'todo_riesgo',
+            'interesado_prodepem_hogar', 'interesado_hogar', 'esta_interesado_en_hogar', 'interesado_en_hogar', 'interes_hogar', 'seguro_hogar', 'hogar',
             'placa', 'placas', 'numero_placa', 'placa_vehiculo',
             'numero_de_rifa_1', 'numero_de_rifa_2', 'numero_de_rifa', 'numero_rifa', 'rifa', 'boleta'
           ], TRUE) ||
@@ -1344,9 +1347,9 @@ class EquidadReportesController extends ControllerBase {
       'beneficiarios', 'tabla_beneficiarios', 'tabla_de_beneficiarios', 'tabla_de_beneficiarios_2', 'beneficiario', 'beneficiarios_tabla', 'datos_beneficiarios', 'designacion_beneficiarios', 'designacion_de_beneficiarios', 'beneficiarios_del_seguro', 'datos_de_los_beneficiarios', 'escriba_el_nombre_de_los_beneficiarios_de_este_seguro_y_su_respectivo_porcentaje', 'escriba_el_nombre_de_los_beneficiarios',
       'peso', 'peso_kg', 'estatura', 'estatura_cm', 'altura', 'edad', 'imc', 'valor_condicion_salud', 'explicacion_salud', 'explicacion_condiciones_salud', 'en_caso_de_haber_marcado_alguna_de_las_condiciones_anteriores_o', 'favor_explicar_detalladamente',
       'esta_interesado_en_ampliar_el_amparo_de_vida', 'por_que', 'porque',
-      'interesado_soat', 'esta_interesado_en_soat', 'esta_interesado_en_el_soat', 'esta_interesado_soat', 'interesado_en_soat', 'interesado_en_el_soat', 'interes_soat', 'interes_en_soat', 'desea_soat', 'seguro_soat', 'soat', 'SOAT',
-      'interesado_todo_riesgo', 'esta_interesado_en_todo_riesgo', 'interesado_en_todo_riesgo', 'interes_todo_riesgo', 'seguro_todo_riesgo', 'todo_riesgo',
-      'interesado_hogar', 'esta_interesado_en_hogar', 'interesado_en_hogar', 'interes_hogar', 'seguro_hogar', 'hogar',
+      'interesado_prodepem_soat', 'interesado_soat', 'esta_interesado_en_soat', 'esta_interesado_en_el_soat', 'esta_interesado_soat', 'interesado_en_soat', 'interesado_en_el_soat', 'interes_soat', 'interes_en_soat', 'desea_soat', 'seguro_soat', 'soat', 'SOAT',
+      'interesado_prodepem_todo_riesgo', 'interesado_todo_riesgo', 'esta_interesado_en_todo_riesgo', 'interesado_en_todo_riesgo', 'interes_todo_riesgo', 'seguro_todo_riesgo', 'todo_riesgo',
+      'interesado_prodepem_hogar', 'interesado_hogar', 'esta_interesado_en_hogar', 'interesado_en_hogar', 'interes_hogar', 'seguro_hogar', 'hogar',
       'seguros_adicionales', 'placa', 'placas', 'numero_placa', 'placa_vehiculo', 'numero_de_rifa_1', 'numero_de_rifa_2', 'numero_de_rifa', 'numero_rifa', 'rifa', 'boleta',
     ];
     for ($i = 1; $i <= 14; $i++) {
