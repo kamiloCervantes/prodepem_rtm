@@ -1,0 +1,344 @@
+langcode: es
+status: open
+dependencies:
+  enforced:
+    module:
+      - prodepem_solicitudes_rtm
+open: null
+close: null
+weight: 0
+uid: null
+template: false
+archive: false
+id: formulario_seguro_educativo
+title: 'Seguro Estudiantil - Formato AP Seguro Educativo'
+description: 'Formulario de registro para Seguro Estudiantil y Accidentes Personales (AP) Educativo basado en el formato de Colegio Distrital Santa Magdalena Sofía.'
+categories: {  }
+elements: |
+  informacion_institucional:
+    '#type': fieldset
+    '#title': 'Información Institucional'
+    institucion_educativa:
+      '#type': textfield
+      '#title': 'Institución Educativa'
+      '#default_value': 'COLEGIO DISTRITAL SANTA MAGDALENA SOFIA'
+      '#required': true
+      '#description': 'Nombre de la institución educativa o colegio'
+    periodo:
+      '#type': textfield
+      '#title': 'Periodo / Año Lectivo'
+      '#default_value': '2027'
+      '#required': true
+      '#description': 'Año lectivo o periodo de vigencia'
+  datos_del_estudiante:
+    '#type': fieldset
+    '#title': 'Datos del Estudiante (Asegurado)'
+    primer_apellido:
+      '#type': textfield
+      '#title': 'Primer Apellido'
+      '#required': true
+      '#placeholder': 'Ingrese el primer apellido'
+    segundo_apellido:
+      '#type': textfield
+      '#title': 'Segundo Apellido'
+      '#required': false
+      '#placeholder': 'Ingrese el segundo apellido (si aplica)'
+    primer_nombre:
+      '#type': textfield
+      '#title': 'Primer Nombre'
+      '#required': true
+      '#placeholder': 'Ingrese el primer nombre'
+    segundo_nombre:
+      '#type': textfield
+      '#title': 'Segundo Nombre'
+      '#required': false
+      '#placeholder': 'Ingrese el segundo nombre (si aplica)'
+    tipo_documento:
+      '#type': select
+      '#title': 'Tipo Documento'
+      '#required': true
+      '#empty_option': '- Seleccione el tipo de documento -'
+      '#options':
+        TI: 'Tarjeta de Identidad (T.I.)'
+        RC: 'Registro Civil (R.C.)'
+        CC: 'Cédula de Ciudadanía (C.C.)'
+        CE: 'Cédula de Extranjería (C.E.)'
+        PPT: 'Permiso por Protección Temporal (PPT)'
+        PEP: 'Permiso Especial de Permanencia (PEP)'
+        PAS: 'Pasaporte'
+        NUIP: 'Número Único de Identificación Personal (NUIP)'
+        OTRO: 'Otro'
+    numero_documento:
+      '#type': textfield
+      '#title': 'N° Documento'
+      '#required': true
+      '#placeholder': 'Número de documento de identidad'
+    fecha_de_nacimiento:
+      '#type': date
+      '#title': 'Fecha de Nacimiento'
+      '#description': 'Formato: DD/MM/AAAA'
+      '#required': true
+      '#datepicker': true
+      '#date_date_format': 'd/m/Y'
+    sexo:
+      '#type': select
+      '#title': 'Sexo'
+      '#required': true
+      '#empty_option': '- Seleccione el sexo -'
+      '#options':
+        M: 'Masculino'
+        F: 'Femenino'
+        OTRO: 'Otro'
+    grado_a_cursar:
+      '#type': select
+      '#title': 'Grado a Cursar'
+      '#required': true
+      '#empty_option': '- Seleccione el grado escolar -'
+      '#options':
+        Maternal: 'Maternal'
+        Parvulos: 'Párvulos'
+        Pre-Jardin: 'Pre-Jardín'
+        Jardin: 'Jardín'
+        Transicion: 'Transición / Grado Cero'
+        Primero: '1° Primero de Primaria'
+        Segundo: '2° Segundo de Primaria'
+        Tercero: '3° Tercero de Primaria'
+        Cuarto: '4° Cuarto de Primaria'
+        Quinto: '5° Quinto de Primaria'
+        Sexto: '6° Sexto de Bachillerato'
+        Septimo: '7° Séptimo de Bachillerato'
+        Octavo: '8° Octavo de Bachillerato'
+        Noveno: '9° Noveno de Bachillerato'
+        Decimo: '10° Décimo'
+        Once: '11° Once'
+        Docente_Administrativo: 'Docente / Administrativo'
+        Otro: 'Otro'
+  informacion_del_pago:
+    '#type': fieldset
+    '#title': 'Información del Pago'
+    valor:
+      '#type': number
+      '#title': 'Valor'
+      '#description': 'Valor del seguro en pesos colombianos ($ COP)'
+      '#required': true
+      '#min': 0
+      '#step': 100
+      '#placeholder': 'Ej: 25000'
+      '#field_prefix': '$'
+    medio_de_pago:
+      '#type': select
+      '#title': 'Medio de Pago'
+      '#required': true
+      '#empty_option': '- Seleccione el medio de pago -'
+      '#options':
+        Efectivo: 'Efectivo en Institución Educativa'
+        Transferencia: 'Transferencia Bancaria (Bancolombia, Nequi, Daviplata, etc.)'
+        PSE: 'PSE / Pago en Línea'
+        Consignacion: 'Consignación Bancaria / Corresponsal'
+        Tarjeta_Debito: 'Tarjeta Débito'
+        Tarjeta_Credito: 'Tarjeta de Crédito'
+        Otro: 'Otro'
+    referencia_de_pago:
+      '#type': textfield
+      '#title': 'Referencia de Pago'
+      '#description': 'Número de comprobante, recibo o código de transacción'
+      '#required': false
+      '#placeholder': 'Ej: N° de comprobante o autorización'
+    fecha_de_pago:
+      '#type': date
+      '#title': 'Fecha de Pago'
+      '#description': 'Formato: DD/MM/AAAA'
+      '#required': true
+      '#datepicker': true
+      '#date_date_format': 'd/m/Y'
+  observaciones:
+    '#type': fieldset
+    '#title': 'Observaciones y Comentarios'
+    observaciones_comentarios:
+      '#type': textarea
+      '#title': 'Observaciones | Comentarios'
+      '#description': 'Notas adicionales, novedades médicas o aclaraciones sobre el seguro educativo'
+      '#required': false
+      '#rows': 4
+      '#placeholder': 'Observaciones o comentarios adicionales...'
+  actions:
+    '#type': webform_actions
+    '#title': 'Enviar Registro'
+    '#submit__label': 'Registrar Seguro Estudiantil'
+css: ''
+javascript: ''
+settings:
+  ajax: true
+  ajax_scroll_top: form
+  ajax_progress_type: ''
+  ajax_effect: ''
+  ajax_speed: null
+  page: true
+  page_submit_path: '/seguro-educativo'
+  page_confirm_path: ''
+  page_theme_name: ''
+  form_title: both
+  form_submit_once: true
+  form_exception_message: ''
+  form_open_message: ''
+  form_close_message: ''
+  form_previous_submissions: true
+  form_confidential: false
+  form_confidential_message: ''
+  form_disable_remote_addr: false
+  form_convert_anonymous: false
+  form_prepopulate: false
+  form_prepopulate_source_entity: false
+  form_prepopulate_source_entity_required: false
+  form_prepopulate_source_entity_type: ''
+  form_reset: false
+  form_disable_autocomplete: false
+  form_novalidate: false
+  form_disable_inline_errors: false
+  form_required: false
+  form_unsaved: false
+  form_disable_back: false
+  form_submit_back: false
+  form_autofocus: false
+  form_details_toggle: false
+  form_access_denied: default
+  form_access_denied_title: ''
+  form_access_denied_message: ''
+  form_access_denied_attributes: {  }
+  form_file_limit: ''
+  form_method: ''
+  form_action: ''
+  form_attributes: {  }
+  share: false
+  share_node: false
+  share_theme_name: ''
+  share_title: true
+  share_page_body_attributes: {  }
+  submission_label: ''
+  submission_log: false
+  submission_views: {  }
+  submission_views_replace: {  }
+  submission_user_columns: {  }
+  submission_user_duplicate: false
+  submission_access_denied: default
+  submission_access_denied_title: ''
+  submission_access_denied_message: ''
+  submission_exception_message: ''
+  submission_locked_message: ''
+  submission_excluded_elements: {  }
+  submission_exclude_empty: false
+  submission_exclude_empty_checkbox: false
+  previous_submission_message: ''
+  previous_submissions_message: ''
+  autofill: false
+  autofill_message: ''
+  autofill_excluded_elements: {  }
+  wizard_progress_bar: true
+  wizard_progress_pages: false
+  wizard_progress_percentage: false
+  wizard_progress_link: false
+  wizard_progress_states: false
+  wizard_auto_forward: true
+  wizard_auto_forward_hide_next_button: false
+  wizard_keyboard: true
+  wizard_sync_pages: false
+  wizard_start_label: ''
+  wizard_preview_link: false
+  wizard_confirmation: true
+  wizard_confirmation_label: ''
+  preview: 0
+  preview_label: ''
+  preview_title: ''
+  preview_message: ''
+  preview_attributes: {  }
+  preview_excluded_elements: {  }
+  preview_exclude_empty: true
+  preview_exclude_empty_checkbox: false
+  draft: none
+  draft_multiple: false
+  draft_auto_save: false
+  draft_saved_message: ''
+  draft_loaded_message: ''
+  draft_pending_single_message: ''
+  draft_pending_multiple_message: ''
+  confirmation_type: message
+  confirmation_url: ''
+  confirmation_title: 'Registro de Seguro Estudiantil Exitoso'
+  confirmation_message: 'El registro del estudiante para la póliza de Seguro de Accidentes Personales (AP) Educativo ha sido recibido satisfactoriamente.'
+  confirmation_attributes: {  }
+  confirmation_back: true
+  confirmation_back_label: 'Registrar otro estudiante'
+  confirmation_back_attributes: {  }
+  confirmation_exclude_query: false
+  confirmation_exclude_token: false
+  confirmation_update: false
+  limit_total: null
+  limit_total_interval: null
+  limit_total_message: ''
+  limit_total_unique: false
+  limit_user: null
+  limit_user_interval: null
+  limit_user_message: ''
+  limit_user_unique: false
+  entity_limit_total: null
+  entity_limit_total_interval: null
+  entity_limit_user: null
+  entity_limit_user_interval: null
+  purge: none
+  purge_days: null
+  results_disabled: false
+  results_disabled_ignore: false
+  results_customize_checkbox: false
+  token_view: false
+  token_update: false
+  token_delete: false
+  serial_disabled: false
+access:
+  create:
+    roles:
+      - anonymous
+      - authenticated
+    users: {  }
+    permissions: {  }
+  view_any:
+    roles: {  }
+    users: {  }
+    permissions: {  }
+  update_any:
+    roles: {  }
+    users: {  }
+    permissions: {  }
+  delete_any:
+    roles: {  }
+    users: {  }
+    permissions: {  }
+  purge_any:
+    roles: {  }
+    users: {  }
+    permissions: {  }
+  view_own:
+    roles: {  }
+    users: {  }
+    permissions: {  }
+  update_own:
+    roles: {  }
+    users: {  }
+    permissions: {  }
+  delete_own:
+    roles: {  }
+    users: {  }
+    permissions: {  }
+  administer:
+    roles: {  }
+    users: {  }
+    permissions: {  }
+  test:
+    roles: {  }
+    users: {  }
+    permissions: {  }
+  configuration:
+    roles: {  }
+    users: {  }
+    permissions: {  }
+handlers: {  }
+variants: {  }

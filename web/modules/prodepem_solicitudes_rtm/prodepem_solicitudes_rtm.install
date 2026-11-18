@@ -1,0 +1,54 @@
+<?php
+
+/**
+ * @file
+ * Install, update and uninstall functions for the prodepem_solicitudes_rtm module.
+ */
+
+use Drupal\Core\Serialization\Yaml;
+use Drupal\webform\Entity\Webform;
+
+/**
+ * Implements hook_install().
+ */
+function prodepem_solicitudes_rtm_install() {
+  _prodepem_solicitudes_rtm_install_webform_seguro_educativo();
+}
+
+/**
+ * Create or update the 'formulario_seguro_educativo' webform.
+ */
+function prodepem_solicitudes_rtm_update_9001() {
+  _prodepem_solicitudes_rtm_install_webform_seguro_educativo();
+}
+
+/**
+ * Helper to install or update the webform from config/install.
+ */
+function _prodepem_solicitudes_rtm_install_webform_seguro_educativo() {
+  $module_handler = \Drupal::moduleHandler();
+  if (!$module_handler->moduleExists('webform')) {
+    return;
+  }
+
+  $module_path = \Drupal::service('extension.list.module')->getPath('prodepem_solicitudes_rtm');
+  $config_file = $module_path . '/config/install/webform.webform.formulario_seguro_educativo.yml';
+
+  if (file_exists($config_file)) {
+    $raw_yaml = file_get_contents($config_file);
+    $config_data = Yaml::decode($raw_yaml);
+
+    if (!empty($config_data['id'])) {
+      $entity_type_manager = \Drupal::entityTypeManager();
+      if ($entity_type_manager->hasDefinition('webform')) {
+        $storage = $entity_type_manager->getStorage('webform');
+        $webform = $storage->load($config_data['id']);
+        if (!$webform) {
+          $webform = Webform::create($config_data);
+          $webform->save();
+          \Drupal::logger('prodepem_solicitudes_rtm')->notice('Webform @id creado exitosamente.', ['@id' => $config_data['id']]);
+        }
+      }
+    }
+  }
+}
