@@ -68,6 +68,7 @@
             <option value="12000" {% if filters.tarifa == '12000' %}selected{% endif %}>{{ 'Tarifa $12.000 (Obesidad > 30)'|t }}</option>
             <option value="10000" {% if filters.tarifa == '10000' %}selected{% endif %}>{{ 'Tarifa $10.000 (HTA/Sobrepeso)'|t }}</option>
             <option value="8000" {% if filters.tarifa == '8000' %}selected{% endif %}>{{ 'Tarifa $8.000 (Tarifa Base)'|t }}</option>
+            <option value="mayor_71" {% if filters.tarifa == 'mayor_71' %}selected{% endif %}>{{ 'Más de 71 años'|t }}</option>
           </select>
         </div>
       {% endif %}
@@ -95,9 +96,9 @@
 
   <!-- Banner de Filtro Activo Proveniente de Estadísticas de Salud -->
   {% if filters.tarifa or filters.filtro_salud or filters.condicion %}
-    <div style="background: #f8fafc; border: 1.5px solid #cbd5e1; border-left: 5px solid {% if filters.tarifa == '12000' %}#dc2626{% elseif filters.tarifa == '10000' %}#d97706{% elseif filters.tarifa == '8000' %}#16a34a{% else %}#4f46e5{% endif %}; border-radius: 8px; padding: 0.9rem 1.25rem; margin-bottom: 1.25rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.85rem; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
+    <div style="background: #f8fafc; border: 1.5px solid #cbd5e1; border-left: 5px solid {% if filters.tarifa == '12000' %}#dc2626{% elseif filters.tarifa == '10000' %}#d97706{% elseif filters.tarifa == '8000' %}#16a34a{% elseif filters.tarifa == 'mayor_71' or filters.condicion == 'mayor_71' %}#7c3aed{% else %}#4f46e5{% endif %}; border-radius: 8px; padding: 0.9rem 1.25rem; margin-bottom: 1.25rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.85rem; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
       <div style="display: flex; align-items: center; gap: 0.75rem;">
-        <span style="background: {% if filters.tarifa == '12000' %}#fee2e2; color: #991b1b;{% elseif filters.tarifa == '10000' %}#fef9c3; color: #854d0e;{% elseif filters.tarifa == '8000' %}#dcfce7; color: #166534;{% else %}#ede9fe; color: #5b21b6;{% endif %} width: 34px; height: 34px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.95rem;">
+        <span style="background: {% if filters.tarifa == '12000' %}#fee2e2; color: #991b1b;{% elseif filters.tarifa == '10000' %}#fef9c3; color: #854d0e;{% elseif filters.tarifa == '8000' %}#dcfce7; color: #166534;{% elseif filters.tarifa == 'mayor_71' or filters.condicion == 'mayor_71' %}#ede9fe; color: #6d28d9;{% else %}#ede9fe; color: #5b21b6;{% endif %} width: 34px; height: 34px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.95rem;">
           <i class="fa-solid fa-filter"></i>
         </span>
         <div>
@@ -111,6 +112,8 @@
               <span style="color: #854d0e;"><i class="fa-solid fa-heart-pulse"></i> {{ 'Tarifa $10.000 (Hipertensión arterial / Presión arterial / Sobrepeso)'|t }}</span>
             {% elseif filters.tarifa == '8000' %}
               <span style="color: #166534;"><i class="fa-solid fa-circle-check"></i> {{ 'Tarifa $8.000 (Tarifa Base / Sanos)'|t }}</span>
+            {% elseif filters.tarifa == 'mayor_71' or filters.condicion == 'mayor_71' %}
+              <span style="color: #6d28d9;"><i class="fa-solid fa-user-clock"></i> {{ 'Personas con más de 71 años'|t }}</span>
             {% elseif filters.filtro_salud == 'con_condiciones' %}
               <span style="color: #854d0e;"><i class="fa-solid fa-notes-medical"></i> {{ 'Solicitudes con Condiciones Médicas Declaradas'|t }}</span>
             {% elseif filters.filtro_salud == 'sin_condiciones' %}
@@ -300,7 +303,11 @@
                   {% endif %}
                 </td>
                 <td style="text-align: right; white-space: nowrap; font-weight: 600;">
-                  {% if item.valor_condicion_salud == 12000 %}
+                  {% if item.es_mayor_71 %}
+                    <span style="color: #6d28d9; background: #ede9fe; padding: 2px 7px; border-radius: 4px; font-weight: 700;" title="{{ 'Persona con más de 71 años (Tarifa referencial: $' ~ item.valor_condicion_salud|default(8000)|number_format(0, ',', '.') ~ ')' }}">
+                      {{ '> 71 años'|t }}
+                    </span>
+                  {% elseif item.valor_condicion_salud == 12000 %}
                     <span style="color: #991b1b; background: #fee2e2; padding: 2px 7px; border-radius: 4px; font-weight: 700;">
                       $12.000
                     </span>

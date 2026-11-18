@@ -221,6 +221,26 @@
         </a>
       </div>
     </div>
+
+    <!-- 7. Más de 71 años -->
+    <div class="reportes-stat-card" style="background: #faf5ff; border: 1px solid #e9d5ff; border-radius: 10px; padding: 1.15rem 1.25rem;">
+      <a href="{{ card_urls.mayor_71 }}" class="card-main-link" title="{{ 'Ver registros de personas con más de 71 años'|t }}">
+        <div style="font-size: 0.78rem; font-weight: 700; color: #7c3aed; text-transform: uppercase;">{{ 'Más de 71 Años'|t }}</div>
+        <div style="font-size: 1.9rem; font-weight: 800; color: #6d28d9; margin-top: 0.2rem;">{{ stats.conteo_mayores_71.cantidad }}</div>
+        <div style="font-size: 0.8rem; color: #7c3aed; margin-top: 0.35rem;">
+          <strong>{{ stats.conteo_mayores_71.porcentaje }}%</strong> {{ 'del total evaluado'|t }}
+        </div>
+      </a>
+      <div style="margin-top: 0.85rem; padding-top: 0.65rem; border-top: 1px dashed #e9d5ff; display: flex; justify-content: space-between; align-items: center; gap: 0.5rem;">
+        <a href="{{ card_urls.mayor_71 }}" style="font-size: 0.78rem; font-weight: 700; color: #7c3aed; text-decoration: none; display: flex; align-items: center; gap: 4px;">
+          <span>{{ 'Ver registros'|t }}</span>
+          <i class="fa-solid fa-arrow-right"></i>
+        </a>
+        <a href="{{ card_export_urls.mayor_71 }}" class="btn-reporte btn-reporte--excel btn-reporte--sm" style="padding: 2px 7px; font-size: 0.72rem; border-radius: 4px;" title="{{ 'Descargar registros de personas con más de 71 años en Excel'|t }}">
+          <i class="fa-solid fa-file-excel"></i> XLS
+        </a>
+      </div>
+    </div>
   </div>
 
   <!-- TABLA 1: Conteo Detallado por Condición de Salud -->
@@ -359,6 +379,43 @@
                 <i class="fa-solid fa-list-check"></i> {{ 'Ver'|t }}
               </a>
               <a href="{{ card_export_urls.tarifa_12000 }}" class="btn-reporte btn-reporte--sm btn-reporte--excel" style="padding: 3px 8px; font-size: 0.75rem;" title="{{ 'Descargar en Excel registros con obesidad e IMC > 30'|t }}">
+                <i class="fa-solid fa-file-excel"></i> XLS
+              </a>
+            </td>
+          </tr>
+          {% set num = num + 1 %}
+
+          <!-- Personas con más de 71 años -->
+          <tr style="background: #faf5ff;">
+            <td style="text-align: center; color: #7c3aed; font-weight: 700;">{{ num }}</td>
+            <td style="font-weight: 700; color: #6d28d9;">
+              <a href="{{ card_urls.mayor_71 }}" style="color: #6d28d9; text-decoration: none;">
+                <i class="fa-solid fa-user-clock" style="margin-right: 4px;"></i>
+                {{ 'Personas con más de 71 años'|t }}
+              </a>
+              <span style="margin-left: 6px; font-size: 0.72rem; padding: 2px 6px; background: #ede9fe; color: #6d28d9; border-radius: 4px; font-weight: 700;">
+                {{ 'Regla > 71 años'|t }}
+              </span>
+            </td>
+            <td style="text-align: right; font-weight: 700; font-size: 1rem; color: #6d28d9;">
+              {{ stats.conteo_mayores_71.cantidad }}
+            </td>
+            <td>
+              <div style="display: flex; align-items: center; gap: 8px;">
+                <div style="flex: 1; background: #e5e7eb; border-radius: 9999px; height: 8px; overflow: hidden;">
+                  <div style="background: #8b5cf6; height: 100%; width: {{ stats.conteo_mayores_71.porcentaje }}%;"></div>
+                </div>
+                <span style="font-size: 0.8rem; font-weight: 600; color: #4b5563; min-width: 42px; text-align: right;">{{ stats.conteo_mayores_71.porcentaje }}%</span>
+              </div>
+            </td>
+            <td style="text-align: center;">
+              <span style="display: inline-block; padding: 3px 8px; background: #ede9fe; color: #6d28d9; border-radius: 4px; font-weight: 700; font-size: 0.8rem;">> 71 años</span>
+            </td>
+            <td style="text-align: center; white-space: nowrap;">
+              <a href="{{ card_urls.mayor_71 }}" class="btn-reporte btn-reporte--sm btn-reporte--secondary" style="padding: 3px 8px; font-size: 0.75rem;" title="{{ 'Ver registros de personas con más de 71 años'|t }}">
+                <i class="fa-solid fa-list-check"></i> {{ 'Ver'|t }}
+              </a>
+              <a href="{{ card_export_urls.mayor_71 }}" class="btn-reporte btn-reporte--sm btn-reporte--excel" style="padding: 3px 8px; font-size: 0.75rem;" title="{{ 'Descargar en Excel registros de personas con más de 71 años'|t }}">
                 <i class="fa-solid fa-file-excel"></i> XLS
               </a>
             </td>
@@ -513,6 +570,37 @@
                 <i class="fa-solid fa-list-check"></i> {{ 'Ver'|t }}
               </a>
               <a href="{{ card_export_urls.tarifa_8000 }}" class="btn-reporte btn-reporte--sm btn-reporte--excel" style="padding: 3px 8px; font-size: 0.75rem;" title="{{ 'Descargar registros con tarifa $8.000 en Excel'|t }}">
+                <i class="fa-solid fa-file-excel"></i> XLS
+              </a>
+            </td>
+          </tr>
+
+          <tr style="background: #faf5ff;">
+            <td style="text-align: center;">
+              <span style="display: inline-block; padding: 4px 10px; background: #ede9fe; color: #6d28d9; border-radius: 6px; font-weight: 800; font-size: 0.95rem;">
+                {{ '> 71 años'|t }}
+              </span>
+            </td>
+            <td style="font-weight: 600;">
+              <strong style="color: #6d28d9;">{{ 'Personas con más de 71 años'|t }}</strong>
+              <div style="font-size: 0.8rem; color: #6b7280;">{{ 'Personas cuya edad supera los 71 años (excluidas de tarifas base, sobrepeso y obesidad).'|t }}</div>
+            </td>
+            <td style="text-align: right; font-weight: 800; font-size: 1.1rem; color: #6d28d9;">
+              {{ stats.conteo_mayores_71.cantidad }}
+            </td>
+            <td>
+              <div style="display: flex; align-items: center; gap: 8px;">
+                <div style="flex: 1; background: #e5e7eb; border-radius: 9999px; height: 8px; overflow: hidden;">
+                  <div style="background: #8b5cf6; height: 100%; width: {{ stats.conteo_mayores_71.porcentaje }}%;"></div>
+                </div>
+                <span style="font-size: 0.85rem; font-weight: 700; color: #111827; min-width: 45px; text-align: right;">{{ stats.conteo_mayores_71.porcentaje }}%</span>
+              </div>
+            </td>
+            <td style="text-align: center; white-space: nowrap;">
+              <a href="{{ card_urls.mayor_71 }}" class="btn-reporte btn-reporte--sm btn-reporte--secondary" style="padding: 3px 8px; font-size: 0.75rem;" title="{{ 'Ver registros de personas con más de 71 años'|t }}">
+                <i class="fa-solid fa-list-check"></i> {{ 'Ver'|t }}
+              </a>
+              <a href="{{ card_export_urls.mayor_71 }}" class="btn-reporte btn-reporte--sm btn-reporte--excel" style="padding: 3px 8px; font-size: 0.75rem;" title="{{ 'Descargar registros de personas con más de 71 años en Excel'|t }}">
                 <i class="fa-solid fa-file-excel"></i> XLS
               </a>
             </td>

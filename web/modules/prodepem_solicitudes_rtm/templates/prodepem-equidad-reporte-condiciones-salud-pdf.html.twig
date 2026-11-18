@@ -377,35 +377,40 @@
     <!-- RESUMEN EJECUTIVO / MÉTRICAS CLAVE -->
     <table class="summary-table">
         <tr>
-            <td class="summary-card card-total" style="width: 16.66%;">
+            <td class="summary-card card-total" style="width: 14.28%;">
                 <span class="summary-label" style="color: #475569;">{{ 'Total General'|t }}</span>
                 <span class="summary-num" style="color: #1e293b;">{{ stats.total_solicitudes }}</span>
                 <span class="summary-pct">100.0% {{ 'evaluados'|t }}</span>
             </td>
-            <td class="summary-card card-con-cond" style="width: 16.66%;">
+            <td class="summary-card card-con-cond" style="width: 14.28%;">
                 <span class="summary-label" style="color: #92400e;">{{ 'Con Condiciones'|t }}</span>
                 <span class="summary-num" style="color: #b45309;">{{ stats.conteo_con_condiciones }}</span>
                 <span class="summary-pct">{{ stats.porcentaje_con_condiciones }}% {{ 'del total'|t }}</span>
             </td>
-            <td class="summary-card card-sin-cond" style="width: 16.66%;">
+            <td class="summary-card card-sin-cond" style="width: 14.28%;">
                 <span class="summary-label" style="color: #166534;">{{ 'Sin Condiciones'|t }}</span>
                 <span class="summary-num" style="color: #15803d;">{{ stats.conteo_sin_condiciones }}</span>
                 <span class="summary-pct">{{ stats.porcentaje_sin_condiciones }}% {{ 'declararon "Ninguna"'|t }}</span>
             </td>
-            <td class="summary-card card-tarifa-12000" style="width: 16.66%;">
+            <td class="summary-card card-tarifa-12000" style="width: 14.28%;">
                 <span class="summary-label" style="color: #991b1b;">{{ 'Tarifa $12.000'|t }}</span>
                 <span class="summary-num" style="color: #dc2626;">{{ stats.tarifas[12000].cantidad }}</span>
                 <span class="summary-pct">{{ stats.tarifas[12000].porcentaje }}% (Obesidad > 30)</span>
             </td>
-            <td class="summary-card card-tarifa-10000" style="width: 16.66%;">
+            <td class="summary-card card-tarifa-10000" style="width: 14.28%;">
                 <span class="summary-label" style="color: #854d0e;">{{ 'Tarifa $10.000'|t }}</span>
                 <span class="summary-num" style="color: #d97706;">{{ stats.tarifas[10000].cantidad }}</span>
                 <span class="summary-pct">{{ stats.tarifas[10000].porcentaje }}% (HTA / Sobrepeso)</span>
             </td>
-            <td class="summary-card card-tarifa-8000" style="width: 16.66%;">
+            <td class="summary-card card-tarifa-8000" style="width: 14.28%;">
                 <span class="summary-label" style="color: #065f46;">{{ 'Tarifa $8.000'|t }}</span>
                 <span class="summary-num" style="color: #059669;">{{ stats.tarifas[8000].cantidad }}</span>
                 <span class="summary-pct">{{ stats.tarifas[8000].porcentaje }}% (Tarifa Base)</span>
+            </td>
+            <td class="summary-card" style="width: 14.28%; background-color: #faf5ff; border: 1px solid #e9d5ff; border-left: 3px solid #7c3aed;">
+                <span class="summary-label" style="color: #6d28d9;">{{ 'Más de 71 Años'|t }}</span>
+                <span class="summary-num" style="color: #5b21b6;">{{ stats.conteo_mayores_71.cantidad }}</span>
+                <span class="summary-pct">{{ stats.conteo_mayores_71.porcentaje }}% {{ 'del total'|t }}</span>
             </td>
         </tr>
     </table>
@@ -590,6 +595,28 @@
                 </td>
                 <td class="text-right font-bold" style="color: #065f46;">
                     $ {{ (stats.tarifas[8000].cantidad * 8000)|number_format(0, ',', '.') }}
+                </td>
+            </tr>
+
+            <!-- Más de 71 años -->
+            <tr style="background-color: #faf5ff;">
+                <td class="text-center">
+                    <span style="font-size: 7.5pt; padding: 2px 6px; background-color: #ede9fe; color: #6d28d9; border-radius: 3px; font-weight: bold;">> 71 años</span>
+                </td>
+                <td>
+                    <strong style="color: #6d28d9;">{{ 'Personas con más de 71 años'|t }}</strong>
+                    <div style="font-size: 6.5pt; color: #6b7280;">
+                        {{ 'Personas cuya edad supera los 71 años (excluidas de tarifas base, sobrepeso y obesidad).'|t }}
+                    </div>
+                </td>
+                <td class="text-right font-bold" style="font-size: 8.5pt; color: #6d28d9;">
+                    {{ stats.conteo_mayores_71.cantidad }}
+                </td>
+                <td class="text-right font-bold" style="color: #6d28d9;">
+                    {{ stats.conteo_mayores_71.porcentaje }}%
+                </td>
+                <td class="text-right font-bold" style="color: #6d28d9;">
+                    -
                 </td>
             </tr>
 

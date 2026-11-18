@@ -83,6 +83,7 @@ class EquidadReportesController extends ControllerBase {
       'tarifa_12000' => Url::fromRoute('prodepem_solicitudes_rtm.reporte_aspu', [], ['query' => array_merge($base_query, ['tarifa' => '12000'])])->toString(),
       'tarifa_10000' => Url::fromRoute('prodepem_solicitudes_rtm.reporte_aspu', [], ['query' => array_merge($base_query, ['tarifa' => '10000'])])->toString(),
       'tarifa_8000' => Url::fromRoute('prodepem_solicitudes_rtm.reporte_aspu', [], ['query' => array_merge($base_query, ['tarifa' => '8000'])])->toString(),
+      'mayor_71' => Url::fromRoute('prodepem_solicitudes_rtm.reporte_aspu', [], ['query' => array_merge($base_query, ['tarifa' => 'mayor_71'])])->toString(),
       'sobrepeso' => Url::fromRoute('prodepem_solicitudes_rtm.reporte_aspu', [], ['query' => array_merge($base_query, ['condicion' => 'sobrepeso'])])->toString(),
       'obesidad_imc30' => Url::fromRoute('prodepem_solicitudes_rtm.reporte_aspu', [], ['query' => array_merge($base_query, ['tarifa' => '12000'])])->toString(),
     ];
@@ -94,6 +95,7 @@ class EquidadReportesController extends ControllerBase {
       'tarifa_12000' => Url::fromRoute('prodepem_solicitudes_rtm.reportes_equidad_exportar', ['reporte' => 'aspu'], ['query' => array_merge($base_query, ['tarifa' => '12000'])])->toString(),
       'tarifa_10000' => Url::fromRoute('prodepem_solicitudes_rtm.reportes_equidad_exportar', ['reporte' => 'aspu'], ['query' => array_merge($base_query, ['tarifa' => '10000'])])->toString(),
       'tarifa_8000' => Url::fromRoute('prodepem_solicitudes_rtm.reportes_equidad_exportar', ['reporte' => 'aspu'], ['query' => array_merge($base_query, ['tarifa' => '8000'])])->toString(),
+      'mayor_71' => Url::fromRoute('prodepem_solicitudes_rtm.reportes_equidad_exportar', ['reporte' => 'aspu'], ['query' => array_merge($base_query, ['tarifa' => 'mayor_71'])])->toString(),
       'sobrepeso' => Url::fromRoute('prodepem_solicitudes_rtm.reportes_equidad_exportar', ['reporte' => 'aspu'], ['query' => array_merge($base_query, ['condicion' => 'sobrepeso'])])->toString(),
       'obesidad_imc30' => Url::fromRoute('prodepem_solicitudes_rtm.reportes_equidad_exportar', ['reporte' => 'aspu'], ['query' => array_merge($base_query, ['tarifa' => '12000'])])->toString(),
     ];
@@ -248,7 +250,10 @@ class EquidadReportesController extends ControllerBase {
     // Label descriptivo para el filtro de condición específico:
     $filtro_condicion_label = '';
     if (!empty($condicion)) {
-      if ($condicion === 'sobrepeso') {
+      if ($condicion === 'mayor_71') {
+        $filtro_condicion_label = 'Personas con más de 71 años';
+      }
+      elseif ($condicion === 'sobrepeso') {
         $filtro_condicion_label = 'Sobrepeso (declarado o registrado)';
       }
       elseif ($condicion === 'obesidad_imc30') {
@@ -757,9 +762,20 @@ class EquidadReportesController extends ControllerBase {
 
       // Filtros específicos adicionales (Tarifa, Salud, Condición):
       if (!empty($filtros_extra['tarifa'])) {
-        $tarifa_filtro = (int) $filtros_extra['tarifa'];
-        if ((int) ($item['valor_condicion_salud'] ?? 8000) !== $tarifa_filtro) {
-          continue;
+        if ($filtros_extra['tarifa'] === 'mayor_71') {
+          if (empty($item['es_mayor_71'])) {
+            continue;
+          }
+        }
+        else {
+          // Si el filtro es de tarifa regular (12000, 10000 u 8000), se excluyen personas con más de 71 años:
+          if (!empty($item['es_mayor_71'])) {
+            continue;
+          }
+          $tarifa_filtro = (int) $filtros_extra['tarifa'];
+          if ((int) ($item['valor_condicion_salud'] ?? 8000) !== $tarifa_filtro) {
+            continue;
+          }
         }
       }
 
@@ -779,12 +795,20 @@ class EquidadReportesController extends ControllerBase {
         $texto_norm = self::normalizarTextoParaBusqueda($texto_salud);
         $keys_marcadas = $item['condiciones_marcadas_keys'] ?? [];
 
-        if ($cond_req === 'sobrepeso') {
-          if (strpos($texto_norm, 'sobrepeso') === FALSE) {
+        if ($cond_req === 'mayor_71') {
+          if (empty($item['es_mayor_71'])) {
+            continue;
+          }
+        }
+        elseif ($cond_req === 'sobrepeso') {
+          if (!empty($item['es_mayor_71']) || strpos($texto_norm, 'sobrepeso') === FALSE) {
             continue;
           }
         }
         elseif ($cond_req === 'obesidad_imc30') {
+          if (!empty($item['es_mayor_71'])) {
+            continue;
+          }
           $imc_num = 0.0;
           if (!empty($item['imc'])) {
             $imc_clean = str_replace(',', '.', trim((string) $item['imc']));
@@ -991,6 +1015,17 @@ class EquidadReportesController extends ControllerBase {
     }
     $fecha_nacimiento = self::formatearFecha($fecha_nac_raw);
     $edad = self::calcularEdad($fecha_nac_raw);
+    if ($edad === '') {
+      $candidatos_edad = ['edad', 'edad_asegurado', 'edad_anos', 'anos_cumplidos'];
+      foreach ($candidatos_edad as $cand_edad) {
+        if (isset($raw[$cand_edad]) && is_numeric($raw[$cand_edad]) && (int) $raw[$cand_edad] > 0) {
+          $edad = (string) (int) $raw[$cand_edad];
+          break;
+        }
+      }
+    }
+    $edad_int = ($edad !== '' && is_numeric($edad)) ? (int) $edad : null;
+    $es_mayor_71 = ($edad_int !== null && $edad_int > 71);
 
     // Peso, estatura e IMC (Índice de Masa Corporal):
     $peso = trim((string) ($raw['peso'] ?? $raw['peso_kg'] ?? ''));
@@ -1526,6 +1561,7 @@ class EquidadReportesController extends ControllerBase {
       'fecha_nacimiento' => $fecha_nacimiento,
       'fecha_nacimiento_raw' => $fecha_nac_raw,
       'edad' => $edad,
+      'es_mayor_71' => $es_mayor_71,
       'peso' => $peso,
       'estatura' => $estatura,
       'imc' => $imc,
@@ -1651,6 +1687,7 @@ class EquidadReportesController extends ControllerBase {
         'trabaja_actualmente' => $raw['trabaja_actualmente'] ?? 'Si',
         'fecha_nacimiento' => !empty($item['fecha_nacimiento']) ? $item['fecha_nacimiento'] : ($raw['fecha_de_nacimiento'] ?? $raw['fecha_nacimiento'] ?? ''),
         'edad' => $item['edad'],
+        'es_mayor_71' => $item['es_mayor_71'] ?? FALSE,
         'estado_civil' => $raw['estado_civil'] ?? '',
         'valor_solicitado' => $item['valor_asegurado'],
         'total_asegurado' => $item['total_asegurado'],
@@ -1720,7 +1757,12 @@ class EquidadReportesController extends ControllerBase {
 
     $meta_filtro = '';
     if (!empty($filtros_extra['tarifa'])) {
-      $meta_filtro = ' | Filtro Tarifa: $' . number_format((int) $filtros_extra['tarifa'], 0, ',', '.');
+      if ($filtros_extra['tarifa'] === 'mayor_71') {
+        $meta_filtro = ' | Filtro: Personas con más de 71 años';
+      }
+      else {
+        $meta_filtro = ' | Filtro Tarifa: $' . number_format((int) $filtros_extra['tarifa'], 0, ',', '.');
+      }
     }
     elseif (!empty($filtros_extra['filtro_salud'])) {
       $meta_filtro = ' | Filtro Salud: ' . ($filtros_extra['filtro_salud'] === 'con_condiciones' ? 'Con Condiciones Médicas' : 'Sin Condiciones (Sanos)');
@@ -2313,6 +2355,7 @@ class EquidadReportesController extends ControllerBase {
     $conteo_hipertension = 0;
     $conteo_sin_condiciones = 0;
     $conteo_con_condiciones = 0;
+    $conteo_mayores_71 = 0;
 
     $tarifas = [
       12000 => ['cantidad' => 0, 'porcentaje' => 0.0],
@@ -2343,12 +2386,6 @@ class EquidadReportesController extends ControllerBase {
         $conteo_con_condiciones++;
       }
 
-      // Reglas específicas:
-      // Sobrepeso.
-      if (strpos($texto_busqueda, 'sobrepeso') !== FALSE) {
-        $conteo_sobrepeso++;
-      }
-
       // Hipertensión arterial / Presión arterial.
       if (
         strpos($texto_busqueda, 'hipertension') !== FALSE ||
@@ -2358,28 +2395,44 @@ class EquidadReportesController extends ControllerBase {
         $conteo_hipertension++;
       }
 
-      // Obesidad.
-      $imc_num = 0.0;
-      if (!empty($item['imc'])) {
-        $imc_clean = str_replace(',', '.', trim((string) $item['imc']));
-        if (is_numeric($imc_clean)) {
-          $imc_num = (float) $imc_clean;
-        }
-      }
+      // Regla de edad: más de 71 años.
+      $edad_num = (isset($item['edad']) && is_numeric($item['edad'])) ? (int) $item['edad'] : null;
+      $es_mayor_71 = (!empty($item['es_mayor_71']) || ($edad_num !== null && $edad_num > 71));
 
-      if (strpos($texto_busqueda, 'obesidad') !== FALSE) {
-        $conteo_obesidad_total++;
-        if ($imc_num > 30.0) {
-          $conteo_obesidad_imc30++;
+      // Si tiene más de 71 años se contabiliza en su propio card y se excluye de los cards
+      // de obesidad ($12.000), sobrepeso ($10.000) y base ($8.000):
+      if ($es_mayor_71) {
+        $conteo_mayores_71++;
+      }
+      else {
+        // Sobrepeso (excluye mayores de 71 años).
+        if (strpos($texto_busqueda, 'sobrepeso') !== FALSE) {
+          $conteo_sobrepeso++;
         }
-      }
 
-      // Consolidado por tarifa (12000, 10000 u 8000).
-      $tarifa_val = (int) ($item['valor_condicion_salud'] ?? 8000);
-      if (!isset($tarifas[$tarifa_val])) {
-        $tarifa_val = 8000;
+        // Obesidad (excluye mayores de 71 años).
+        $imc_num = 0.0;
+        if (!empty($item['imc'])) {
+          $imc_clean = str_replace(',', '.', trim((string) $item['imc']));
+          if (is_numeric($imc_clean)) {
+            $imc_num = (float) $imc_clean;
+          }
+        }
+
+        if (strpos($texto_busqueda, 'obesidad') !== FALSE) {
+          $conteo_obesidad_total++;
+          if ($imc_num > 30.0) {
+            $conteo_obesidad_imc30++;
+          }
+        }
+
+        // Consolidado por tarifa (12000, 10000 u 8000, excluye mayores de 71 años).
+        $tarifa_val = (int) ($item['valor_condicion_salud'] ?? 8000);
+        if (!isset($tarifas[$tarifa_val])) {
+          $tarifa_val = 8000;
+        }
+        $tarifas[$tarifa_val]['cantidad']++;
       }
-      $tarifas[$tarifa_val]['cantidad']++;
     }
 
     $calc_pct = function($cant) use ($total) {
@@ -2403,6 +2456,10 @@ class EquidadReportesController extends ControllerBase {
       'porcentaje_con_condiciones' => $calc_pct($conteo_con_condiciones),
       'conteo_sin_condiciones' => $conteo_sin_condiciones,
       'porcentaje_sin_condiciones' => $calc_pct($conteo_sin_condiciones),
+      'conteo_mayores_71' => [
+        'cantidad' => $conteo_mayores_71,
+        'porcentaje' => $calc_pct($conteo_mayores_71),
+      ],
       'conteo_sobrepeso' => [
         'cantidad' => $conteo_sobrepeso,
         'porcentaje' => $calc_pct($conteo_sobrepeso),
@@ -2495,6 +2552,15 @@ class EquidadReportesController extends ControllerBase {
     echo '  <td class="text-center badge-12000">$12.000</td>' . "\n";
     echo '</tr>' . "\n";
 
+    // Personas con más de 71 años
+    echo '<tr>' . "\n";
+    echo '  <td class="text-center">' . $i++ . '</td>' . "\n";
+    echo '  <td>Personas con más de 71 años</td>' . "\n";
+    echo '  <td class="text-right" style="mso-number-format:\'0\';">' . $stats['conteo_mayores_71']['cantidad'] . '</td>' . "\n";
+    echo '  <td class="text-right">' . $stats['conteo_mayores_71']['porcentaje'] . '%</td>' . "\n";
+    echo '  <td class="text-center">> 71 años</td>' . "\n";
+    echo '</tr>' . "\n";
+
     // Sin condiciones
     echo '<tr>' . "\n";
     echo '  <td class="text-center">' . $i++ . '</td>' . "\n";
@@ -2537,6 +2603,14 @@ class EquidadReportesController extends ControllerBase {
     echo '  <td>Tarifa Base (No cumplen condiciones anteriores / Sanos)</td>' . "\n";
     echo '  <td class="text-right" style="mso-number-format:\'0\';">' . $stats['tarifas'][8000]['cantidad'] . '</td>' . "\n";
     echo '  <td class="text-right">' . $stats['tarifas'][8000]['porcentaje'] . '%</td>' . "\n";
+    echo '</tr>' . "\n";
+
+    // Más de 71 años
+    echo '<tr>' . "\n";
+    echo '  <td class="text-center">> 71 años</td>' . "\n";
+    echo '  <td>Personas con más de 71 años (Excluidas de tarifas base, sobrepeso y obesidad)</td>' . "\n";
+    echo '  <td class="text-right" style="mso-number-format:\'0\';">' . $stats['conteo_mayores_71']['cantidad'] . '</td>' . "\n";
+    echo '  <td class="text-right">' . $stats['conteo_mayores_71']['porcentaje'] . '%</td>' . "\n";
     echo '</tr>' . "\n";
 
     // Total
