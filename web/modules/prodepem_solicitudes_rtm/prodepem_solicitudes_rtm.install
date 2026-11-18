@@ -12,27 +12,35 @@ use Drupal\webform\Entity\Webform;
  * Implements hook_install().
  */
 function prodepem_solicitudes_rtm_install() {
-  _prodepem_solicitudes_rtm_install_webform_seguro_educativo();
+  _prodepem_solicitudes_rtm_install_webform('webform.webform.formulario_seguro_educativo.yml');
+  _prodepem_solicitudes_rtm_install_webform('webform.webform.formulario_pago_seguro_educativo.yml');
 }
 
 /**
  * Create or update the 'formulario_seguro_educativo' webform.
  */
 function prodepem_solicitudes_rtm_update_9001() {
-  _prodepem_solicitudes_rtm_install_webform_seguro_educativo();
+  _prodepem_solicitudes_rtm_install_webform('webform.webform.formulario_seguro_educativo.yml');
 }
 
 /**
- * Helper to install or update the webform from config/install.
+ * Create or update the 'formulario_pago_seguro_educativo' webform.
  */
-function _prodepem_solicitudes_rtm_install_webform_seguro_educativo() {
+function prodepem_solicitudes_rtm_update_9002() {
+  _prodepem_solicitudes_rtm_install_webform('webform.webform.formulario_pago_seguro_educativo.yml');
+}
+
+/**
+ * Helper to install or update a webform from config/install.
+ */
+function _prodepem_solicitudes_rtm_install_webform($config_file_name) {
   $module_handler = \Drupal::moduleHandler();
   if (!$module_handler->moduleExists('webform')) {
     return;
   }
 
   $module_path = \Drupal::service('extension.list.module')->getPath('prodepem_solicitudes_rtm');
-  $config_file = $module_path . '/config/install/webform.webform.formulario_seguro_educativo.yml';
+  $config_file = $module_path . '/config/install/' . $config_file_name;
 
   if (file_exists($config_file)) {
     $raw_yaml = file_get_contents($config_file);
