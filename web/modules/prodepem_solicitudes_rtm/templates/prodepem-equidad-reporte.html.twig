@@ -204,13 +204,14 @@
               <th>{{ 'Documento'|t }}</th>
               <th>{{ 'Teléfono'|t }}</th>
               <th>{{ 'Ampliar Amparo / Por qué'|t }}</th>
+              <th style="text-align: center;">{{ 'Avisos Vencimiento'|t }}</th>
               <th style="text-align: center;">{{ 'SOAT'|t }}</th>
+              <th style="text-align: center;">{{ 'Téc. Mecánica'|t }}</th>
+              <th style="text-align: center;">{{ 'Placa'|t }}</th>
               <th style="text-align: center;">{{ 'Todo Riesgo'|t }}</th>
               <th style="text-align: center;">{{ 'Hogar'|t }}</th>
-              <th style="text-align: center;">{{ 'Téc. Mecánica'|t }}</th>
-              <th style="text-align: center;">{{ 'Avisos Vencimiento'|t }}</th>
+              <th style="text-align: center;">{{ 'Salud'|t }}</th>
               <th>{{ 'Seguros Adicionales'|t }}</th>
-              <th style="text-align: center;">{{ 'Placa'|t }}</th>
               <th style="text-align: center;">{{ 'Rifa 1'|t }}</th>
               <th style="text-align: center;">{{ 'Rifa 2'|t }}</th>
               <th style="text-align: right;">{{ 'Acciones'|t }}</th>
@@ -356,6 +357,19 @@
                   {% endif %}
                 </td>
 
+                <!-- Columna independiente: recibir_mensajes_vencimiento -->
+                <td style="text-align: center; white-space: nowrap;">
+                  {% if item.recibir_mensajes_vencimiento == 'SÍ' %}
+                    <span class="reportes-tag reportes-tag--yes">SÍ</span>
+                  {% elseif item.recibir_mensajes_vencimiento == 'NO' %}
+                    <span class="reportes-tag reportes-tag--no">NO</span>
+                  {% elseif item.recibir_mensajes_vencimiento %}
+                    <span class="reportes-tag">{{ item.recibir_mensajes_vencimiento }}</span>
+                  {% else %}
+                    <span style="color: #9ca3af; font-size: 0.8rem;">-</span>
+                  {% endif %}
+                </td>
+
                 <!-- Columna independiente: interesado_soat -->
                 <td style="text-align: center; white-space: nowrap;">
                   {% if item.interesado_soat == 'SÍ' %}
@@ -364,6 +378,28 @@
                     <span class="reportes-tag reportes-tag--no">NO</span>
                   {% elseif item.interesado_soat %}
                     <span class="reportes-tag">{{ item.interesado_soat }}</span>
+                  {% else %}
+                    <span style="color: #9ca3af; font-size: 0.8rem;">-</span>
+                  {% endif %}
+                </td>
+
+                <!-- Columna independiente: interesado_tecnicomecanica -->
+                <td style="text-align: center; white-space: nowrap;">
+                  {% if item.interesado_tecnicomecanica == 'SÍ' %}
+                    <span class="reportes-tag reportes-tag--yes">SÍ</span>
+                  {% elseif item.interesado_tecnicomecanica == 'NO' %}
+                    <span class="reportes-tag reportes-tag--no">NO</span>
+                  {% elseif item.interesado_tecnicomecanica %}
+                    <span class="reportes-tag">{{ item.interesado_tecnicomecanica }}</span>
+                  {% else %}
+                    <span style="color: #9ca3af; font-size: 0.8rem;">-</span>
+                  {% endif %}
+                </td>
+
+                <!-- Columna independiente: placa -->
+                <td style="text-align: center; white-space: nowrap;">
+                  {% if item.placa %}
+                    <span class="reportes-placa-badge">{{ item.placa }}</span>
                   {% else %}
                     <span style="color: #9ca3af; font-size: 0.8rem;">-</span>
                   {% endif %}
@@ -395,27 +431,14 @@
                   {% endif %}
                 </td>
 
-                <!-- Columna independiente: interesado_tecnicomecanica -->
+                <!-- Columna independiente: interesado_salud -->
                 <td style="text-align: center; white-space: nowrap;">
-                  {% if item.interesado_tecnicomecanica == 'SÍ' %}
+                  {% if item.interesado_salud == 'SÍ' %}
                     <span class="reportes-tag reportes-tag--yes">SÍ</span>
-                  {% elseif item.interesado_tecnicomecanica == 'NO' %}
+                  {% elseif item.interesado_salud == 'NO' %}
                     <span class="reportes-tag reportes-tag--no">NO</span>
-                  {% elseif item.interesado_tecnicomecanica %}
-                    <span class="reportes-tag">{{ item.interesado_tecnicomecanica }}</span>
-                  {% else %}
-                    <span style="color: #9ca3af; font-size: 0.8rem;">-</span>
-                  {% endif %}
-                </td>
-
-                <!-- Columna independiente: recibir_mensajes_vencimiento -->
-                <td style="text-align: center; white-space: nowrap;">
-                  {% if item.recibir_mensajes_vencimiento == 'SÍ' %}
-                    <span class="reportes-tag reportes-tag--yes">SÍ</span>
-                  {% elseif item.recibir_mensajes_vencimiento == 'NO' %}
-                    <span class="reportes-tag reportes-tag--no">NO</span>
-                  {% elseif item.recibir_mensajes_vencimiento %}
-                    <span class="reportes-tag">{{ item.recibir_mensajes_vencimiento }}</span>
+                  {% elseif item.interesado_salud %}
+                    <span class="reportes-tag">{{ item.interesado_salud }}</span>
                   {% else %}
                     <span style="color: #9ca3af; font-size: 0.8rem;">-</span>
                   {% endif %}
@@ -425,15 +448,6 @@
                 <td style="min-width: 150px;">
                   {% if item.seguros_adicionales %}
                     <span style="font-weight: 500; color: #1e40af;">{{ item.seguros_adicionales }}</span>
-                  {% else %}
-                    <span style="color: #9ca3af; font-size: 0.8rem;">-</span>
-                  {% endif %}
-                </td>
-
-                <!-- Columna independiente: placa -->
-                <td style="text-align: center; white-space: nowrap;">
-                  {% if item.placa %}
-                    <span class="reportes-placa-badge">{{ item.placa }}</span>
                   {% else %}
                     <span style="color: #9ca3af; font-size: 0.8rem;">-</span>
                   {% endif %}

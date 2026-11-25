@@ -749,6 +749,7 @@ class EquidadReportesController extends ControllerBase {
           $item['interesado_hogar'],
           $item['interesado_tecnicomecanica'] ?? '',
           $item['recibir_mensajes_vencimiento'] ?? '',
+          $item['interesado_salud'] ?? '',
           $item['seguros_adicionales'],
           $item['placa'],
           $item['numero_de_rifa_1'],
@@ -1410,6 +1411,75 @@ class EquidadReportesController extends ControllerBase {
       $interesado_soat = 'NO';
     }
 
+    // 6.1. interesado_salud:
+    $candidatos_salud = [
+      'interesado_salud',
+      'interesado_prodepem_salud',
+      'esta_interesado_en_salud',
+      'esta_interesado_en_el_seguro_de_salud',
+      'esta_interesado_salud',
+      'interesado_en_salud',
+      'interes_salud',
+      'interes_en_salud',
+      'seguro_salud',
+      'seguros_salud',
+      'poliza_salud',
+    ];
+    $interesado_salud_val = $raw['interesado_salud'] ?? NULL;
+    if ($interesado_salud_val === NULL || $interesado_salud_val === '') {
+      foreach ($candidatos_salud as $cand) {
+        if (isset($raw[$cand]) && $raw[$cand] !== '' && $raw[$cand] !== NULL) {
+          $interesado_salud_val = $raw[$cand];
+          break;
+        }
+      }
+    }
+    if (($interesado_salud_val === NULL || $interesado_salud_val === '') && $webform) {
+      $elementos_webform = $webform->getElementsDecodedAndFlattened();
+      if (is_array($elementos_webform)) {
+        foreach ($elementos_webform as $elem_k => $elem_def) {
+          $k_low = mb_strtolower((string) $elem_k);
+          $titulo_low = mb_strtolower((string) ($elem_def['#title'] ?? ''));
+          $es_pregunta_cuestionario = (
+            preg_match('/^salud_\d+$/', $k_low) ||
+            strpos($k_low, 'condicion') !== FALSE ||
+            strpos($k_low, 'explicacion') !== FALSE ||
+            strpos($k_low, 'valor') !== FALSE
+          );
+          if (!$es_pregunta_cuestionario && (
+            (strpos($k_low, 'salud') !== FALSE && (strpos($k_low, 'interes') !== FALSE || strpos($k_low, 'seguro') !== FALSE || strpos($k_low, 'poliza') !== FALSE)) ||
+            (strpos($titulo_low, 'salud') !== FALSE && (strpos($titulo_low, 'interes') !== FALSE || strpos($titulo_low, 'seguro') !== FALSE))
+          )) {
+            if (isset($raw[$elem_k]) && $raw[$elem_k] !== '' && $raw[$elem_k] !== NULL) {
+              $interesado_salud_val = $raw[$elem_k];
+              break;
+            }
+          }
+        }
+      }
+    }
+    if ($interesado_salud_val === NULL || $interesado_salud_val === '') {
+      foreach ($raw as $k => $v) {
+        $k_lower = mb_strtolower(trim((string) $k));
+        if (
+          strpos($k_lower, 'salud') !== FALSE &&
+          (strpos($k_lower, 'interes') !== FALSE || strpos($k_lower, 'seguro') !== FALSE || strpos($k_lower, 'poliza') !== FALSE) &&
+          strpos($k_lower, 'condicion') === FALSE &&
+          strpos($k_lower, 'explicacion') === FALSE &&
+          strpos($k_lower, 'valor') === FALSE
+        ) {
+          if ($v !== '' && $v !== NULL) {
+            $interesado_salud_val = $v;
+            break;
+          }
+        }
+      }
+    }
+    $interesado_salud = $normalizar_sino($interesado_salud_val);
+    if (empty($interesado_salud) && (!empty($interesado_soat) || !empty($interesado_todo_riesgo) || !empty($interesado_hogar) || !empty($esta_interesado_ampliar_vida))) {
+      $interesado_salud = 'NO';
+    }
+
     // 7. seguros_adicionales:
     $seguros_adicionales = '';
     $raw_seg_adic = $raw['seguros_adicionales'] ?? $raw['seguros_de_interes'] ?? [];
@@ -1446,6 +1516,7 @@ class EquidadReportesController extends ControllerBase {
             'interesado_todo_riesgo', 'interesado_prodepem_todo_riesgo', 'esta_interesado_en_todo_riesgo', 'interesado_en_todo_riesgo', 'interes_todo_riesgo', 'seguro_todo_riesgo', 'todo_riesgo',
             'interesado_prodepem_hogar', 'interesado_hogar', 'esta_interesado_en_hogar', 'interesado_en_hogar', 'interes_hogar', 'seguro_hogar', 'hogar',
             'interesado_prodepem_tecnicomecanica', 'interesado_tecnicomecanica', 'esta_interesado_en_tecnicomecanica', 'tecnicomecanica', 'tecnomecanica',
+            'interesado_salud', 'interesado_prodepem_salud', 'esta_interesado_en_salud', 'interesado_en_salud', 'interes_salud', 'seguro_salud',
             'le_interesaria_recibir_mensaje_de_vencimiento_de_soat_y_tecnome', 'recibir_mensaje_de_vencimiento_de_soat_y_tecnome', 'recibir_mensajes_vencimiento',
             'placa', 'placas', 'numero_placa', 'placa_vehiculo',
             'numero_de_rifa_1', 'numero_de_rifa_2', 'numero_de_rifa', 'numero_rifa', 'rifa', 'boleta'
@@ -1501,6 +1572,7 @@ class EquidadReportesController extends ControllerBase {
       'interesado_todo_riesgo', 'interesado_prodepem_todo_riesgo', 'esta_interesado_en_todo_riesgo', 'interesado_en_todo_riesgo', 'interes_todo_riesgo', 'seguro_todo_riesgo', 'todo_riesgo',
       'interesado_prodepem_hogar', 'interesado_hogar', 'esta_interesado_en_hogar', 'interesado_en_hogar', 'interes_hogar', 'seguro_hogar', 'hogar',
       'interesado_prodepem_tecnicomecanica', 'interesado_tecnicomecanica', 'esta_interesado_en_tecnicomecanica', 'tecnicomecanica', 'tecnomecanica',
+      'interesado_salud', 'interesado_prodepem_salud', 'esta_interesado_en_salud', 'interesado_en_salud', 'interes_salud', 'seguro_salud',
       'le_interesaria_recibir_mensaje_de_vencimiento_de_soat_y_tecnome', 'recibir_mensaje_de_vencimiento_de_soat_y_tecnome', 'recibir_mensajes_vencimiento',
       'seguros_adicionales', 'placa', 'placas', 'numero_placa', 'placa_vehiculo', 'numero_de_rifa_1', 'numero_de_rifa_2', 'numero_de_rifa', 'numero_rifa', 'rifa', 'boleta',
     ];
@@ -1578,13 +1650,14 @@ class EquidadReportesController extends ControllerBase {
       'interesado_todo_riesgo' => $interesado_todo_riesgo,
       'interesado_hogar' => $interesado_hogar,
       'interesado_tecnicomecanica' => $interesado_tecnicomecanica,
+      'interesado_salud' => $interesado_salud,
       'recibir_mensajes_vencimiento' => $recibir_mensajes_vencimiento,
       'seguros_adicionales' => $seguros_adicionales,
       'seguros_adicionales_texto' => $seguros_adicionales,
       'placa' => $placa,
       'numero_de_rifa_1' => $numero_de_rifa_1,
       'numero_de_rifa_2' => $numero_de_rifa_2,
-      'interes_otros' => (!empty($seguros_adicionales) || $interesado_soat === 'SÍ' || $interesado_todo_riesgo === 'SÍ' || $interesado_hogar === 'SÍ' || $interesado_tecnicomecanica === 'SÍ' || $recibir_mensajes_vencimiento === 'SÍ') ? 'SÍ' : 'NO',
+      'interes_otros' => (!empty($seguros_adicionales) || $interesado_soat === 'SÍ' || $interesado_todo_riesgo === 'SÍ' || $interesado_hogar === 'SÍ' || $interesado_tecnicomecanica === 'SÍ' || $interesado_salud === 'SÍ' || $recibir_mensajes_vencimiento === 'SÍ') ? 'SÍ' : 'NO',
       'participa_rifa' => (!empty($numero_de_rifa_1) || !empty($numero_de_rifa_2)) ? 'SÍ' : 'NO',
       'rifa_texto' => trim($numero_de_rifa_1 . (!empty($numero_de_rifa_2) ? ' / ' . $numero_de_rifa_2 : '')),
       'otros_adicionales' => $otros_adicionales_texto,
@@ -1699,6 +1772,7 @@ class EquidadReportesController extends ControllerBase {
         'interesado_todo_riesgo' => $item['interesado_todo_riesgo'],
         'interesado_hogar' => $item['interesado_hogar'],
         'interesado_tecnicomecanica' => $item['interesado_tecnicomecanica'],
+        'interesado_salud' => $item['interesado_salud'],
         'recibir_mensajes_vencimiento' => $item['recibir_mensajes_vencimiento'],
         'seguros_adicionales' => $item['seguros_adicionales'],
         'placa' => $item['placa'],
