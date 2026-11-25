@@ -267,17 +267,24 @@ function prodepem_solicitudes_rtm_form_alter(&$form, FormStateInterface $form_st
     }
   }
 
-  // Check if the form is for 'formulario_equidad_seguros' or 'formulario_equidad_seguros_prode'.
+  // Check if the form is a submission form for 'formulario_equidad_seguros' or 'formulario_equidad_seguros_prode'.
+  $is_submission_form = strpos($form_id, 'webform_submission_') === 0;
   $is_prode_form = (
-    (isset($form['#webform_id']) && $form['#webform_id'] === 'formulario_equidad_seguros_prode') ||
-    strpos($form_id, 'formulario_equidad_seguros_prode') !== FALSE
+    $is_submission_form &&
+    (
+      (isset($form['#webform_id']) && $form['#webform_id'] === 'formulario_equidad_seguros_prode') ||
+      strpos($form_id, 'webform_submission_formulario_equidad_seguros_prode') === 0
+    )
   );
   $is_equidad_form = (
     $is_prode_form ||
-    $form_id === 'webform_submission_formulario_equidad_seguros_add_form' ||
-    $form_id === 'webform_submission_formulario_equidad_seguros_prode_add_form' ||
-    strpos($form_id, 'webform_submission_formulario_equidad_seguros') === 0 ||
-    (isset($form['#webform_id']) && in_array($form['#webform_id'], ['formulario_equidad_seguros', 'formulario_equidad_seguros_prode'], TRUE))
+    (
+      $is_submission_form &&
+      (
+        strpos($form_id, 'webform_submission_formulario_equidad_seguros') === 0 ||
+        (isset($form['#webform_id']) && in_array($form['#webform_id'], ['formulario_equidad_seguros', 'formulario_equidad_seguros_prode'], TRUE))
+      )
+    )
   );
   if ($is_equidad_form) {
     // Attach custom library for styles and gestures.
@@ -462,7 +469,9 @@ function prodepem_solicitudes_rtm_formulario_equidad_after_build($form, FormStat
       }
     }
   };
-  $fix_currency_elements($form);
+  if (isset($form['elements'])) {
+    $fix_currency_elements($form['elements']);
+  }
 
   $clean_selects = function (&$elements) use (&$clean_selects) {
     foreach ($elements as $key => &$child) {
@@ -499,7 +508,9 @@ function prodepem_solicitudes_rtm_formulario_equidad_after_build($form, FormStat
     }
   };
 
-  $clean_selects($form);
+  if (isset($form['elements'])) {
+    $clean_selects($form['elements']);
+  }
   return $form;
 }
 
