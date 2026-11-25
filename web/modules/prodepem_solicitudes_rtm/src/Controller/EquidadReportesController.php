@@ -1705,7 +1705,7 @@ class EquidadReportesController extends ControllerBase {
     $salud_def = self::getDefinicionCamposSalud();
     $salud_respuestas = [];
     $num = 1;
-    $webform = $submission->getWebform();
+    $webform = $sub->getWebform();
     foreach ($salud_def as $campo_key => $info) {
       $titulo = $info['titulo'];
       if ($webform) {
